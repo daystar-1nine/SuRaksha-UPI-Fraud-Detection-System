@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>About SuRaksha - Securing Your Digital Payments</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-surface-variant": "#c2c6d6",
+                      "on-tertiary-fixed-variant": "#7e2c00",
+                      "on-secondary-fixed": "#261a00",
+                      "on-primary-fixed": "#001945",
+                      "on-primary-container": "#dae2ff",
+                      "inverse-surface": "#e1e2ec",
+                      "on-error-container": "#ffdad6",
+                      "primary-fixed-dim": "#b0c6ff",
+                      "on-secondary": "#3f2e00",
+                      "error-container": "#93000a",
+                      "on-surface": "#e1e2ec",
+                      "on-secondary-fixed-variant": "#5b4300",
+                      "primary": "#b0c6ff",
+                      "background": "#11131a",
+                      "surface-container-high": "#272a31",
+                      "tertiary-fixed-dim": "#ffb597",
+                      "inverse-on-surface": "#2e3038",
+                      "tertiary-fixed": "#ffdbcd",
+                      "secondary-container": "#fabd00",
+                      "on-background": "#e1e2ec",
+                      "on-primary-fixed-variant": "#00419d",
+                      "error": "#ffb4ab",
+                      "surface-container-low": "#191b23",
+                      "on-secondary-container": "#6a4e00",
+                      "primary-container": "#0b5ed7",
+                      "outline-variant": "#424654",
+                      "outline": "#8c909f",
+                      "surface-variant": "#32343c",
+                      "secondary-fixed-dim": "#fabd00",
+                      "on-error": "#690005",
+                      "secondary-fixed": "#ffdf9e",
+                      "on-tertiary": "#591d00",
+                      "secondary": "#ffdf9e",
+                      "surface-container": "#1d1f27",
+                      "surface-tint": "#b0c6ff",
+                      "on-tertiary-fixed": "#360f00",
+                      "surface-bright": "#373941",
+                      "tertiary": "#ffb597",
+                      "surface-dim": "#11131a",
+                      "surface-container-highest": "#32343c",
+                      "inverse-primary": "#0057cc",
+                      "surface-container-lowest": "#0c0e15",
+                      "on-tertiary-container": "#ffdccf",
+                      "tertiary-container": "#b04100",
+                      "surface": "#11131a",
+                      "on-primary": "#002c6f",
+                      "primary-fixed": "#d9e2ff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "lg": "1.5rem",
+                      "sm": "0.5rem",
+                      "xl": "2.5rem",
+                      "xxl": "4rem",
+                      "xs": "0.25rem",
+                      "md": "1rem"
+              },
+              "fontFamily": {
+                      "headline-lg": ["Plus Jakarta Sans"],
+                      "label-sm": ["Inter"],
+                      "body-md": ["Inter"],
+                      "headline-md": ["Plus Jakarta Sans"],
+                      "display-lg": ["Plus Jakarta Sans"],
+                      "label-md": ["Inter"],
+                      "body-lg": ["Inter"]
+              },
+              "fontSize": {
+                      "headline-lg": ["32px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                      "label-sm": ["12px", {"lineHeight": "1.2", "fontWeight": "600"}],
+                      "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                      "headline-md": ["24px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                      "display-lg": ["48px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "label-md": ["14px", {"lineHeight": "1.2", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                      "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        .glass-effect {
+            background: rgba(17, 19, 26, 0.8);
+            backdrop-filter: blur(12px);
+        }
+        .bento-card {
+            background: #111827;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+        .bento-card:hover {
+            border-color: rgba(11, 94, 215, 0.3);
+            transform: translateY(-4px);
+        }
+        .status-accent-blue { border-top: 4px solid #0B5ED7; }
+        .status-accent-yellow { border-top: 4px solid #FFC107; }
+        .gradient-scan {
+            background: linear-gradient(180deg, rgba(11, 94, 215, 0.1) 0%, rgba(11, 94, 215, 0) 100%);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-md">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md border-b border-outline-variant/10 shadow-sm h-20">
+<div class="flex justify-between items-center px-lg md:px-xl max-w-7xl mx-auto h-full">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary text-headline-md" data-weight="fill">shield</span>
+<span class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed">SuRaksha</span>
+</div>
+<nav class="hidden md:flex items-center gap-xl">
+<a href="index.html" class="text-on-surface-variant hover:text-primary">Home</a>
+
+<a href="features.html" class="text-on-surface-variant hover:text-primary">Features</a>
+
+<a href="how.html" class="text-on-surface-variant hover:text-primary">How It Works</a>
+
+<a href="about.html" class="text-primary border-b-2 border-primary pb-1">About</a>
+</nav>
+<div class="flex items-center gap-md">
+
+  <button id="theme-toggle"
+    class="p-2 hover:bg-surface-variant/20 rounded-lg transition-all">
+
+    <span id="theme-icon"
+      class="material-symbols-outlined text-primary">
+      dark_mode
+    </span>
+
+  </button>
+
+  <button onclick="window.location.href='index.html'"
+  class="bg-primary-container text-on-primary-container px-lg py-sm rounded-xl font-label-md">
+  Scan Now
+</button>
+
+</div>
+</div>
+</header>
+<main class="pt-xxl px-lg max-w-7xl mx-auto space-y-xxl">
+<!-- Hero Section -->
+<section class="max-w-7xl mx-auto px-lg md:px-xl py-xl text-center">
+<h1 class="font-display-lg text-display-lg mb-md bg-gradient-to-r from-primary to-secondary-fixed-dim bg-clip-text text-transparent">About SuRaksha</h1>
+<p class="font-headline-md text-headline-md text-on-surface-variant max-w-3xl mx-auto">Building a safer digital payment ecosystem by preventing UPI fraud in real-time.</p>
+</section>
+<!-- Quick AI Demo -->
+<section class="max-w-4xl mx-auto text-center py-xl">
+
+  <h2 class="text-headline-md font-bold mb-md">
+    Try SuRaksha AI Instantly
+  </h2>
+
+  <p class="text-on-surface-variant mb-lg">
+    Paste a suspicious payment message and test our AI fraud detector.
+  </p>
+
+  <div class="flex flex-col md:flex-row gap-md justify-center">
+
+    <input
+      id="demoInput"
+      type="text"
+      placeholder="Try: Your account will be blocked..."
+      class="px-4 py-3 rounded-xl w-full md:w-[500px]
+             bg-surface-container-high
+             text-on-surface
+             border border-outline
+             placeholder:text-on-surface-variant"
+             />
+
+    <button
+      onclick="quickAnalyze()"
+      class="bg-primary text-white px-6 py-3 rounded-xl font-bold hover:scale-105 transition-all">
+
+      Test AI
+
+    </button>
+
+  </div>
+
+  <!-- Result -->
+  <div id="demoResult"
+     class="hidden mt-lg text-lg font-bold">
+  </div>
+
+</section>
+<!-- Problem Section (Asymmetric Layout) -->
+<section class="max-w-7xl mx-auto px-lg md:px-xl py-xxl">
+<div class="grid md:grid-cols-2 gap-xl items-center">
+<div class="order-2 md:order-1">
+<h2 class="font-headline-lg text-headline-lg mb-lg flex items-center gap-sm text-error">
+<span class="material-symbols-outlined">warning</span> The Problem
+                    </h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant mb-md leading-relaxed">
+                        As digital payments explode in India, so does the sophistication of cybercrime. UPI fraud has evolved from simple phishing to complex psychological manipulation.
+                    </p>
+<ul class="space-y-md">
+<li class="flex items-start gap-md">
+<span class="material-symbols-outlined text-secondary-container">dangerous</span>
+<div>
+<span class="font-bold text-on-surface">Fake QR Codes:</span> Manipulated stickers in physical stores that divert funds to scammers.
+                            </div>
+</li>
+<li class="flex items-start gap-md">
+<span class="material-symbols-outlined text-secondary-container">receipt_long</span>
+<div>
+<span class="font-bold text-on-surface">Screenshot Scams:</span> Forged transaction records used to deceive merchants into believing payment was made.
+                            </div>
+</li>
+<li class="flex items-start gap-md">
+<span class="material-symbols-outlined text-secondary-container">sms_failed</span>
+<div>
+<span class="font-bold text-on-surface">Phishing Messages:</span> Deceptive SMS and WhatsApp alerts mimicking bank notifications to steal credentials.
+                            </div>
+</li>
+</ul>
+</div>
+<div class="order-1 md:order-2 relative">
+<div class="rounded-xl overflow-hidden shadow-2xl border border-outline-variant/20">
+<img class="w-full h-[400px] object-cover" data-alt="A dark, cinematic close-up of a person holding a smartphone showing a suspicious glowing QR code in a bustling night market. The atmosphere is tense with blue and amber neon lights reflecting off the phone screen, creating a high-tech cybersecurity mood. The composition focuses on the digital interface against a blurred urban background, emphasizing the hidden dangers of modern digital payments." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBMrVXJl4SfZ1BO4bY6Ss8uO4LOHGvkRYDt8lzONzhdU9xBTsZ89fYAFCxOQuUK-hYl9DAtg333iX9xEOAj69_pmcnRU-XgskFR5kA6_cOCzGIgetXN2QZyrOwgNfpH1z6HiLxP3qUN589RxSEzuvGtf8Exueb8Y06QXOAN2xd60Zo6Ntw2b8rQ1LcGXcvPsyRlPBSa7Nr6hjfqCy2BeGroTYXjMpChuBbFHMZtBtV7xuuvTDDnQ791hpNUev-B7Dyf9qWMIrER1eri"/>
+</div>
+<div class="absolute -bottom-6 -left-6 bg-surface-container-high p-lg rounded-xl border border-outline-variant/30 shadow-xl max-w-xs">
+<p class="text-error font-bold text-label-md mb-xs">ALERT DETECTED</p>
+<p class="text-on-surface-variant text-label-sm">Suspicious VPA destination detected in scanned QR code.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Solution Section (The Glass Layer) -->
+<section class="relative bg-surface-container-lowest py-xxl overflow-hidden">
+<div class="absolute inset-0 gradient-scan opacity-20"></div>
+<div class="max-w-7xl mx-auto px-lg md:px-xl relative z-10">
+<div class="text-center mb-xl">
+<h2 class="font-headline-lg text-headline-lg mb-md">Our Solution</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl mx-auto">SuRaksha acts as a protective shield between your wallet and potential threats using advanced AI detection.</p>
+</div>
+<div class="grid md:grid-cols-2 gap-lg">
+<div class="bento-card p-xl rounded-xl status-accent-blue flex flex-col justify-center">
+<span class="material-symbols-outlined text-primary text-xxl mb-md">psychology</span>
+<h3 class="font-headline-md text-headline-md mb-sm">AI-Powered Analysis</h3>
+<p class="text-on-surface-variant">Our proprietary neural network analyzes transaction metadata, visual cues in screenshots, and linguistic patterns in messages to identify fraud signatures before they impact you.</p>
+</div>
+<div class="grid grid-cols-1 gap-lg">
+<div class="bento-card p-lg rounded-xl flex items-center gap-lg">
+<div class="bg-primary/10 p-md rounded-lg">
+<span class="material-symbols-outlined text-primary">timer</span>
+</div>
+<div>
+<h4 class="font-bold text-on-surface">Real-Time Alerts</h4>
+<p class="text-label-md text-on-surface-variant">Instant risk assessment during the payment flow.</p>
+</div>
+</div>
+<div class="bento-card p-lg rounded-xl flex items-center gap-lg">
+<div class="bg-primary/10 p-md rounded-lg">
+<span class="material-symbols-outlined text-primary">verified_user</span>
+</div>
+<div>
+<h4 class="font-bold text-on-surface">Trusted Directory</h4>
+<p class="text-label-md text-on-surface-variant">Global database of verified merchant VPAs and blacklisted accounts.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Features Summary (Bento Grid) -->
+<section class="max-w-7xl mx-auto px-lg md:px-xl py-xxl">
+<h2 class="font-headline-lg text-headline-lg text-center mb-xl">Powerful Protection Features</h2>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-lg">
+<div class="bento-card p-lg rounded-xl text-center">
+<span class="material-symbols-outlined text-primary text-xxl mb-sm">qr_code_scanner</span>
+<h3 class="font-bold mb-xs">QR Scanner</h3>
+<p class="text-label-md text-on-surface-variant">Deep-scan physical QR stickers for tampering or redirection.</p>
+</div>
+<div class="bento-card p-lg rounded-xl text-center">
+<span class="material-symbols-outlined text-primary text-xxl mb-sm">screenshot_region</span>
+<h3 class="font-bold mb-xs">Screenshot Detection</h3>
+<p class="text-label-md text-on-surface-variant">Verify the authenticity of digital payment confirmations.</p>
+</div>
+<div class="bento-card p-lg rounded-xl text-center">
+<span class="material-symbols-outlined text-primary text-xxl mb-sm">mail_lock</span>
+<h3 class="font-bold mb-xs">Message Analysis</h3>
+<p class="text-label-md text-on-surface-variant">Flag fraudulent SMS links and urgent 'action required' traps.</p>
+</div>
+<div class="bento-card p-lg rounded-xl text-center">
+<span class="material-symbols-outlined text-primary text-xxl mb-sm">speed</span>
+<h3 class="font-bold mb-xs">Risk Score</h3>
+<p class="text-label-md text-on-surface-variant">Get a 1-100 safety rating for every transaction request.</p>
+</div>
+</div>
+</section>
+<!-- Why It Matters -->
+<section class="bg-surface-container py-xxl">
+<div class="max-w-7xl mx-auto px-lg md:px-xl grid md:grid-cols-2 gap-xl items-center">
+<div class="relative rounded-xl overflow-hidden">
+<img class="w-full h-[400px] object-cover" data-alt="A brightly lit, safe-feeling modern retail environment where a customer is confidently using their phone to make a payment. The scene is warm and professional, highlighting financial security and consumer trust. Subtle blue geometric overlays suggest digital protection layers working in the background, creating a mood of reliability and peace of mind." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCmwEAU9ubhkigUfVnXPa7rHMpircqp5A12WnQyvCH7mLFwUmuZYhO3OfwRxi_ZNuz2ahQ4DNAon93vgin26NKp6xap0Z5ofXL-KAWrmcIkJxRqOEu8FA2bIBMMIhmgMt5ZfeBL8kq1eV4X8hYuH03cN3sRlUjT82Ipm1tunGDSDLa6cKJUZaW2xCif7yDHoSHNsua0Ie8Pz9qHNKSt54fc5q22Bo4oX-1lVvliVIohvaO3Is6ZzOT2Dc10vuc7q66NeYuEodjebTsq"/>
+</div>
+<div>
+<h2 class="font-headline-lg text-headline-lg mb-lg">Why SuRaksha Matters</h2>
+<div class="space-y-xl">
+<div>
+<h3 class="text-primary font-bold text-headline-md mb-xs">Preventing Financial Loss</h3>
+<p class="text-on-surface-variant">Millions are lost daily to preventable payment scams. SuRaksha provides the final safety check that prevents life-changing losses for individuals and small businesses.</p>
+</div>
+<div>
+<h3 class="text-secondary-container font-bold text-headline-md mb-xs">Building Digital Trust</h3>
+<p class="text-on-surface-variant">For India to achieve its trillion-dollar digital economy goals, users must feel safe. We bridge the trust gap by making every scan a confident one.</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Team Section -->
+<section class="max-w-7xl mx-auto px-lg md:px-xl py-xxl">
+<div class="text-center mb-xl">
+<h2 class="font-headline-lg text-headline-lg mb-md">The Team</h2>
+<p class="text-on-surface-variant">Built for Hackathon 2024 by a team of dedicated students passionate about cybersecurity.</p>
+</div>
+<div class="flex flex-wrap justify-center gap-xl">
+<div class="text-center">
+<div class="w-32 h-32 rounded-full bg-surface-variant border-2 border-primary mx-auto mb-md flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-xxl">person</span>
+</div>
+<h4 class="font-bold">Team Member 1</h4>
+<p class="text-label-sm text-on-surface-variant">Lead Developer</p>
+</div>
+<div class="text-center">
+<div class="w-32 h-32 rounded-full bg-surface-variant border-2 border-primary mx-auto mb-md flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-xxl">person</span>
+</div>
+<h4 class="font-bold">Team Member 2</h4>
+<p class="text-label-sm text-on-surface-variant">UI/UX Designer</p>
+</div>
+<div class="text-center">
+<div class="w-32 h-32 rounded-full bg-surface-variant border-2 border-primary mx-auto mb-md flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-xxl">person</span>
+</div>
+<h4 class="font-bold">Team Member 3</h4>
+<p class="text-label-sm text-on-surface-variant">AI Research</p>
+</div>
+<div class="text-center">
+<div class="w-32 h-32 rounded-full bg-surface-variant border-2 border-primary mx-auto mb-md flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-xxl">person</span>
+</div>
+<h4 class="font-bold">Team Member 4</h4>
+<p class="text-label-sm text-on-surface-variant">Security Analyst</p>
+</div>
+</div>
+</section>
+
+<!-- CTA Section -->
+<section class="max-w-7xl mx-auto px-lg md:px-xl mb-xxl">
+
+  <div class="bg-primary p-xl md:p-xxl rounded-[24px] text-center text-on-primary shadow-2xl relative overflow-hidden">
+
+    <!-- Decorative Glow -->
+    <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32"></div>
+
+    <!-- Content -->
+    <div class="relative z-10">
+
+      <h2 class="font-display-lg text-display-lg mb-md">
+        Stay Safe. Scan Before You Pay.
+      </h2>
+
+      <p class="font-body-lg text-body-lg mb-xl opacity-90 max-w-xl mx-auto">
+        Join thousands of users who have secured their digital wallet
+        with SuRaksha's real-time threat detection.
+      </p>
+
+      <!-- Buttons -->
+      <div class="flex flex-col md:flex-row gap-md justify-center">
+
+        <!-- Start Scanning -->
+        <button
+          onclick="window.location.href='index.html'"
+          class="bg-secondary-container text-on-secondary-container
+                 px-xl py-md rounded-xl font-bold
+                 flex items-center justify-center gap-sm
+                 hover:scale-105 transition-transform duration-300">
+
+          <span class="material-symbols-outlined">
+            qr_code_scanner
+          </span>
+
+          Start Scanning
+        </button>
+
+        <!-- Learn More -->
+        <button
+          onclick="window.location.href='features.html'"
+          class="bg-on-primary text-primary
+                 px-xl py-md rounded-xl font-bold
+                 border border-primary-container
+                 hover:bg-primary-container
+                 hover:text-on-primary-container
+                 transition-colors duration-300">
+
+          Learn More
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-surface-container-lowest border-t border-outline-variant/10 w-full">
+<div class="flex flex-col md:flex-row justify-between items-center py-xl px-lg md:px-xl max-w-7xl mx-auto">
+<div class="flex items-center gap-sm mb-lg md:mb-0">
+<span class="material-symbols-outlined text-primary text-headline-md">shield</span>
+<span class="font-headline-md text-headline-md text-primary">SuRaksha</span>
+</div>
+<div class="flex flex-wrap justify-center gap-lg mb-lg md:mb-0">
+<a class="text-on-surface-variant hover:text-primary transition-colors font-label-sm text-label-sm hover:underline decoration-primary" href="#">Privacy Policy</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-label-sm text-label-sm hover:underline decoration-primary" href="#">Terms of Service</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-label-sm text-label-sm hover:underline decoration-primary" href="#">Security Audit</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-label-sm text-label-sm hover:underline decoration-primary" href="#">Contact Support</a>
+</div>
+<p class="text-on-surface-variant font-body-md text-body-md opacity-80">© 2024 SuRaksha. All rights reserved.</p>
+</div>
+</footer>
+<script>
+
+const API_BASE = window.location.origin;
+document.addEventListener("DOMContentLoaded", () => {
+
+  const input = document.getElementById("demoInput");
+
+  input.addEventListener("keypress", (e) => {
+
+    if (e.key === "Enter") {
+      quickAnalyze();
+    }
+
+  });
+
+});
+
+async function quickAnalyze() {
+
+  const text =
+    document.getElementById("demoInput").value.trim();
+
+  const result =
+    document.getElementById("demoResult");
+
+  if (!text) {
+
+    result.classList.remove("hidden");
+
+    result.innerHTML = `
+      <span class="text-red-500">
+        Enter suspicious message first
+      </span>
+    `;
+
+    return;
+  }
+
+  result.classList.remove("hidden");
+
+  result.innerHTML = `
+    <span class="text-yellow-400 animate-pulse">
+  🔍 Analyzing threat...
+    </span>
+  `;
+
+  try {
+
+    const res = await fetch(`${API_BASE}/analyze/message`, {
+
+      method: "POST",
+
+      headers: {
+        "Content-Type": "application/json"
+      },
+
+      body: JSON.stringify({
+        text,
+        intent: "pay"
+      })
+    });
+
+    const data = await res.json();
+
+    console.log("ABOUT PAGE AI RESPONSE:", data);
+
+    const colors = {
+      CRITICAL: "text-red-500",
+      HIGH: "text-orange-400",
+      MEDIUM: "text-yellow-400",
+      LOW: "text-green-400"
+    };
+
+    result.innerHTML = `
+      <div class="${colors[data.risk_level] || "text-gray-400"}">
+
+        <div class="text-2xl font-bold mb-2">
+          ${data.risk_level}
+        </div>
+
+        <div class="text-lg">
+          Risk Score: ${data.risk_score}/100
+        </div>
+
+        <div class="text-sm text-on-surface-variant mt-2">
+          ${(data.reasons || []).join(" • ")}
+        </div>
+
+      </div>
+    `;
+
+  } catch (err) {
+
+    console.error(err);
+
+    result.innerHTML = `
+      <span class="text-red-500">
+        Backend not connected ❌
+      </span>
+    `;
+  }
+}
+
+</script>
+<script>
+  const toggleBtn = document.getElementById("theme-toggle");
+  const icon = document.getElementById("theme-icon");
+
+  // Load saved theme
+  if (localStorage.getItem("theme") === "dark") {
+    document.documentElement.classList.add("dark");
+    icon.textContent = "light_mode";
+  }
+
+  toggleBtn.addEventListener("click", () => {
+    document.documentElement.classList.toggle("dark");
+
+    if (document.documentElement.classList.contains("dark")) {
+      localStorage.setItem("theme", "dark");
+      icon.textContent = "light_mode";
+    } else {
+      localStorage.setItem("theme", "light");
+      icon.textContent = "dark_mode";
+    }
+  });
+  
+</script>
+</body></html>

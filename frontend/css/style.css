@@ -1,0 +1,75 @@
+/* ===============================
+   🎯 INTENT BUTTON (Modern UI)
+================================ */
+
+.intent-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 10px 20px;
+  border-radius: 10px;
+
+  border: 2px solid #0b5ed7;
+  background: transparent;
+  color: #0b5ed7;
+
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+
+  cursor: pointer;
+  transition: all 0.25s ease;
+
+  position: relative;
+  overflow: hidden;
+}
+
+
+/* -------------------------------
+   ✨ Hover Effect
+-------------------------------- */
+.intent-btn:hover {
+  transform: translateY(-2px) scale(1.05);
+  background: rgba(11, 94, 215, 0.08);
+  box-shadow: 0 8px 20px rgba(11, 94, 215, 0.25);
+}
+
+
+/* -------------------------------
+   🔵 Active / Selected State
+-------------------------------- */
+.intent-btn.active {
+  background: linear-gradient(135deg, #0b5ed7, #3b82f6);
+  color: #fff;
+  border-color: transparent;
+
+  box-shadow: 0 10px 25px rgba(11, 94, 215, 0.4);
+}
+
+
+/* -------------------------------
+   💥 Click Animation
+-------------------------------- */
+.intent-btn:active {
+  transform: scale(0.95);
+}
+
+
+/* -------------------------------
+   🌊 Ripple Effect (Bonus)
+-------------------------------- */
+.intent-btn::after {
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.2);
+  top: 0;
+  left: -100%;
+  transition: 0.4s;
+}
+
+.intent-btn:hover::after {
+  left: 0;
+}
