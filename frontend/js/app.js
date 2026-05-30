@@ -39,6 +39,9 @@ function selectIntent(intent) {
     });
 
     const UI = {
+        qrTitle: $("qrTitle"),
+        qrSubtitle: $("qrSubtitle"),
+        uploadQRSection: $("uploadQRSection"),
         scanText: $("scanText"),
         scanStatus: $("scanStatus"),
         payCard: $("payCard"),
@@ -54,9 +57,15 @@ function selectIntent(intent) {
     [UI.payCard, UI.receiveCard].forEach(el => el?.classList.remove("border-primary", "border-2"));
 
     toggle(UI.reader, false);
+    toggle($("scannerWrapper"), false);
     toggle(UI.qr, false);
 
     if (intent === "pay") {
+
+        safeText(UI.qrTitle, "Scan QR Code");
+        safeText(UI.qrSubtitle, "Scan live QR or upload from gallery");
+        toggle(UI.uploadQRSection, true);
+        toggle(UI.scanText, true);
 
         safeText(UI.scanText, "Align QR code within the frame");
         UI.scanStatus.style.display = "block";
@@ -65,12 +74,17 @@ function selectIntent(intent) {
         UI.payCard?.classList.add("border-primary", "border-2");
 
         toggle(UI.reader, true);
+        toggle($("scannerWrapper"), true);
 
         startScanner();
 
     } else {
 
-        safeText(UI.scanText, "Show this QR to receive money");
+        safeText(UI.qrTitle, "Receive Money");
+        safeText(UI.qrSubtitle, "Show this QR to the sender to receive money safely");
+        toggle(UI.uploadQRSection, false);
+        toggle(UI.scanText, false); // Hide duplicate/out-of-place scan description
+
         UI.scanStatus.style.display = "none";
 
         UI.receiveTick?.classList.remove("hidden");
@@ -288,8 +302,24 @@ document.addEventListener("DOMContentLoaded", () => {
 // -----------------------------
 // 🎬 RESULT POPUP
 // -----------------------------
-function showResultPopup(data) {
-    
+function showResultPopup(apiResponse) {
+    if (!apiResponse || !apiResponse.success || !apiResponse.data) {
+        console.warn("Skipping result popup: Invalid or unsuccessful API response.", apiResponse);
+        return;
+    }
+    const analysis = apiResponse.data.analysis;
+    if (!analysis) {
+        console.warn("Skipping result popup: Missing analysis content.", apiResponse);
+        return;
+    }
+    const data = {
+        risk_score: analysis.risk?.risk_score ?? analysis.risk_score,
+        risk_level: (analysis.risk?.risk_level ?? analysis.risk_level ?? "SAFE").toUpperCase(),
+        fraud_type: analysis.fraud?.fraud_type ?? analysis.fraud_type ?? "General",
+        detected_action: analysis.detected_action?.action ?? analysis.detected_action ?? "-",
+        fraud_confidence: analysis.confidence ?? analysis.fraud_confidence,
+        reasons: analysis.analysis?.reasons ?? analysis.reasons ?? []
+    };
 
     const popup = $("resultPopup");
     if (!popup) return;
@@ -415,15 +445,71 @@ function showResultPopup(data) {
 
     }
 
+    // -----------------------------
+    // 💳 UPI PAYMENT LINK GENERATION 🔥
+    // -----------------------------
+    const parsed = apiResponse.data?.qr?.parsed || {};
+    const pa = (parsed.pa && parsed.pa[0]) || "";
+    const pn = (parsed.pn && parsed.pn[0]) || "Recipient";
+    const am = (parsed.am && parsed.am[0]) || "";
+    const tn = (parsed.tn && parsed.tn[0]) || "SuRaksha Verified";
+
+    let upiLink = "upi://pay?pa=" + encodeURIComponent(pa);
+    if (pn) upiLink += "&pn=" + encodeURIComponent(pn);
+    if (am) upiLink += "&am=" + encodeURIComponent(am);
+    if (tn) upiLink += "&tn=" + encodeURIComponent(tn);
+    upiLink += "&cu=INR";
+
+    // Set links on app buttons
+    const btnProceedPay = $("btnProceedPay");
+    if (btnProceedPay) {
+        if (data.risk_level === "CRITICAL" || data.risk_level === "HIGH") {
+            btnProceedPay.innerText = "Bypass Warning & Pay Anyway";
+            btnProceedPay.className = "w-full bg-gradient-to-r from-yellow-600 to-amber-700 hover:from-amber-700 hover:to-yellow-600 active:scale-[0.99] text-white py-3.5 rounded-xl font-bold tracking-wide transition-all shadow-lg shadow-yellow-600/10 cursor-pointer text-center text-sm uppercase";
+        } else {
+            btnProceedPay.innerText = "Proceed to Pay";
+            btnProceedPay.className = "w-full bg-gradient-to-r from-primary to-blue-600 hover:from-blue-600 hover:to-primary active:scale-[0.99] text-white py-3.5 rounded-xl font-bold tracking-wide transition-all shadow-lg shadow-primary/20 cursor-pointer text-center text-sm uppercase";
+        }
+    }
+
+    const appIds = ["payGPay", "payPhonePe", "payPaytm", "payBHIM"];
+    appIds.forEach(id => {
+        const el = $(id);
+        if (el) el.href = upiLink;
+    });
+
+    togglePaymentDrawer(false);
+
     console.log("Popup Data:", data);
 }
 
 
-// -----------------------------
-// ❌ CLOSE POPUP
-// -----------------------------
+function togglePaymentDrawer(show) {
+    const drawer = $("paymentDrawer");
+    const actions = $("popupActions");
+    if (drawer) drawer.classList.toggle("hidden", !show);
+    if (actions) actions.classList.toggle("hidden", show);
+}
+
+function simulatePaymentLaunch(appName) {
+    const loader = $("loader");
+    if (loader) {
+        const p = loader.querySelector("p");
+        if (p) p.innerText = "Redirecting to " + appName + "...";
+        loader.classList.remove("hidden");
+        setTimeout(() => {
+            loader.classList.add("hidden");
+            if (p) p.innerText = "Analyzing... AI is checking fraud";
+        }, 1500);
+    }
+}
+
 function closePopup() {
-    $("resultPopup")?.classList.add("hidden");
+    const popup = $("resultPopup");
+    if (popup) {
+        popup.classList.add("hidden");
+        popup.classList.remove("flex");
+    }
 }
 
 

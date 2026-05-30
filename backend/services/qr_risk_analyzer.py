@@ -59,6 +59,28 @@ def analyze_qr_risk(parsed_data):
     note = normalize((parsed_data.get("tn") or [""])[0])
     amount = (parsed_data.get("am") or [""])[0]
 
+    # -------------------------------
+    # 0. DATABASE COMPLAINT CHECK (Scam Complaints Blacklist) 🔥
+    # -------------------------------
+    from services.history_store import get_upi_count
+    
+    complaint_count = get_upi_count(upi_id) if upi_id else 0
+    if complaint_count > 0:
+        signals.append(make_signal(
+            "database_blacklist",
+            10,  # Max threat score
+            0.99, # Max confidence
+            f"Database Blacklist: Scammed UPI address reported {complaint_count} times inside SuRaksha's database."
+        ))
+        return {
+            "risk_score": 100,
+            "risk_level": "CRITICAL",
+            "confidence": 0.99,
+            "suspicious": True,
+            "signals": signals,
+            "reasons": [s["reason"] for s in signals]
+        }
+
     combined_text = f"{upi_id} {payee_name} {note}"
 
     # -------------------------------

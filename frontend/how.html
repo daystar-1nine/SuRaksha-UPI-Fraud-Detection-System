@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 
-<html class="dark" lang="en"><head>
+<html class="dark" lang="en">
+<head>
+<script>
+  if (localStorage.getItem("theme") === "light") {
+    document.documentElement.classList.remove("dark");
+  } else {
+    document.documentElement.classList.add("dark");
+  }
+</script>
+<script src="js/theme.js" defer></script>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>How It Works - SuRaksha Security</title>
@@ -14,53 +23,58 @@
         theme: {
           extend: {
             "colors": {
-                    "primary-fixed-dim": "#b0c6ff",
-                    "on-secondary": "#3f2e00",
-                    "on-error-container": "#ffdad6",
-                    "primary": "#b0c6ff",
-                    "outline": "#8c909f",
-                    "on-primary-container": "#dae2ff",
-                    "surface-variant": "#32343c",
-                    "inverse-primary": "#0057cc",
-                    "surface-tint": "#b0c6ff",
-                    "surface-container-highest": "#32343c",
-                    "surface-dim": "#11131a",
-                    "tertiary-fixed": "#ffdbcd",
-                    "on-error": "#690005",
-                    "on-background": "#e1e2ec",
-                    "surface-container-low": "#191b23",
-                    "on-tertiary": "#591d00",
-                    "on-secondary-fixed": "#261a00",
-                    "tertiary": "#ffb597",
-                    "on-tertiary-container": "#ffdccf",
-                    "surface-container": "#1d1f27",
-                    "secondary": "#ffdf9e",
-                    "outline-variant": "#424654",
-                    "on-tertiary-fixed-variant": "#7e2c00",
+                    background: "var(--background)",
+                    "on-background": "var(--on-background)",
+                    surface: "var(--surface)",
+                    "on-surface": "var(--on-surface)",
+                    "surface-container": "var(--surface-container)",
+                    "surface-container-low": "var(--surface-container-low)",
+                    "surface-container-high": "var(--surface-container-high)",
+                    "surface-container-lowest": "var(--surface-container-lowest)",
+                    "surface-container-highest": "var(--surface-container-highest)",
+                    "surface-variant": "var(--surface-variant)",
+                    "outline-variant": "var(--outline-variant)",
+                    outline: "var(--outline)",
+                    "on-surface-variant": "var(--on-surface-variant)",
+                    "surface-dim": "var(--surface-dim)",
+                    
+                    primary: "rgb(var(--primary-rgb) / <alpha-value>)",
+                    secondary: "rgb(var(--secondary-rgb) / <alpha-value>)",
+                    error: "rgb(var(--error-rgb) / <alpha-value>)",
+                    success: "rgb(var(--success-rgb) / <alpha-value>)",
+
+                    "dark-background": "#070a13",
+                    "dark-on-surface": "#f1f5f9",
+
                     "secondary-fixed": "#ffdf9e",
-                    "on-secondary-container": "#6a4e00",
-                    "error": "#ffb4ab",
-                    "primary-container": "#0b5ed7",
-                    "inverse-surface": "#e1e2ec",
-                    "on-primary": "#002c6f",
+                    "inverse-primary": "#0057cc",
+                    "on-secondary-fixed": "#261a00",
+                    "on-secondary": "#3f2e00",
+                    "on-tertiary-container": "#ffdccf",
+                    "on-secondary-fixed-variant": "#5b4300",
+                    "on-primary-fixed-variant": "#00419d",  
                     "secondary-fixed-dim": "#fabd00",
-                    "background": "#11131a",
                     "tertiary-fixed-dim": "#ffb597",
                     "inverse-on-surface": "#2e3038",
-                    "tertiary-container": "#b04100",
-                    "on-surface": "#e1e2ec",
-                    "secondary-container": "#fabd00",
-                    "on-primary-fixed-variant": "#00419d",
+                    "on-secondary-container": "var(--on-secondary-container)",
+                    "on-tertiary": "#591d00",
+                    "tertiary-fixed": "#ffdbcd",
+                    "inverse-surface": "#e1e2ec",
                     "surface-bright": "#373941",
-                    "error-container": "#93000a",
-                    "surface-container-lowest": "#0c0e15",
-                    "surface-container-high": "#272a31",
-                    "on-tertiary-fixed": "#360f00",
-                    "on-secondary-fixed-variant": "#5b4300",
-                    "surface": "#11131a",
+                    "on-error": "#690005",
+                    "error-container": "var(--error-container)",
+                    "on-primary-container": "var(--on-primary-container)",
+                    "on-error-container": "#ffdad6",
+                    "primary-container": "var(--primary-container)",
+                    "tertiary-container": "#b04100",
                     "primary-fixed": "#d9e2ff",
-                    "on-surface-variant": "#c2c6d6",
-                    "on-primary-fixed": "#001945"
+                    "primary-fixed-dim": "#b0c6ff",
+                    "on-tertiary-fixed-variant": "#7e2c00",
+                    "on-primary-fixed": "#001945",
+                    "on-tertiary-fixed": "#360f00",
+                    "secondary-container": "var(--secondary-container)",
+                    "tertiary": "#ffb597",
+                    "surface-tint": "#b0c6ff",
             },
             "borderRadius": {
                     "DEFAULT": "0.25rem",
@@ -99,11 +113,73 @@
       }
     </script>
 <style>
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        :root {
+            --background: #f8fafc;
+            --on-background: #0f172a;
+            --surface: #ffffff;
+            --on-surface: #0f172a;
+            --surface-container: #f1f5f9;
+            --surface-container-low: #f8fafc;
+            --surface-container-high: #e2e8f0;
+            --surface-container-lowest: #ffffff;
+            --surface-container-highest: #cbd5e1;
+            --surface-variant: #e2e8f0;
+            --outline-variant: #cbd5e1;
+            --outline: #64748b;
+            --on-surface-variant: #475569;
+            --surface-dim: #f1f5f9;
+            --header-bg: rgba(248, 250, 252, 0.8);
+
+            --primary-rgb: 11 94 215;
+            --secondary-rgb: 217 119 6;
+            --error-rgb: 220 53 69;
+            --success-rgb: 16 185 129;
         }
+
+        .dark {
+            --background: #070a13;
+            --on-background: #f8fafc;
+            --surface: #0f172a;
+            --on-surface: #f1f5f9;
+            --surface-container: #1e293b;
+            --surface-container-low: #070a13;
+            --surface-container-high: #334155;
+            --surface-container-lowest: #020617;
+            --surface-container-highest: #475569;
+            --surface-variant: #334155;
+            --outline-variant: #475569;
+            --outline: #94a3b8;
+            --on-surface-variant: #cbd5e1;
+            --surface-dim: #070a13;
+            --header-bg: rgba(7, 10, 19, 0.8);
+
+            --primary-rgb: 59 130 246;
+            --secondary-rgb: 251 191 36;
+            --error-rgb: 248 113 113;
+            --success-rgb: 52 211 153;
+        }
+
+        /* ── Text Glow & Animated Gradient ── */
+        @keyframes textGlow {
+            0%, 100% { text-shadow: 0 0 4px rgba(var(--primary-rgb), 0.1); }
+            50% { text-shadow: 0 0 10px rgba(var(--primary-rgb), 0.4); }
+        }
+        .animate-text-glow {
+            animation: textGlow 3s ease-in-out infinite;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .animate-gradient {
+            background-size: 200% auto;
+            animation: gradientShift 4s ease infinite;
+        }
+
         .glass-header {
-            background: rgba(17, 19, 26, 0.8);
+            background: var(--header-bg);
             backdrop-filter: blur(12px);
         }
         .bento-grid {
@@ -126,28 +202,87 @@
   </head>
 <body class="bg-background text-on-background font-body-md selection:bg-primary/30">
 <!-- TopAppBar -->
-<header class="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md border-b border-outline-variant/10 shadow-sm">
-  <div class="flex justify-between items-center px-lg py-md max-w-7xl mx-auto w-full">
+<!-- TopAppBar -->
+<header class="fixed top-0 inset-x-0 z-50 glass-header border-b border-outline-variant/10 shadow-sm">
 
-    <div class="flex items-center gap-sm">
-      <span class="material-symbols-outlined text-primary text-2xl">shield</span>
-      <span class="font-headline-lg font-bold text-primary">SuRaksha</span>
-    </div>
+  <div class="max-w-7xl mx-auto px-lg py-md flex items-center justify-between">
 
-    <nav class="hidden md:flex gap-lg">
-      <a href="index.html" class="text-on-surface-variant hover:text-primary">Home</a>
-      <a href="features.html" class="text-on-surface-variant hover:text-primary">Features</a>
-      <a href="how.html" class="text-primary border-b-2 border-primary pb-1">How It Works</a>
-      <a href="about.html" class="text-on-surface-variant hover:text-primary">About</a>
+    <!-- Logo -->
+    <a href="index.html"
+       class="flex items-center gap-sm group">
+
+      <img
+        class="h-10 w-10 rounded-xl object-cover group-hover:rotate-6 transition-transform duration-300"
+        src="assets/images/logo.png"
+        alt="SuRaksha logo"
+      />
+
+      <span class="font-headline-lg font-bold text-primary tracking-tight">
+        SuRaksha
+      </span>
+
+    </a>
+
+    <!-- Navigation -->
+    <nav class="hidden md:flex items-center gap-lg">
+
+      <a href="index.html"
+         class="text-on-surface-variant hover:text-primary transition-colors duration-300">
+        Home
+      </a>
+
+      <a href="features.html"
+         class="text-on-surface-variant hover:text-primary transition-colors duration-300">
+        Features
+      </a>
+
+      <a href="how.html"
+         class="text-primary border-b-2 border-primary pb-1 font-medium">
+        How It Works
+      </a>
+
+      <a href="about.html"
+         class="text-on-surface-variant hover:text-primary transition-colors duration-300">
+        About
+      </a>
+
     </nav>
 
-    <button class="bg-primary-container text-on-primary-container px-lg py-sm rounded-lg">
-      Scan Now
-    </button>
+    <!-- Right Actions -->
+    <div class="flex items-center gap-md">
+
+      <!-- Theme Toggle -->
+      <button
+        id="theme-toggle"
+        aria-label="Toggle dark mode"
+        class="p-2 rounded-xl hover:bg-surface-variant/20 active:scale-95 transition-all duration-300">
+
+        <span
+          id="theme-icon"
+          class="material-symbols-outlined text-primary">
+          dark_mode
+        </span>
+
+      </button>
+
+      <!-- CTA -->
+      <a href="scan.html"
+         class="bg-primary-container text-on-primary-container px-lg py-sm rounded-xl font-label-md flex items-center gap-sm hover:scale-105 hover:shadow-xl active:scale-95 transition-all duration-300">
+
+        <span class="material-symbols-outlined text-[20px]">
+          qr_code_scanner
+        </span>
+
+        Open Scanner
+
+      </a>
+
+    </div>
 
   </div>
+
 </header>
-<main class="pt-xxl px-lg max-w-7xl mx-auto space-y-xxl">
+<main class="pt-24 px-lg max-w-7xl mx-auto space-y-xxl">
 <!-- HEADER -->
 <section class="text-center mb-xxl">
 <h1 class="font-display-lg text-display-lg text-on-background mb-md">How SuRaksha Works</h1>
@@ -201,44 +336,169 @@
 <h2 class="font-headline-lg text-headline-lg text-center mb-xl">Real-Life Use Case</h2>
 <div class="flex flex-col lg:flex-row items-center justify-between gap-xl">
 <!-- Phone Frame 1 -->
-<div class="w-full max-w-[280px] bg-surface rounded-[2.5rem] p-4 border-4 border-surface-variant shadow-2xl">
-<div class="aspect-[9/19] bg-surface-container-highest rounded-[2rem] overflow-hidden flex flex-col">
-<div class="p-4 flex-1 flex flex-col">
-<div class="flex items-center gap-2 mb-4">
-<div class="w-8 h-8 rounded-full bg-surface-variant"></div>
-<div class="h-2 w-24 bg-surface-variant rounded"></div>
-</div>
-<div class="bg-surface p-3 rounded-xl mb-3 text-[10px] text-on-surface-variant leading-tight">
-                                "Hey, you won 5000 cashback! Scan this QR code to claim it now!"
-                            </div>
-<div class="bg-white p-4 rounded-lg flex items-center justify-center">
-<img alt="QR Code Example" class="w-24 h-24 opacity-80" data-alt="A detailed digital illustration of a smartphone screen displaying a fraudulent WhatsApp message with a generic QR code. The interface is clean and dark-themed, following a modern mobile OS aesthetic with soft blue and deep navy tones. The lighting highlights the phone's glass edge, suggesting a high-end device." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBtB1BVbsZbFRAsE7TFtA2ggRmnEHXRIBdvMSfDoWGehd7GQXXWtzNK_sZPHQ6OKzJdR_bnlVJvkqp6u6ADNEBpMl2xgAWwmYVRz5Mqd2sboS2iiupy7Do_ucvaJnkYkiRWJR78_w0zZ4F3-1iAOXCTWA2y-yztyQBTOQSgwrhPsnITfk1lsUTqb26iUUNxqIp-2LNM-8NmTyKxi6IIT-qi4xmen1WwcsYsx-0k9PYCFKZUXm7uv1g_9OE8YOwFBIMOn7vx_sGXYkjl"/>
-</div>
-<div class="mt-auto pt-4">
-<div class="w-full py-2 bg-primary-container rounded-lg text-center text-[10px] font-bold">SCAN WITH SURAKSHA</div>
-</div>
-</div>
-</div>
-<p class="text-center mt-4 font-label-sm text-on-surface-variant uppercase tracking-widest">Receive QR Code</p>
+<div class="w-full max-w-[290px] aspect-[9/19] rounded-[3rem] bg-gradient-to-b from-[#3a3f4a] via-[#1e2025] to-[#0c0d10] p-[8px] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.6)] ring-1 ring-white/10 hover:shadow-primary/20 transition-all duration-500">
+  <div class="w-full h-full rounded-[2.5rem] bg-black p-[6px] relative flex flex-col justify-between overflow-hidden select-none">
+    
+    <!-- Outer screen container -->
+    <div class="w-full h-full rounded-[2.2rem] bg-surface-container relative overflow-hidden flex flex-col pt-[36px] pb-4 px-3">
+      
+      <!-- Futuristic Dynamic Island -->
+      <div class="absolute top-[12px] left-1/2 -translate-x-1/2 z-45 bg-black w-[95px] h-[26px] rounded-full flex items-center justify-between px-3 border border-white/5">
+        <!-- Pulse Green camera dot for Safe Scan -->
+        <span class="w-[6px] h-[6px] rounded-full bg-[#10b981] shadow-[0_0_8px_#10b981] animate-pulse"></span>
+        <span class="w-[8px] h-[8px] bg-[#111] rounded-full border border-gray-800"></span>
+      </div>
+
+      <!-- iOS Status Bar -->
+      <div class="absolute top-[14px] left-0 right-0 px-6 flex justify-between items-center text-[10px] font-bold text-on-surface select-none z-30 opacity-80">
+        <div>9:41</div>
+        <div class="flex items-center gap-1.5">
+          <!-- Cellular Signal Bars -->
+          <svg class="w-3.5 h-3.5 fill-current text-on-surface" viewBox="0 0 24 24">
+            <path d="M2 22h20V2z" />
+          </svg>
+          <!-- Wifi -->
+          <svg class="w-3.5 h-3.5 fill-current text-on-surface" viewBox="0 0 24 24">
+            <path d="M12 21l-12-12a17 17 0 0 1 24 0z" />
+          </svg>
+          <!-- Battery -->
+          <div class="w-5 h-2.5 border border-on-surface rounded-sm p-[1px] flex items-center">
+            <div class="w-full h-full bg-on-surface rounded-xs"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Phone Screen Content (WhatsApp / Chat Simulation) -->
+      <div class="flex-1 flex flex-col">
+        <!-- Chat Header -->
+        <div class="flex items-center justify-between pb-2 mb-3 border-b border-outline-variant/10">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-sm text-on-surface-variant cursor-pointer select-none">arrow_back_ios</span>
+            <div class="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold text-[8px] ring-1 ring-primary/20">
+              🎁
+            </div>
+            <div>
+              <h4 class="text-[9px] font-bold text-on-surface leading-none">Cashback Reward</h4>
+              <span class="text-[7px] text-[#10b981] font-medium">Active now</span>
+            </div>
+          </div>
+          <span class="material-symbols-outlined text-sm text-on-surface-variant cursor-pointer select-none">more_vert</span>
+        </div>
+
+        <!-- Chat message bubble -->
+        <div class="bg-surface-container-high/60 border border-outline-variant/10 p-2.5 rounded-2xl rounded-tl-sm text-[9px] text-on-surface-variant leading-relaxed relative shadow-sm max-w-[90%]">
+          "Hey, you won 5000 cashback! Scan this QR code to claim it now!"
+          <div class="text-right text-[6px] text-on-surface-variant/40 mt-1">10:14 AM</div>
+        </div>
+
+        <!-- QR Code Card -->
+        <div class="bg-surface border border-outline-variant/10 p-3 rounded-2xl shadow-sm mt-3 flex flex-col items-center gap-2 group-hover:scale-[1.02] transition-transform duration-300">
+          <div class="relative bg-white p-2 rounded-lg border border-gray-100 flex items-center justify-center">
+            <img alt="QR Code Example" class="w-20 h-20 opacity-90 transition-opacity hover:opacity-100" data-alt="A detailed digital illustration of a smartphone screen displaying a fraudulent WhatsApp message with a generic QR code. The interface is clean and dark-themed, following a modern mobile OS aesthetic with soft blue and deep navy tones. The lighting highlights the phone's glass edge, suggesting a high-end device." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBtB1BVbsZbFRAsE7TFtA2ggRmnEHXRIBdvMSfDoWGehd7GQXXWtzNK_sZPHQ6OKzJdR_bnlVJvkqp6u6ADNEBpMl2xgAWwmYVRz5Mqd2sboS2iiupy7Do_ucvaJnkYkiRWJR78_w0zZ4F3-1iAOXCTWA2y-yztyQBTOQSgwrhPsnITfk1lsUTqb26iUUNxqIp-2LNM-8NmTyKxi6IIT-qi4xmen1WwcsYsx-0k9PYCFKZUXm7uv1g_9OE8YOwFBIMOn7vx_sGXYkjl"/>
+          </div>
+        </div>
+
+        <!-- Scanning CTA Button at bottom of screen -->
+        <div class="mt-auto pt-3">
+          <div class="w-full py-2 bg-primary/10 border border-primary/30 rounded-xl text-center text-[8px] font-bold text-primary tracking-wider uppercase animate-pulse select-none">
+            SCAN WITH SURAKSHA
+          </div>
+        </div>
+      </div>
+
+      <!-- Home Indicator -->
+      <div class="absolute bottom-[6px] left-1/2 -translate-x-1/2 w-[90px] h-[3px] bg-on-surface/30 rounded-full z-40"></div>
+    </div>
+  </div>
+  <p class="text-center mt-4 font-label-sm text-on-surface-variant uppercase tracking-widest">Receive QR Code</p>
 </div>
 <div class="hidden lg:block">
 <span class="material-symbols-outlined text-surface-variant text-4xl" data-icon="arrow_forward">arrow_forward</span>
 </div>
 <!-- Phone Frame 2 (The Risk Result) -->
-<div class="w-full max-w-[300px] bg-surface rounded-[2.5rem] p-4 border-4 border-error/20 shadow-2xl shadow-error/5 relative">
-<div class="absolute -top-4 -right-4 bg-error text-on-error px-4 py-1 rounded-full text-xs font-bold shadow-lg">HIGH RISK</div>
-<div class="aspect-[9/19] bg-surface-container-highest rounded-[2rem] overflow-hidden flex flex-col p-4">
-<div class="bg-error-container/20 border border-error/30 rounded-2xl p-4 text-center mt-8">
-<span class="material-symbols-outlined text-error text-5xl mb-2" data-icon="warning">warning</span>
-<h4 class="text-error font-bold text-lg mb-1">Threat Detected</h4>
-<p class="text-on-surface-variant text-[10px] leading-relaxed">This QR code is linked to a known UPI fraud signature reported in your area.</p>
-</div>
-<div class="mt-auto space-y-2 pb-4">
-<button class="w-full py-3 bg-error text-white rounded-xl text-xs font-bold">REPORT &amp; BLOCK</button>
-<button class="w-full py-3 bg-surface-variant text-on-surface-variant rounded-xl text-xs font-bold">CLOSE</button>
-</div>
-</div>
-<p class="text-center mt-4 font-label-sm text-error uppercase tracking-widest">Instant Risk Warning</p>
+<div class="w-full max-w-[290px] aspect-[9/19] rounded-[3rem] bg-gradient-to-b from-[#3a3f4a] via-[#1e2025] to-[#0c0d10] p-[8px] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.6)] ring-1 ring-white/10 hover:shadow-error/20 transition-all duration-500 relative">
+  <!-- Absolute high risk badge at top of chassis -->
+  <div class="absolute -top-3 -right-3 bg-error text-white px-3 py-1 rounded-full text-[9px] font-bold shadow-lg tracking-wider animate-bounce z-50">HIGH RISK</div>
+  
+  <div class="w-full h-full rounded-[2.5rem] bg-black p-[6px] relative flex flex-col justify-between overflow-hidden select-none">
+    <!-- Outer screen container -->
+    <div class="w-full h-full rounded-[2.2rem] bg-surface-container relative overflow-hidden flex flex-col pt-[36px] pb-4 px-3">
+      
+      <!-- Futuristic Dynamic Island -->
+      <div class="absolute top-[12px] left-1/2 -translate-x-1/2 z-45 bg-black w-[110px] h-[26px] rounded-full flex items-center justify-between px-3 border border-white/5">
+        <!-- Pulse Red camera dot for Warning -->
+        <span class="w-[6px] h-[6px] rounded-full bg-[#ef4444] shadow-[0_0_8px_#ef4444] animate-pulse"></span>
+        <span class="text-[8px] font-bold text-error tracking-wider uppercase">ALERT</span>
+        <span class="w-[8px] h-[8px] bg-[#111] rounded-full border border-gray-800"></span>
+      </div>
+
+      <!-- iOS Status Bar -->
+      <div class="absolute top-[14px] left-0 right-0 px-6 flex justify-between items-center text-[10px] font-bold text-on-surface select-none z-30 opacity-80">
+        <div>9:41</div>
+        <div class="flex items-center gap-1.5">
+          <!-- Cellular Signal Bars -->
+          <svg class="w-3.5 h-3.5 fill-current text-on-surface" viewBox="0 0 24 24">
+            <path d="M2 22h20V2z" />
+          </svg>
+          <!-- Wifi -->
+          <svg class="w-3.5 h-3.5 fill-current text-on-surface" viewBox="0 0 24 24">
+            <path d="M12 21l-12-12a17 17 0 0 1 24 0z" />
+          </svg>
+          <!-- Battery -->
+          <div class="w-5 h-2.5 border border-on-surface rounded-sm p-[1px] flex items-center">
+            <div class="w-full h-full bg-on-surface rounded-xs"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Phone Screen Content (SuRaksha Threat Warning HUD) -->
+      <div class="flex-1 flex flex-col">
+        <!-- Real-Time Analysis header -->
+        <div class="bg-error/10 border border-error/20 rounded-lg py-1 px-2 text-center text-[8px] font-bold text-error tracking-wider uppercase animate-pulse flex items-center justify-center gap-1 mb-3">
+          <span class="material-symbols-outlined text-[10px]">gpp_maybe</span> REAL-TIME THREAT DETECTED
+        </div>
+
+        <!-- Threat Detail Card -->
+        <div class="bg-gradient-to-b from-error/10 to-error/5 border border-error/30 rounded-2xl p-3 text-center shadow-[0_10px_20px_-5px_rgba(239,68,68,0.15)] flex-1 flex flex-col justify-center">
+          <div class="w-10 h-10 rounded-full bg-error/15 flex items-center justify-center mb-1.5 mx-auto ring-4 ring-error/5">
+            <span class="material-symbols-outlined text-error text-2xl animate-bounce">warning</span>
+          </div>
+          <h4 class="text-error font-bold text-xs mb-0.5 tracking-wide">Threat Detected</h4>
+          <p class="text-on-surface-variant text-[8px] leading-relaxed mb-2">This QR code is linked to a known UPI fraud signature reported in your area.</p>
+          
+          <!-- Mini Checklist of factors -->
+          <div class="w-full bg-surface-container-low/60 border border-outline-variant/10 rounded-xl p-2 text-left space-y-1">
+            <div class="flex items-center gap-1.5 text-[7px] text-on-surface-variant font-medium">
+              <span class="material-symbols-outlined text-error text-[10px] font-bold">cancel</span>
+              <span>Blacklisted UPI Address</span>
+            </div>
+            <div class="flex items-center gap-1.5 text-[7px] text-on-surface-variant font-medium">
+              <span class="material-symbols-outlined text-error text-[10px] font-bold">cancel</span>
+              <span>Unverified Merchant ID</span>
+            </div>
+            <div class="flex items-center gap-1.5 text-[7px] text-on-surface-variant font-medium">
+              <span class="material-symbols-outlined text-error text-[10px] font-bold">cancel</span>
+              <span>Spoofed Request Signature</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Responsive Action Buttons at base of screen -->
+        <div class="mt-auto space-y-1.5 pt-3">
+          <button class="w-full py-2 bg-gradient-to-r from-error to-[#dc3545] hover:from-[#dc3545] hover:to-error text-white rounded-xl text-[9px] font-bold shadow-md shadow-error/15 hover:scale-[1.02] active:scale-95 transition-all uppercase tracking-wider select-none">
+            REPORT &amp; BLOCK
+          </button>
+          <button class="w-full py-2 bg-surface-variant/40 hover:bg-surface-variant/60 text-on-surface-variant rounded-xl text-[9px] font-bold transition-all uppercase tracking-wider select-none">
+            CLOSE
+          </button>
+        </div>
+      </div>
+
+      <!-- Home Indicator -->
+      <div class="absolute bottom-[6px] left-1/2 -translate-x-1/2 w-[90px] h-[3px] bg-on-surface/30 rounded-full z-40"></div>
+    </div>
+  </div>
+  <p class="text-center mt-4 font-label-sm text-error uppercase tracking-widest">Instant Risk Warning</p>
 </div>
 </div>
 </section>
@@ -253,91 +513,137 @@
 <span class="font-headline-md text-on-surface font-medium">Safe &amp; private analysis</span>
 </div>
 </section>
-<!-- FINAL CTA -->
-<section class="relative overflow-hidden bg-primary-container rounded-[2.5rem] p-xl md:p-xxl text-center">
-<div class="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent"></div>
-<div class="relative z-10 max-w-3xl mx-auto">
-<h2 class="font-display-lg text-display-lg text-white mb-md">Stay Safe. Scan Before You Pay.</h2>
-<p class="text-white/80 font-body-lg mb-xl">Don't let your hard-earned money fall into the hands of scammers. Join thousands of users who trust SuRaksha.</p>
-<!-- Start Scanning Button -->
-<button onclick="window.location.href='scan.html'"
-    class="bg-secondary-container text-on-secondary-container px-xxl py-md rounded-2xl font-headline-md mt-lg hover:shadow-2xl hover:bg-secondary-fixed transition-all active:scale-95">
+<!-- ════════ FINAL CTA ════════ -->
+<section class="px-lg max-w-7xl mx-auto py-xxl mb-xxl">
 
-    Start Scanning
+  <div class="relative rounded-[2.5rem] p-xl md:p-xxl text-center overflow-hidden 
+              bg-gradient-to-br from-[#0b1220] to-[#05080f] 
+              border border-white/10 shadow-[0_0_80px_rgba(11,94,215,0.25)]">
 
-</button>
-</div>
+    <!-- Glow Layer -->
+    <div class="absolute inset-0 bg-gradient-to-r from-primary/30 via-transparent to-primary/20 opacity-30"></div>
+
+    <div class="relative z-10 space-y-lg">
+
+      <!-- Heading -->
+      <h2 class="font-display-lg text-display-lg text-white">
+        Start detecting fraud before it happens
+      </h2>
+
+      <!-- Subtext -->
+      <p class="text-body-lg text-white/70 max-w-2xl mx-auto">
+        Join thousands of users who trust SuRaksha for their daily UPI safety. 
+        Get instant peace of mind today.
+      </p>
+
+      <!-- Buttons -->
+      <div class="flex flex-col sm:flex-row justify-center gap-md mt-lg">
+
+        <!-- Primary -->
+        <a href="scan.html"
+           class="bg-primary text-white px-xxl py-md rounded-xl font-headline-md 
+                  hover:scale-105 hover:shadow-[0_0_30px_rgba(11,94,215,0.6)] 
+                  transition-all duration-300">
+
+          Scan Now
+        </a>
+
+        <!-- Secondary -->
+        <a href="#"
+           class="border border-white/20 text-white/80 px-xxl py-md rounded-xl font-headline-md 
+                  hover:bg-white/10 hover:text-white 
+                  transition-all duration-300">
+
+          View Documentation
+        </a>
+
+      </div>
+
+    </div>
+
+  </div>
+
 </section>
 </main>
 <!-- Footer -->
-<<footer class="w-full py-xl mt-xxl bg-surface-container-lowest border-t border-outline-variant/20"> 
+<footer class="w-full mt-xxl bg-gradient-to-b from-[#0b1220] to-[#05080f] border-t border-white/10">
 
-  <div class="flex flex-col md:flex-row justify-between items-center px-lg max-w-7xl mx-auto gap-lg">
+  <div class="max-w-7xl mx-auto px-lg py-xxl grid md:grid-cols-3 gap-xl">
 
-    <!-- Left: Logo + Text -->
-    <div class="space-y-sm flex flex-col items-center md:items-start">
+    <!-- BRAND -->
+    <div class="space-y-md">
+
       <div class="flex items-center gap-sm">
-        <img class="h-8 w-8" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBkEVq7uJDlVbwO5Wpw6BF6OwM2nTEEkmbt-jA7DqwrY1cvpXI2j-qP8v8-2GjkS-l4KGEIW3-8mMgxCXMaRNyqa8CZbR00un1zoUIg2ucRdNPiMLyCakUDdIobXVh2c-hX-AqTaFh8St9U2Z60ObsArRWlS-JXHuT1E_LZvCX5UXMCGtF5NuWm2VJCXjZv01sIhsMmNRBVLq3HHsonVCIuFRycHmxfAK7c7rQ0aO6wCR5taKbcwD9vVtoDfEIKVVTHoaeJxgaa3fzN"/>
-        <span class="font-headline-md font-bold text-primary">SuRaksha</span>
+        <img
+          class="h-10 w-10 rounded-xl object-contain bg-white p-1"
+          src="assets/images/logo.png"
+          alt="SuRaksha Logo"
+        />
+
+        <span class="font-headline-md text-xl font-bold text-white">
+          SuRaksha
+        </span>
       </div>
-      <p class="text-label-sm text-on-surface-variant max-w-xs text-center md:text-left">
+
+      <p class="text-white/70 max-w-xs">
         Building a safer digital economy for every UPI user in India.
       </p>
+
+      <!-- Social -->
+      <div class="flex gap-md mt-md">
+
+        <a href="#" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white/70 hover:bg-primary hover:text-white transition">
+          <span class="material-symbols-outlined">share</span>
+        </a>
+
+        <a href="#" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white/70 hover:bg-primary hover:text-white transition">
+          <span class="material-symbols-outlined">mail</span>
+        </a>
+
+      </div>
+
     </div>
 
-    <!-- Middle: Links -->
-    <div class="flex flex-wrap justify-center gap-lg">
-      <a class="font-label-md text-on-surface-variant hover:text-primary transition-colors hover:underline decoration-secondary underline-offset-4" href="about.html">About Us</a>
+    <!-- LINKS -->
+    <div class="flex flex-col gap-sm">
 
-      <a class="font-label-md text-on-surface-variant hover:text-primary transition-colors hover:underline decoration-secondary underline-offset-4" href="features.html">Core Features</a>
+      <h4 class="text-white font-semibold mb-sm">
+        Quick Links
+      </h4>
 
-      <a class="font-label-md text-on-surface-variant hover:text-primary transition-colors hover:underline decoration-secondary underline-offset-4" href="how.html">How It Works</a>
-
-      <a class="font-label-md text-on-surface-variant hover:text-primary transition-colors hover:underline decoration-secondary underline-offset-4" href="#">Privacy Policy</a>
-
-      <a class="font-label-md text-on-surface-variant hover:text-primary transition-colors hover:underline decoration-secondary underline-offset-4" href="#">Contact Support</a>
-    </div>
-
-    <!-- Right: Icons -->
-    <div class="flex gap-md">
-      <a class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-primary transition-all" href="#">
-        <span class="material-symbols-outlined">share</span>
+      <a href="about.html" class="text-white/70 hover:text-primary transition">
+        About Us
       </a>
-      <a class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-primary transition-all" href="#">
-        <span class="material-symbols-outlined">mail</span>
+
+      <a href="features.html" class="text-white/70 hover:text-primary transition">
+        Core Features
       </a>
+
+      <a href="how.html" class="text-white/70 hover:text-primary transition">
+        Security Protocol
+      </a>
+
+      <a href="#" class="text-white/70 hover:text-primary transition">
+        Privacy Policy
+      </a>
+
+      <a href="#" class="text-white/70 hover:text-primary transition">
+        Contact Support
+      </a>
+
     </div>
 
   </div>
 
-  <!-- Bottom Copyright -->
-  <div class="max-w-7xl mx-auto px-lg mt-xl pt-lg border-t border-outline-variant/10 text-center">
-    <p class="text-label-sm text-on-surface-variant">
-      © 2024 SuRaksha Financial Security. All rights reserved.
+  <!-- BOTTOM -->
+  <div class="border-t border-white/10 text-center py-md">
+
+    <p class="text-white/50 text-sm">
+      © <span id="year"></span> SuRaksha Financial Security. All rights reserved.
     </p>
+
   </div>
 
 </footer>
-<script>
-  const toggleBtn = document.getElementById("theme-toggle");
-  const icon = document.getElementById("theme-icon");
-
-  // Load saved theme
-  if (localStorage.getItem("theme") === "dark") {
-    document.documentElement.classList.add("dark");
-    icon.textContent = "light_mode";
-  }
-
-  toggleBtn.addEventListener("click", () => {
-    document.documentElement.classList.toggle("dark");
-
-    if (document.documentElement.classList.contains("dark")) {
-      localStorage.setItem("theme", "dark");
-      icon.textContent = "light_mode";
-    } else {
-      localStorage.setItem("theme", "light");
-      icon.textContent = "dark_mode";
-    }
-  });
-</script>
-</body></html>
+</body>
+</html>

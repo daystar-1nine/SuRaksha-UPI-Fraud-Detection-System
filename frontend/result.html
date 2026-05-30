@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 
-<html class="dark" lang="en"><head>
+<html class="dark" lang="en">
+<head>
+<script>
+  if (localStorage.getItem("theme") === "light") {
+    document.documentElement.classList.remove("dark");
+  } else {
+    document.documentElement.classList.add("dark");
+  }
+</script>
+<script src="js/theme.js" defer></script>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -8,11 +17,83 @@
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <style>
+        :root {
+            --background: #f8fafc;
+            --on-background: #0f172a;
+            --surface: #ffffff;
+            --on-surface: #0f172a;
+            --surface-container: #f1f5f9;
+            --surface-container-low: #f8fafc;
+            --surface-container-high: #e2e8f0;
+            --surface-container-lowest: #ffffff;
+            --surface-container-highest: #cbd5e1;
+            --surface-variant: #e2e8f0;
+            --outline-variant: #cbd5e1;
+            --outline: #64748b;
+            --on-surface-variant: #475569;
+            --surface-dim: #f1f5f9;
+            --header-bg: rgba(248, 250, 252, 0.8);
+            --gauge-track: #e2e8f0;
+
+            --primary-rgb: 11 94 215;
+            --secondary-rgb: 217 119 6;
+            --error-rgb: 220 53 69;
+            --success-rgb: 16 185 129;
+        }
+
+        .dark {
+            --background: #070a13;
+            --on-background: #f8fafc;
+            --surface: #0f172a;
+            --on-surface: #f1f5f9;
+            --surface-container: #1e293b;
+            --surface-container-low: #070a13;
+            --surface-container-high: #334155;
+            --surface-container-lowest: #020617;
+            --surface-container-highest: #475569;
+            --surface-variant: #334155;
+            --outline-variant: #475569;
+            --outline: #94a3b8;
+            --on-surface-variant: #cbd5e1;
+            --surface-dim: #070a13;
+            --header-bg: rgba(7, 10, 19, 0.8);
+            --gauge-track: #1f2937;
+
+            --primary-rgb: 59 130 246;
+            --secondary-rgb: 251 191 36;
+            --error-rgb: 248 113 113;
+            --success-rgb: 52 211 153;
+        }
+
+        /* ── Text Glow & Animated Gradient ── */
+        @keyframes textGlow {
+            0%, 100% { text-shadow: 0 0 4px rgba(var(--primary-rgb), 0.1); }
+            50% { text-shadow: 0 0 10px rgba(var(--primary-rgb), 0.4); }
+        }
+        .animate-text-glow {
+            animation: textGlow 3s ease-in-out infinite;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .animate-gradient {
+            background-size: 200% auto;
+            animation: gradientShift 4s ease infinite;
+        }
+
         .material-symbols-outlined {
             font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
         }
         .risk-gauge {
-            background: conic-gradient(#ef4444 88%, #1f2937 0);
+            background: conic-gradient(#ef4444 88%, var(--gauge-track) 0);
+        }
+        .glass-header {
+            background: var(--header-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
         }
     </style>
 <script id="tailwind-config">
@@ -21,53 +102,58 @@
             theme: {
                 extend: {
                     "colors": {
-                        "on-tertiary-fixed": "#360f00",
-                        "on-error": "#690005",
-                        "tertiary": "#ffb597",
-                        "surface-container-highest": "#32343c",
-                        "surface-tint": "#b0c6ff",
-                        "on-tertiary-fixed-variant": "#7e2c00",
-                        "background": "#0A0F1C",
+                        background: "var(--background)",
+                        "on-background": "var(--on-background)",
+                        surface: "var(--surface)",
+                        "on-surface": "var(--on-surface)",
+                        "surface-container": "var(--surface-container)",
+                        "surface-container-low": "var(--surface-container-low)",
+                        "surface-container-high": "var(--surface-container-high)",
+                        "surface-container-lowest": "var(--surface-container-lowest)",
+                        "surface-container-highest": "var(--surface-container-highest)",
+                        "surface-variant": "var(--surface-variant)",
+                        "outline-variant": "var(--outline-variant)",
+                        outline: "var(--outline)",
+                        "on-surface-variant": "var(--on-surface-variant)",
+                        "surface-dim": "var(--surface-dim)",
+                        
+                        primary: "rgb(var(--primary-rgb) / <alpha-value>)",
+                        secondary: "rgb(var(--secondary-rgb) / <alpha-value>)",
+                        error: "rgb(var(--error-rgb) / <alpha-value>)",
+                        success: "rgb(var(--success-rgb) / <alpha-value>)",
+
+                        "dark-background": "#070a13",
+                        "dark-on-surface": "#f1f5f9",
+
                         "secondary-fixed": "#ffdf9e",
-                        "primary": "#0B5ED7",
-                        "surface-container-high": "#272a31",
-                        "on-tertiary": "#591d00",
-                        "inverse-on-surface": "#2e3038",
-                        "surface-variant": "#32343c",
-                        "secondary": "#FFC107",
-                        "tertiary-container": "#b04100",
-                        "surface-container-low": "#191b23",
-                        "on-surface": "#e1e2ec",
-                        "on-primary-fixed": "#001945",
-                        "outline-variant": "#424654",
-                        "on-surface-variant": "#c2c6d6",
-                        "surface-container": "#111827",
-                        "on-primary-fixed-variant": "#00419d",
-                        "surface": "#0A0F1C",
-                        "on-primary-container": "#dae2ff",
-                        "surface-dim": "#11131a",
-                        "surface-bright": "#373941",
-                        "error-container": "#93000a",
-                        "on-primary": "#FFFFFF",
-                        "on-error-container": "#ffdad6",
-                        "on-secondary-fixed-variant": "#5b4300",
-                        "primary-fixed": "#d9e2ff",
-                        "secondary-container": "#fabd00",
-                        "tertiary-fixed-dim": "#ffb597",
-                        "primary-fixed-dim": "#b0c6ff",
-                        "error": "#ef4444",
-                        "primary-container": "#0b5ed7",
-                        "outline": "#8c909f",
+                        "inverse-primary": "#0057cc",
                         "on-secondary-fixed": "#261a00",
-                        "on-secondary-container": "#6a4e00",
-                        "surface-container-lowest": "#0c0e15",
-                        "secondary-fixed-dim": "#fabd00",
-                        "on-secondary": "#0A0F1C",
+                        "on-secondary": "#3f2e00",
                         "on-tertiary-container": "#ffdccf",
-                        "inverse-surface": "#e1e2ec",
-                        "on-background": "#E5E7EB",
+                        "on-secondary-fixed-variant": "#5b4300",
+                        "on-primary-fixed-variant": "#00419d",  
+                        "secondary-fixed-dim": "#fabd00",
+                        "tertiary-fixed-dim": "#ffb597",
+                        "inverse-on-surface": "#2e3038",
+                        "on-secondary-container": "var(--on-secondary-container)",
+                        "on-tertiary": "#591d00",
                         "tertiary-fixed": "#ffdbcd",
-                        "inverse-primary": "#0057cc"
+                        "inverse-surface": "#e1e2ec",
+                        "surface-bright": "#373941",
+                        "on-error": "#690005",
+                        "error-container": "var(--error-container)",
+                        "on-primary-container": "var(--on-primary-container)",
+                        "on-error-container": "#ffdad6",
+                        "primary-container": "var(--primary-container)",
+                        "tertiary-container": "#b04100",
+                        "primary-fixed": "#d9e2ff",
+                        "primary-fixed-dim": "#b0c6ff",
+                        "on-tertiary-fixed-variant": "#7e2c00",
+                        "on-primary-fixed": "#001945",
+                        "on-tertiary-fixed": "#360f00",
+                        "secondary-container": "var(--secondary-container)",
+                        "tertiary": "#ffb597",
+                        "surface-tint": "#b0c6ff",
                     },
                     "borderRadius": {
                         "DEFAULT": "0.25rem",
@@ -108,17 +194,87 @@
 </head>
 <body class="bg-surface text-on-background font-body-md min-h-screen flex flex-col">
 <!-- TopAppBar -->
-<nav class="fixed top-0 w-full z-50 bg-surface/80 dark:bg-surface/80 backdrop-blur-xl border-b border-outline-variant/10 shadow-sm">
-<div class="flex items-center justify-between px-6 py-4 max-w-7xl mx-auto w-full">
-<div class="flex items-center gap-2">
-<span class="material-symbols-outlined text-primary" data-icon="shield">shield</span>
-<span class="font-display-lg text-headline-md tracking-tight text-primary">SuRaksha</span>
-</div>
-<button class="bg-primary-container text-on-primary-container px-4 py-2 rounded-lg font-label-md text-label-md scale-95 active:scale-90 transition-transform">
-                Secure Now
-            </button>
-</div>
-</nav>
+<!-- TopAppBar -->
+<header class="fixed top-0 inset-x-0 z-50 glass-header border-b border-outline-variant/10 shadow-sm">
+
+  <div class="max-w-7xl mx-auto px-lg py-md flex items-center justify-between">
+
+    <!-- Logo -->
+    <a href="index.html"
+       class="flex items-center gap-sm group">
+
+      <img
+        class="h-10 w-10 rounded-xl object-cover group-hover:rotate-6 transition-transform duration-300"
+        src="assets/images/logo.png"
+        alt="SuRaksha logo"
+      />
+
+      <span class="font-headline-lg font-bold text-primary tracking-tight">
+        SuRaksha
+      </span>
+
+    </a>
+
+    <!-- Navigation -->
+    <nav class="hidden md:flex items-center gap-lg">
+
+      <a href="index.html"
+         class="text-on-surface-variant hover:text-primary transition-colors duration-300">
+        Home
+      </a>
+
+      <a href="features.html"
+         class="text-on-surface-variant hover:text-primary transition-colors duration-300">
+        Features
+      </a>
+
+      <a href="how.html"
+         class="text-on-surface-variant hover:text-primary transition-colors duration-300">
+        How It Works
+      </a>
+
+      <a href="about.html"
+         class="text-on-surface-variant hover:text-primary transition-colors duration-300">
+        About
+      </a>
+
+    </nav>
+
+    <!-- Right Actions -->
+    <div class="flex items-center gap-md">
+
+      <!-- Theme Toggle -->
+      <button
+        id="theme-toggle"
+        aria-label="Toggle dark mode"
+        class="p-2 rounded-xl hover:bg-surface-variant/20 active:scale-95 transition-all duration-300">
+
+        <span
+          id="theme-icon"
+          class="material-symbols-outlined text-primary">
+          dark_mode
+        </span>
+
+      </button>
+
+      <!-- CTA -->
+      <a href="scan.html"
+         id="secure-btn"
+         class="bg-primary-container text-on-primary-container px-lg py-sm rounded-xl font-label-md flex items-center gap-sm hover:scale-105 hover:shadow-xl active:scale-95 transition-all duration-300">
+
+        <span class="material-symbols-outlined text-[20px]">
+          qr_code_scanner
+        </span>
+
+        Open Scanner
+
+      </a>
+
+    </div>
+
+  </div>
+
+</header>
 <main class="flex-grow pt-24 pb-12 px-4 flex justify-center">
 <!-- Centered Mobile-First Content Canvas -->
 <div class="w-full max-w-[500px] flex flex-col gap-lg">
@@ -228,19 +384,85 @@
 </div>
 </main>
 <!-- Footer -->
-<footer class="w-full py-12 px-6 bg-surface-container-lowest border-t border-outline-variant/20 mt-auto">
-<div class="flex flex-col md:flex-row justify-between items-center gap-8 max-w-7xl mx-auto w-full">
-<div class="flex flex-col items-center md:items-start gap-2">
-<span class="font-display-lg text-headline-sm text-on-surface">SuRaksha</span>
-<p class="font-body-md text-body-md text-on-surface-variant">© 2024 SuRaksha Security. All rights reserved.</p>
-</div>
-<div class="flex flex-wrap justify-center gap-md">
-<a class="text-on-surface-variant hover:text-primary transition-colors text-label-sm font-label-sm" href="#">Privacy Policy</a>
-<a class="text-on-surface-variant hover:text-primary transition-colors text-label-sm font-label-sm" href="#">Terms of Service</a>
-<a class="text-on-surface-variant hover:text-primary transition-colors text-label-sm font-label-sm" href="#">Compliance</a>
-<a class="text-on-surface-variant hover:text-primary transition-colors text-label-sm font-label-sm" href="#">Contact Us</a>
-</div>
-</div>
+<!-- Footer -->
+<footer class="w-full mt-xxl bg-gradient-to-b from-[#0b1220] to-[#05080f] border-t border-white/10">
+
+  <div class="max-w-7xl mx-auto px-lg py-xxl grid md:grid-cols-3 gap-xl">
+
+    <!-- BRAND -->
+    <div class="space-y-md">
+
+      <div class="flex items-center gap-sm">
+        <img
+          class="h-10 w-10 rounded-xl object-contain bg-white p-1"
+          src="assets/images/logo.png"
+          alt="SuRaksha Logo"
+        />
+
+        <span class="font-headline-md text-xl font-bold text-white">
+          SuRaksha
+        </span>
+      </div>
+
+      <p class="text-white/70 max-w-xs">
+        Building a safer digital economy for every UPI user in India.
+      </p>
+
+      <!-- Social -->
+      <div class="flex gap-md mt-md">
+
+        <a href="#" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white/70 hover:bg-primary hover:text-white transition">
+          <span class="material-symbols-outlined">share</span>
+        </a>
+
+        <a href="#" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white/70 hover:bg-primary hover:text-white transition">
+          <span class="material-symbols-outlined">mail</span>
+        </a>
+
+      </div>
+
+    </div>
+
+    <!-- LINKS -->
+    <div class="flex flex-col gap-sm">
+
+      <h4 class="text-white font-semibold mb-sm">
+        Quick Links
+      </h4>
+
+      <a href="about.html" class="text-white/70 hover:text-primary transition">
+        About Us
+      </a>
+
+      <a href="features.html" class="text-white/70 hover:text-primary transition">
+        Core Features
+      </a>
+
+      <a href="how.html" class="text-white/70 hover:text-primary transition">
+        Security Protocol
+      </a>
+
+      <a href="#" class="text-white/70 hover:text-primary transition">
+        Privacy Policy
+      </a>
+
+      <a href="#" class="text-white/70 hover:text-primary transition">
+        Contact Support
+      </a>
+
+    </div>
+
+  </div>
+
+  <!-- BOTTOM -->
+  <div class="border-t border-white/10 text-center py-md">
+
+    <p class="text-white/50 text-sm">
+      © <span id="year"></span> SuRaksha Financial Security. All rights reserved.
+    </p>
+
+  </div>
+
 </footer>
 <script>
 const data = JSON.parse(localStorage.getItem("result"));
@@ -306,8 +528,12 @@ if (gauge) {
 // --------------------
 // BUTTONS
 // --------------------
-document.querySelector("button").onclick = () => {
-    window.location.href = "scan.html";
-};
+const secureBtn = document.getElementById("secure-btn");
+if (secureBtn) {
+    secureBtn.onclick = () => {
+        window.location.href = "scan.html";
+    };
+}
 </script>
-</body></html>
+</body>
+</html>

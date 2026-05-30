@@ -5,29 +5,23 @@ import time
 # ✅ CREATE BLUEPRINT (FIX 1)
 qr_bp = Blueprint("qr", __name__)
 
-# ✅ TEMP: Replace with your actual imports later
-# from services.qr.parser import parse_upi_qr
-# from services.qr.risk_engine import analyze_qr_risk
+from urllib.parse import urlparse, parse_qs
+from services.qr_risk_analyzer import analyze_qr_risk
 
-
-# -----------------------------------
-# TEMP FUNCTIONS (FIX 2 & 3)
-# Remove these once you create real ones
-# -----------------------------------
 def parse_upi_qr(qr_text):
-    return {
-        "type": "raw",
-        "raw": qr_text
-    }
-
-
-def analyze_qr_risk(data):
-    return {
-        "risk_score": 10,
-        "risk_level": "low",
-        "suspicious": False,
-        "reasons": []
-    }
+    try:
+        url = urlparse(qr_text)
+        params = parse_qs(url.query)
+        if params:
+            return params
+        return {
+            "pa": [qr_text],
+            "pn": [""],
+            "tn": [""],
+            "am": [""]
+        }
+    except Exception:
+        return {}
 
 
 # -----------------------------------
@@ -71,12 +65,7 @@ def analyze_qr():
         # -------------------------------
         # 3. Risk Analysis
         # -------------------------------
-        risk_data = analyze_qr_risk({
-            "qr_text": qr_text,
-            "parsed": parsed_data,
-            "source": "qr_scan",
-            "timestamp": time.time()
-        })
+        risk_data = analyze_qr_risk(parsed_data)
 
         # -------------------------------
         # 4. Logging

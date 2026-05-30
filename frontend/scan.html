@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 
 <html class="dark" lang="en"><head>
+<script>
+  if (localStorage.getItem("theme") === "light") {
+    document.documentElement.classList.remove("dark");
+  } else {
+    document.documentElement.classList.add("dark");
+  }
+</script>
+<script src="js/theme.js" defer></script>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>SuRaksha | Scan &amp; Analyze</title>
@@ -14,10 +22,29 @@
             theme: {
                 extend: {
                     "colors": {
-                        "surface-variant": "#32343c",
-                        "surface-container-lowest": "#0c0e15",
-                        "surface-container-high": "#272a31",
-                        "on-primary": "#002c6f",
+                        background: "var(--background)",
+                        "on-background": "var(--on-background)",
+                        surface: "var(--surface)",
+                        "on-surface": "var(--on-surface)",
+                        "surface-container": "var(--surface-container)",
+                        "surface-container-low": "var(--surface-container-low)",
+                        "surface-container-high": "var(--surface-container-high)",
+                        "surface-container-lowest": "var(--surface-container-lowest)",
+                        "surface-container-highest": "var(--surface-container-highest)",
+                        "surface-variant": "var(--surface-variant)",
+                        "outline-variant": "var(--outline-variant)",
+                        outline: "var(--outline)",
+                        "on-surface-variant": "var(--on-surface-variant)",
+                        "surface-dim": "var(--surface-dim)",
+                        
+                        primary: "rgb(var(--primary-rgb) / <alpha-value>)",
+                        secondary: "rgb(var(--secondary-rgb) / <alpha-value>)",
+                        error: "rgb(var(--error-rgb) / <alpha-value>)",
+                        success: "rgb(var(--success-rgb) / <alpha-value>)",
+
+                        "dark-background": "#070a13",
+                        "dark-on-surface": "#f1f5f9",
+                        
                         "secondary-fixed": "#ffdf9e",
                         "inverse-primary": "#0057cc",
                         "on-secondary-fixed": "#261a00",
@@ -25,42 +52,28 @@
                         "on-tertiary-container": "#ffdccf",
                         "on-secondary-fixed-variant": "#5b4300",
                         "on-primary-fixed-variant": "#00419d",  
-                        "error": "#ffb4ab",
                         "secondary-fixed-dim": "#fabd00",
                         "tertiary-fixed-dim": "#ffb597",
-                        "surface-container-low": "#191b23",
                         "inverse-on-surface": "#2e3038",
-                        "on-secondary-container": "#6a4e00",
+                        "on-secondary-container": "var(--on-secondary-container)",
                         "on-tertiary": "#591d00",
                         "tertiary-fixed": "#ffdbcd",
                         "inverse-surface": "#e1e2ec",
-                        "surface-container": "#1d1f27",
                         "surface-bright": "#373941",
                         "on-error": "#690005",
-                        "outline": "#8c909f",
-                        "error-container": "#93000a",
-                        "on-primary-container": "#dae2ff",
+                        "error-container": "var(--error-container)",
+                        "on-primary-container": "var(--on-primary-container)",
                         "on-error-container": "#ffdad6",
-                        "primary-container": "#0b5ed7",
-                        "on-surface-variant": "#c2c6d6",
+                        "primary-container": "var(--primary-container)",
                         "tertiary-container": "#b04100",
                         "primary-fixed": "#d9e2ff",
-                        "surface-dim": "#11131a",
                         "primary-fixed-dim": "#b0c6ff",
-                        "on-surface": "#e1e2ec",
                         "on-tertiary-fixed-variant": "#7e2c00",
-                        "background": "#0A0F1C",
-                        "primary": "#b0c6ff",
-                        "surface-container-highest": "#32343c",
                         "on-primary-fixed": "#001945",
                         "on-tertiary-fixed": "#360f00",
-                        "secondary-container": "#fabd00",
-                        "outline-variant": "#424654",
-                        "on-background": "#e1e2ec",
-                        "secondary": "#ffdf9e",
+                        "secondary-container": "var(--secondary-container)",
                         "tertiary": "#ffb597",
                         "surface-tint": "#b0c6ff",
-                        "surface": "#111827"
                     },
                     "borderRadius": {
                         "DEFAULT": "0.25rem",
@@ -99,11 +112,76 @@
         }
     </script>
 <style>
+        :root {
+            --background: #f8fafc;
+            --on-background: #0f172a;
+            --surface: #ffffff;
+            --on-surface: #0f172a;
+            --surface-container: #f1f5f9;
+            --surface-container-low: #f8fafc;
+            --surface-container-high: #e2e8f0;
+            --surface-container-lowest: #ffffff;
+            --surface-container-highest: #cbd5e1;
+            --surface-variant: #e2e8f0;
+            --outline-variant: #cbd5e1;
+            --outline: #64748b;
+            --on-surface-variant: #475569;
+            --surface-dim: #f1f5f9;
+            --header-bg: rgba(248, 250, 252, 0.8);
+
+            --primary-rgb: 11 94 215;
+            --secondary-rgb: 217 119 6;
+            --error-rgb: 220 53 69;
+            --success-rgb: 16 185 129;
+        }
+
+        .dark {
+            --background: #070a13;
+            --on-background: #f8fafc;
+            --surface: #0f172a;
+            --on-surface: #f1f5f9;
+            --surface-container: #1e293b;
+            --surface-container-low: #070a13;
+            --surface-container-high: #334155;
+            --surface-container-lowest: #020617;
+            --surface-container-highest: #475569;
+            --surface-variant: #334155;
+            --outline-variant: #475569;
+            --outline: #94a3b8;
+            --on-surface-variant: #cbd5e1;
+            --surface-dim: #070a13;
+            --header-bg: rgba(7, 10, 19, 0.8);
+
+            --primary-rgb: 59 130 246;
+            --secondary-rgb: 251 191 36;
+            --error-rgb: 248 113 113;
+            --success-rgb: 52 211 153;
+        }
+
+        /* ── Text Glow & Animated Gradient ── */
+        @keyframes textGlow {
+            0%, 100% { text-shadow: 0 0 4px rgba(var(--primary-rgb), 0.1); }
+            50% { text-shadow: 0 0 10px rgba(var(--primary-rgb), 0.4); }
+        }
+        .animate-text-glow {
+            animation: textGlow 3s ease-in-out infinite;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .animate-gradient {
+            background-size: 200% auto;
+            animation: gradientShift 4s ease infinite;
+        }
+
         html {
             scroll-behavior: smooth;
         }
         .glass-header {
-            background: rgba(17, 24, 39, 0.8);
+            background: var(--header-bg);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
         }
@@ -111,24 +189,22 @@
             box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.5);
         }
         .scanner-line {
-            animation: scan 2s linear infinite;
+            animation: scan 2.5s ease-in-out infinite alternate;
         }
         @keyframes scan {
             0% { transform: translateY(0); }
-            100% { transform: translateY(256px); }
+            100% { transform: translateY(192px); }
         }
         @keyframes fadeIn {
             from {
-                     opacity: 0;
-                    transform: scale(0.95);
+                opacity: 0;
+                transform: scale(0.95);
             }
-
             to {
                 opacity: 1;
                 transform: scale(1);
-             }
+            }
         }
-
         .animate-fadeIn {
             animation: fadeIn 0.25s ease;
         }
@@ -136,28 +212,79 @@
 </head>
 <body class="bg-background text-on-surface font-body-md selection:bg-primary-container selection:text-on-primary-container">
 <!-- TopAppBar -->
-<header class="fixed top-0 w-full z-50 glass-header border-b border-outline-variant/10 shadow-sm">
+<header class="fixed top-0 inset-x-0 z-50 glass-header border-b border-outline-variant/10 shadow-sm">
 
-  <div class="max-w-7xl mx-auto px-6">
+  <div class="max-w-7xl mx-auto px-lg py-md flex items-center justify-between">
 
-    <div class="grid grid-cols-3 items-center h-16">
+    <!-- Logo -->
+    <a href="index.html"
+       class="flex items-center gap-sm group">
 
-      <!-- LEFT: Logo -->
-      <div class="flex items-center gap-2">
-        <span class="material-symbols-outlined text-primary text-3xl">shield</span>
-        <span class="font-display-lg text-headline-md text-primary">SuRaksha</span>
-      </div>
+      <img
+        class="h-10 w-10 rounded-xl object-cover group-hover:rotate-6 transition-transform duration-300"
+        src="assets/images/logo.png"
+        alt="SuRaksha logo"
+      />
 
-      <!-- CENTER: Nav -->
-      <nav class="hidden md:flex justify-center items-center gap-10">
-        <a href="index.html" class="hover:text-primary transition">Home</a>
-        <a href="features.html" class="text-primary border-b-2 border-primary pb-1">Features</a>
-        <a href="how.html" class="hover:text-primary transition">How it Works</a>
-        <a href="about.html" class="hover:text-primary transition">About</a>
-      </nav>
+      <span class="font-headline-lg font-bold text-primary tracking-tight">
+        SuRaksha
+      </span>
 
-      <!-- RIGHT: Empty (future use) -->
-      <div></div>
+    </a>
+
+    <!-- Navigation -->
+    <nav class="hidden md:flex items-center gap-lg">
+
+      <a href="index.html"
+         class="text-on-surface-variant hover:text-primary transition-colors duration-300">
+        Home
+      </a>
+
+      <a href="features.html"
+         class="text-on-surface-variant hover:text-primary transition-colors duration-300">
+        Features
+      </a>
+
+      <a href="how.html"
+         class="text-on-surface-variant hover:text-primary transition-colors duration-300">
+        How It Works
+      </a>
+
+      <a href="about.html"
+         class="text-on-surface-variant hover:text-primary transition-colors duration-300">
+        About
+      </a>
+
+    </nav>
+
+    <!-- Right Actions -->
+    <div class="flex items-center gap-md">
+
+      <!-- Theme Toggle -->
+      <button
+        id="theme-toggle"
+        aria-label="Toggle dark mode"
+        class="p-2 rounded-xl hover:bg-surface-variant/20 active:scale-95 transition-all duration-300">
+
+        <span
+          id="theme-icon"
+          class="material-symbols-outlined text-primary">
+          dark_mode
+        </span>
+
+      </button>
+
+      <!-- CTA -->
+      <a href="scan.html"
+         class="bg-primary-container text-on-primary-container px-lg py-sm rounded-xl font-label-md flex items-center gap-sm hover:scale-105 hover:shadow-xl active:scale-95 transition-all duration-300">
+
+        <span class="material-symbols-outlined text-[20px]">
+          qr_code_scanner
+        </span>
+
+        Open Scanner
+
+      </a>
 
     </div>
 
@@ -170,7 +297,7 @@
 
   <!-- Title -->
   <div>
-    <h1 class="font-display-lg text-display-lg mb-3 bg-gradient-to-r from-primary to-secondary-fixed-dim bg-clip-text text-transparent">
+    <h1 class="font-display-lg text-display-lg mb-3 bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent animate-gradient">
       Scan & Analyze
     </h1>
 
@@ -191,20 +318,19 @@
     </p>
   </div>
 
-  <!-- Buttons -->
   <div class="flex flex-wrap justify-center gap-4">
 
-    <span class="px-5 py-2 rounded-full bg-primary/10 text-primary text-sm hover:bg-primary/20 transition">
+    <button onclick="document.getElementById('qrSection').scrollIntoView({behavior: 'smooth'})" class="px-5 py-2 rounded-full bg-primary/10 text-primary text-sm hover:bg-primary/20 transition cursor-pointer">
       QR Scanner
-    </span>
+    </button>
 
-    <span class="px-5 py-2 rounded-full bg-yellow-500/10 text-yellow-400 text-sm hover:bg-yellow-500/20 transition">
+    <button onclick="document.getElementById('imageSection').scrollIntoView({behavior: 'smooth'})" class="px-5 py-2 rounded-full bg-secondary/15 text-secondary text-sm hover:bg-secondary/25 transition cursor-pointer">
       Screenshot AI
-    </span>
+    </button>
 
-    <span class="px-5 py-2 rounded-full bg-red-500/10 text-red-400 text-sm hover:bg-red-500/20 transition">
+    <button onclick="document.getElementById('messageSection').scrollIntoView({behavior: 'smooth'})" class="px-5 py-2 rounded-full bg-error/15 text-error text-sm hover:bg-error/25 transition cursor-pointer">
       Message Scanner
-    </span>
+    </button>
 
   </div>
 
@@ -271,10 +397,20 @@
 <section id="qrSection"
          class="bg-surface rounded-xxl p-lg border border-outline-variant/20 shadow-xl overflow-hidden">
 <div class="flex flex-col items-center justify-center min-h-[400px] text-center space-y-lg">
-<div id="reader"
-     class="hidden w-64 h-64 rounded-3xl border-4 border-primary/30 overflow-hidden transition-all duration-300">
+<div id="scannerWrapper" class="hidden relative w-64 h-64 rounded-3xl border-4 border-primary/30 overflow-hidden transition-all duration-300">
+  <div id="reader" class="w-full h-full"></div>
+  <div id="scannerOverlay" class="absolute inset-0 pointer-events-none z-10 transition-opacity duration-300">
+    <div class="absolute inset-0 border-[30px] border-black/40"></div>
+    <div class="absolute inset-[30px] border border-primary/40 rounded-xl">
+      <div class="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-primary rounded-tl-md"></div>
+      <div class="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-primary rounded-tr-md"></div>
+      <div class="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-primary rounded-bl-md"></div>
+      <div class="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-primary rounded-br-md"></div>
+      <div class="scanner-line absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-primary to-transparent shadow-[0_0_12px_rgba(var(--primary-rgb),0.9)]"></div>
+    </div>
+  </div>
 </div>
-<div class="mt-4 flex flex-col items-center gap-2">
+<div id="uploadQRSection" class="mt-4 flex flex-col items-center gap-2">
 
     <input type="file"
            id="qrImageInput"
@@ -291,11 +427,11 @@
 </div>
 <div class="space-y-sm text-center">
 
-  <h2 class="font-headline-lg text-headline-lg">
+  <h2 id="qrTitle" class="font-headline-lg text-headline-lg">
     Scan QR Code
   </h2>
 
-  <p class="text-on-surface-variant">
+  <p id="qrSubtitle" class="text-on-surface-variant">
     Scan live QR or upload from gallery
   </p>
 
@@ -340,7 +476,7 @@
 <span class="text-label-md">Tamper Detection Active</span>
 </div>
 </div>
-<div class="w-full border-2 border-dashed border-primary/40 rounded-xxl p-xxl bg-surface-container-low hover:bg-surface-container transition-all flex flex-col items-center justify-center group cursor-pointer">
+<div onclick="if(event.target.tagName !== 'BUTTON' && event.target.tagName !== 'INPUT') document.getElementById('imageInput').click()" ondragover="event.preventDefault(); this.classList.add('border-primary', 'bg-surface-container')" ondragleave="this.classList.remove('border-primary', 'bg-surface-container')" ondrop="event.preventDefault(); this.classList.remove('border-primary', 'bg-surface-container'); if(event.dataTransfer.files.length) { document.getElementById('imageInput').files = event.dataTransfer.files; const changeEvent = new Event('change', { bubbles: true }); document.getElementById('imageInput').dispatchEvent(changeEvent); }" class="w-full border-2 border-dashed border-primary/40 rounded-xxl p-xxl bg-surface-container-low hover:bg-surface-container transition-all flex flex-col items-center justify-center group cursor-pointer">
 <span class="material-symbols-outlined text-primary text-6xl mb-4 group-hover:scale-110 transition-transform" data-icon="cloud_upload">cloud_upload</span>
 <p class="text-headline-md mb-2">Drag &amp; drop payment proof</p>
 <p class="text-on-surface-variant mb-6">Check if image is edited or tampered by AI fraud tools</p>
@@ -436,64 +572,199 @@
 </section>
 </main>
 <!-- Footer -->
-<footer class="w-full py-12 px-6 bg-surface-container-lowest border-t border-outline-variant/20 mt-12">
-<div class="flex flex-col md:flex-row justify-between items-center gap-8 max-w-7xl mx-auto w-full">
-<div class="flex flex-col gap-4 items-center md:items-start">
-<div class="flex items-center gap-2">
-<span class="material-symbols-outlined text-primary text-2xl" data-icon="shield" style="font-variation-settings: 'FILL' 1;">shield</span>
-<span class="font-display-lg text-headline-sm text-on-surface">SuRaksha</span>
-</div>
-<p class="text-on-surface-variant text-label-sm max-w-xs text-center md:text-left">
-                    © 2024 SuRaksha Security. All rights reserved. Precision-engineered for digital financial safety.
-                </p>
-</div>
-<div class="flex flex-wrap justify-center gap-x-8 gap-y-4">
-<a class="text-on-surface-variant hover:text-primary transition-colors text-label-sm" href="#">Privacy Policy</a>
-<a class="text-on-surface-variant hover:text-primary transition-colors text-label-sm" href="#">Terms of Service</a>
-<a class="text-on-surface-variant hover:text-primary transition-colors text-label-sm" href="#">Compliance</a>
-<a class="text-on-surface-variant hover:text-primary transition-colors text-label-sm" href="#">Contact Us</a>
-</div>
-<div class="flex gap-4">
-<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors cursor-pointer border border-outline-variant/20">
-<span class="material-symbols-outlined text-lg" data-icon="language">language</span>
-</div>
-<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors cursor-pointer border border-outline-variant/20">
-<span class="material-symbols-outlined text-lg" data-icon="share">share</span>
-</div>
-</div>
-</div>
+<!-- Footer -->
+<footer class="w-full mt-xxl bg-gradient-to-b from-[#0b1220] to-[#05080f] border-t border-white/10">
+
+  <div class="max-w-7xl mx-auto px-lg py-xxl grid md:grid-cols-3 gap-xl">
+
+    <!-- BRAND -->
+    <div class="space-y-md">
+
+      <div class="flex items-center gap-sm">
+        <img
+          class="h-10 w-10 rounded-xl object-contain bg-white p-1"
+          src="assets/images/logo.png"
+          alt="SuRaksha Logo"
+        />
+
+        <span class="font-headline-md text-xl font-bold text-white">
+          SuRaksha
+        </span>
+      </div>
+
+      <p class="text-white/70 max-w-xs">
+        Building a safer digital economy for every UPI user in India.
+      </p>
+
+      <!-- Social -->
+      <div class="flex gap-md mt-md">
+
+        <a href="#" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white/70 hover:bg-primary hover:text-white transition">
+          <span class="material-symbols-outlined">share</span>
+        </a>
+
+        <a href="#" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white/70 hover:bg-primary hover:text-white transition">
+          <span class="material-symbols-outlined">mail</span>
+        </a>
+
+      </div>
+
+    </div>
+
+    <!-- LINKS -->
+    <div class="flex flex-col gap-sm">
+
+      <h4 class="text-white font-semibold mb-sm">
+        Quick Links
+      </h4>
+
+      <a href="about.html" class="text-white/70 hover:text-primary transition">
+        About Us
+      </a>
+
+      <a href="features.html" class="text-white/70 hover:text-primary transition">
+        Core Features
+      </a>
+
+      <a href="how.html" class="text-white/70 hover:text-primary transition">
+        Security Protocol
+      </a>
+
+      <a href="#" class="text-white/70 hover:text-primary transition">
+        Privacy Policy
+      </a>
+
+      <a href="#" class="text-white/70 hover:text-primary transition">
+        Contact Support
+      </a>
+
+    </div>
+
+  </div>
+
+  <!-- BOTTOM -->
+  <div class="border-t border-white/10 text-center py-md">
+
+    <p class="text-white/50 text-sm">
+      © <span id="year"></span> SuRaksha Financial Security. All rights reserved.
+    </p>
+
+  </div>
+
 </footer>
 <div id="resultPopup"
-     class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+     class="hidden fixed inset-0 bg-black/85 backdrop-blur-sm items-center justify-center z-50">
 
-    <div class="bg-[#111827] p-6 rounded-xl w-full max-w-md text-white">
+    <div class="bg-[#111827]/90 backdrop-blur-xl border border-white/10 p-6 rounded-2xl w-full max-w-md text-white shadow-2xl shadow-black/80 space-y-4 animate-fadeIn">
 
-        <h2 id="popupAlert" class="text-xl font-bold text-center mb-4"></h2>
-
-        <div class="mb-2">
-            Risk Score: <span id="popupScore"></span>
+        <!-- Top Header & Icon -->
+        <div class="text-center space-y-2">
+            <div class="inline-flex p-3 bg-red-500/10 rounded-full text-red-500 mb-2">
+                <span class="material-symbols-outlined text-4xl" data-icon="security">security</span>
+            </div>
+            <h2 id="popupAlert" class="text-2xl font-bold tracking-tight text-center"></h2>
+            <div id="popupSafe" class="text-sm font-semibold tracking-wide uppercase"></div>
         </div>
 
-        <div class="mb-2">
-            Risk Level: <span id="popupLevel"></span>
+        <hr class="border-white/10" />
+
+        <!-- Metrics Grid -->
+        <div class="grid grid-cols-2 gap-3 text-sm">
+            <div class="bg-white/5 p-3 rounded-xl border border-white/5 space-y-1">
+                <span class="text-gray-400 block text-xs font-medium">Risk Score</span>
+                <span id="popupScore" class="text-lg font-bold text-primary"></span>
+            </div>
+            <div class="bg-white/5 p-3 rounded-xl border border-white/5 space-y-1">
+                <span class="text-gray-400 block text-xs font-medium">Confidence</span>
+                <span id="popupConfidence" class="text-lg font-bold"></span>
+            </div>
         </div>
 
-        <div class="mb-2">
-            Fraud Type: <span id="popupType"></span>
+        <!-- Risk Bar -->
+        <div class="space-y-1">
+            <div class="flex justify-between text-xs text-gray-400">
+                <span>Threat Intensity</span>
+                <span id="popupLevel" class="font-bold"></span>
+            </div>
+            <div class="w-full bg-white/5 h-3 rounded-full overflow-hidden border border-white/5">
+                <div id="riskBar" class="h-full rounded-full transition-all duration-700 bg-primary" style="width: 0%;"></div>
+            </div>
         </div>
 
-        <div class="mb-2">
-            Confidence: <span id="popupConfidence"></span>
+        <!-- Fraud Types & Actions -->
+        <div class="bg-white/5 p-4 rounded-xl border border-white/5 space-y-3 text-sm">
+            <div class="flex justify-between">
+                <span class="text-gray-400">Fraud Type:</span>
+                <span id="popupType" class="font-semibold text-secondary"></span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-400">Recommendation:</span>
+                <span id="popupAction" class="font-semibold text-red-400"></span>
+            </div>
         </div>
 
-        <div id="popupSafe" class="mt-4 text-center font-bold"></div>
+        <!-- Suspicious Signals / Reasons -->
+        <div class="space-y-2">
+            <span class="text-xs text-gray-400 font-semibold tracking-wider uppercase block">Threat Indicators & Signals</span>
+            <ul id="popupReasons" class="max-h-28 overflow-y-auto space-y-1.5 pr-2 custom-scrollbar"></ul>
+        </div>
 
-        <ul id="popupReasons" class="mt-4 text-sm space-y-1"></ul>
+        <!-- Action Buttons -->
+        <div id="popupActions" class="space-y-2 pt-2">
+            <!-- Proceed to Pay (Triggers Drawer) -->
+            <button id="btnProceedPay" onclick="togglePaymentDrawer(true)"
+                    class="w-full bg-gradient-to-r from-primary to-blue-600 hover:from-blue-600 hover:to-primary active:scale-[0.99] text-white py-3.5 rounded-xl font-bold tracking-wide transition-all shadow-lg shadow-primary/20 cursor-pointer text-center text-sm uppercase">
+                Proceed to Pay
+            </button>
+            
+            <!-- Close Button -->
+            <button id="btnCancelPay" onclick="closePopup()"
+                    class="w-full bg-white/5 hover:bg-white/10 active:scale-[0.99] text-white/80 py-3 rounded-xl font-medium tracking-wide transition-all border border-white/5 cursor-pointer text-center text-xs">
+                Acknowledge & Close
+            </button>
+        </div>
 
-        <button onclick="closePopup()"
-                class="mt-6 w-full bg-red-500 py-2 rounded">
-            Close
-        </button>
+        <!-- Payment App Selector Drawer (Hidden by default) -->
+        <div id="paymentDrawer" class="hidden bg-white/[0.03] border border-white/5 rounded-xl p-4 space-y-3 animate-fadeIn">
+            <div class="flex justify-between items-center mb-1">
+                <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Select Payment App</span>
+                <button onclick="togglePaymentDrawer(false)" class="text-xs text-primary hover:underline cursor-pointer">Go Back</button>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-2">
+                <!-- Google Pay -->
+                <a id="payGPay" href="#" onclick="simulatePaymentLaunch('Google Pay')"
+                   class="flex items-center gap-2.5 p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-primary/10 hover:border-primary/30 transition-all cursor-pointer">
+                    <span class="w-6 h-6 rounded-full bg-blue-500/10 text-blue-400 flex items-center justify-center font-bold text-[10px]">G</span>
+                    <span class="text-xs font-semibold text-white/90">Google Pay</span>
+                </a>
+                
+                <!-- PhonePe -->
+                <a id="payPhonePe" href="#" onclick="simulatePaymentLaunch('PhonePe')"
+                   class="flex items-center gap-2.5 p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-purple-500/10 hover:border-purple-500/30 transition-all cursor-pointer">
+                    <span class="w-6 h-6 rounded-full bg-purple-500/10 text-purple-400 flex items-center justify-center font-bold text-[10px]">P</span>
+                    <span class="text-xs font-semibold text-white/90">PhonePe</span>
+                </a>
+                
+                <!-- Paytm -->
+                <a id="payPaytm" href="#" onclick="simulatePaymentLaunch('Paytm')"
+                   class="flex items-center gap-2.5 p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-sky-500/10 hover:border-sky-500/30 transition-all cursor-pointer">
+                    <span class="w-6 h-6 rounded-full bg-sky-500/10 text-sky-400 flex items-center justify-center font-bold text-[10px]">Py</span>
+                    <span class="text-xs font-semibold text-white/90">Paytm</span>
+                </a>
+                
+                <!-- BHIM UPI -->
+                <a id="payBHIM" href="#" onclick="simulatePaymentLaunch('BHIM UPI')"
+                   class="flex items-center gap-2.5 p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-orange-500/10 hover:border-orange-500/30 transition-all cursor-pointer">
+                    <span class="w-6 h-6 rounded-full bg-orange-500/10 text-orange-400 flex items-center justify-center font-bold text-[10px]">B</span>
+                    <span class="text-xs font-semibold text-white/90">BHIM UPI</span>
+                </a>
+            </div>
+            
+            <p class="text-[9px] text-gray-500 text-center leading-normal pt-1">
+                UPI deep links standard protocol initiates secure local payment gateway launcher.
+            </p>
+        </div>
     </div>
 </div>
 <div id="loader"

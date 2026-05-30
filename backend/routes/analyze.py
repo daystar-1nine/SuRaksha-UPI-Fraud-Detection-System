@@ -53,6 +53,7 @@ def process_result(result):
 # IMAGE ANALYSIS
 # -----------------------------------
 @analyze_bp.route("/analyze/image", methods=["POST"])
+@analyze_bp.route("/analyze", methods=["POST"])
 def analyze_image():
     request_id = str(uuid.uuid4())
     start_time = time.time()
@@ -99,7 +100,7 @@ def analyze_image():
         tamper_data = detect_image_tampering(filepath)
         extracted_text = extract_text(filepath)
 
-        result = run_fraud_analysis(extracted_text, user_intent)
+        result = run_fraud_analysis(extracted_text.get("text", ""), user_intent)
 
         repeat_counts = process_result(result)
 
@@ -142,6 +143,7 @@ def analyze_image():
 # MESSAGE ANALYSIS
 # -----------------------------------
 @analyze_bp.route("/analyze/message", methods=["POST"])
+@analyze_bp.route("/analyze_text", methods=["POST"])
 def analyze_message():
     request_id = str(uuid.uuid4())
     start_time = time.time()
