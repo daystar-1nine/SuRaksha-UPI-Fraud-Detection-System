@@ -40,10 +40,20 @@ def init_db():
         )
         """)
 
-        # 🔥 Index for fast lookup
+        # User-submitted fraud reports
         cursor.execute("""
-        CREATE INDEX IF NOT EXISTS idx_upi ON history (upi)
+        CREATE TABLE IF NOT EXISTS complaints (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            upi TEXT NOT NULL,
+            description TEXT,
+            reporter_ip TEXT,
+            created_at TEXT
+        )
         """)
+
+        # 🔥 Indexes for fast lookup
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_upi ON history (upi)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_complaint_upi ON complaints (upi)")
 
 
 # -------------------------------
@@ -118,3 +128,54 @@ def get_high_risk_upis():
         """)
 
         return cursor.fetchall()
+
+
+# -------------------------------
+# 🔥 SAVE USER COMPLAINT
+# -------------------------------
+def save_complaint(upi, description="", reporter_ip=""):
+    """Save a user-submitted fraud complaint"""
+    now = datetime.utcnow().isoformat()
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+        INSERT INTO complaints (upi, description, reporter_ip, created_at)
+        VALUES (?, ?, ?, ?)
+        """, (upi.lower().strip(), description[:500], reporter_ip, now))
+
+    # Also record into history so it affects blacklist
+    save_case([upi.lower().strip()], "User Report", "HIGH")
+
+
+# -------------------------------
+# 🔥 GET PLATFORM STATS
+# -------------------------------
+def get_stats():
+    """Return aggregate stats for trust-building widget"""
+    with get_connection() as conn:
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT COUNT(*) FROM history")
+        total_scans = cursor.fetchone()[0] or 0
+
+        cursor.execute("""
+            SELECT COUNT(*) FROM history
+            WHERE risk_level IN ('HIGH', 'CRITICAL')
+        """)
+        threats_caught = cursor.fetchone()[0] or 0
+
+        cursor.execute("""
+            SELECT COUNT(DISTINCT upi) FROM history
+            WHERE upi IS NOT NULL AND upi != ''
+        """)
+        unique_frauds = cursor.fetchone()[0] or 0
+
+        cursor.execute("SELECT COUNT(*) FROM complaints")
+        total_reports = cursor.fetchone()[0] or 0
+
+    return {
+        "total_scans": total_scans,
+        "threats_caught": threats_caught,
+        "unique_frauds": unique_frauds,
+        "total_reports": total_reports
+    }

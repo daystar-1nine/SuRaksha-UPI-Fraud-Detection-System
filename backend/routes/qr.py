@@ -116,3 +116,41 @@ def error_response(message, status_code, request_id):
             "code": status_code
         }
     }), status_code
+
+
+# -----------------------------------
+# OFFLINE BLACKLIST SYNC ENDPOINT 🔥
+# -----------------------------------
+@qr_bp.route("/api/blacklist/sync", methods=["GET"])
+def get_blacklist_sync():
+    try:
+        from services.history_store import get_connection
+        
+        with get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT upi, MAX(risk_level) as risk, COUNT(*) as reports 
+                FROM history 
+                GROUP BY upi
+            """)
+            rows = cursor.fetchall()
+            
+            blacklist = []
+            for r in rows:
+                if r[0]:  # Ensure upi is not null/empty
+                    blacklist.append({
+                        "upi": r[0],
+                        "risk_level": r[1],
+                        "reports": r[2]
+                    })
+                    
+            return jsonify({
+                "success": True,
+                "blacklist": blacklist
+            }), 200
+            
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": "Failed to query blacklist database"
+        }), 500

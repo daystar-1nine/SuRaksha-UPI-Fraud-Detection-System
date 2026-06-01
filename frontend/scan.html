@@ -318,10 +318,16 @@
     </p>
   </div>
 
+
+  <!-- Scroll nav chips -->
   <div class="flex flex-wrap justify-center gap-4">
 
     <button onclick="document.getElementById('qrSection').scrollIntoView({behavior: 'smooth'})" class="px-5 py-2 rounded-full bg-primary/10 text-primary text-sm hover:bg-primary/20 transition cursor-pointer">
       QR Scanner
+    </button>
+
+    <button onclick="document.getElementById('upiSection').scrollIntoView({behavior: 'smooth'})" class="px-5 py-2 rounded-full bg-success/15 text-success text-sm hover:bg-success/25 transition cursor-pointer">
+      UPI ID Check
     </button>
 
     <button onclick="document.getElementById('imageSection').scrollIntoView({behavior: 'smooth'})" class="px-5 py-2 rounded-full bg-secondary/15 text-secondary text-sm hover:bg-secondary/25 transition cursor-pointer">
@@ -331,6 +337,31 @@
     <button onclick="document.getElementById('messageSection').scrollIntoView({behavior: 'smooth'})" class="px-5 py-2 rounded-full bg-error/15 text-error text-sm hover:bg-error/25 transition cursor-pointer">
       Message Scanner
     </button>
+
+  </div>
+
+  <!-- Live Trust Stats Bar -->
+  <div class="mt-8 grid grid-cols-2 md:grid-cols-4 gap-3 max-w-3xl mx-auto">
+
+    <div class="bg-surface border border-outline-variant/20 rounded-2xl p-4 text-center hover:border-primary/30 transition">
+      <div id="statScans" class="text-2xl font-bold text-primary font-headline-md">—</div>
+      <div class="text-xs text-on-surface-variant mt-1">Total Scans</div>
+    </div>
+
+    <div class="bg-surface border border-outline-variant/20 rounded-2xl p-4 text-center hover:border-error/30 transition">
+      <div id="statThreats" class="text-2xl font-bold text-error font-headline-md">—</div>
+      <div class="text-xs text-on-surface-variant mt-1">Threats Stopped</div>
+    </div>
+
+    <div class="bg-surface border border-outline-variant/20 rounded-2xl p-4 text-center hover:border-secondary/30 transition">
+      <div id="statFrauds" class="text-2xl font-bold text-secondary font-headline-md">—</div>
+      <div class="text-xs text-on-surface-variant mt-1">Unique Fraudsters</div>
+    </div>
+
+    <div class="bg-surface border border-outline-variant/20 rounded-2xl p-4 text-center hover:border-success/30 transition">
+      <div id="statReports" class="text-2xl font-bold text-success font-headline-md">—</div>
+      <div class="text-xs text-on-surface-variant mt-1">Community Reports</div>
+    </div>
 
   </div>
 
@@ -465,6 +496,53 @@
 
 </div>
 </section>
+
+<!-- Section: Manual UPI ID Check -->
+<section id="upiSection" class="bg-surface rounded-xxl p-lg border border-success/20 shadow-xl shadow-success/5">
+  <div class="flex items-center justify-between mb-lg">
+    <div>
+      <h2 class="font-headline-lg text-headline-lg">Check UPI ID</h2>
+      <p class="text-on-surface-variant text-sm mt-1">Verify any UPI address before sending money</p>
+    </div>
+    <div class="flex items-center gap-2 text-success bg-success/10 px-4 py-1 rounded-full border border-success/20">
+      <span class="material-symbols-outlined text-sm">verified</span>
+      <span class="text-label-md">0ms Check</span>
+    </div>
+  </div>
+
+  <div class="space-y-3">
+    <div class="relative">
+      <input
+        id="manualUpiInput"
+        type="text"
+        placeholder="Enter UPI ID — e.g. name@okaxis or 9876543210@paytm"
+        autocomplete="off"
+        spellcheck="false"
+        class="w-full bg-surface-container-low border border-outline-variant/30 rounded-xl px-5 py-4 pr-32
+               text-on-surface placeholder:text-on-surface-variant/50 font-mono text-sm
+               focus:ring-2 focus:ring-success/40 focus:border-success/50 transition-all outline-none"
+      />
+      <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+        <span id="upiFormatBadge" class="text-xs px-2 py-0.5 rounded-full hidden"></span>
+      </div>
+    </div>
+
+    <!-- Suggested examples -->
+    <div class="flex flex-wrap gap-2">
+      <span class="text-xs text-on-surface-variant mr-1 self-center">Try:</span>
+      <button onclick="document.getElementById('manualUpiInput').value='support@paytm'; validateUpiLive()" class="text-xs px-3 py-1 rounded-full bg-error/10 text-error border border-error/20 hover:bg-error/20 transition">support@paytm</button>
+      <button onclick="document.getElementById('manualUpiInput').value='rewards@ybl'; validateUpiLive()" class="text-xs px-3 py-1 rounded-full bg-error/10 text-error border border-error/20 hover:bg-error/20 transition">rewards@ybl</button>
+      <button onclick="document.getElementById('manualUpiInput').value='merchant@okicici'; validateUpiLive()" class="text-xs px-3 py-1 rounded-full bg-success/10 text-success border border-success/20 hover:bg-success/20 transition">merchant@okicici</button>
+    </div>
+
+    <button onclick="checkUpiManual()"
+      class="w-full bg-gradient-to-r from-success to-emerald-600 hover:from-emerald-600 hover:to-success text-white py-4 rounded-xl font-headline-md flex items-center justify-center gap-3 active:scale-[0.99] shadow-xl shadow-success/20 transition-all">
+      <span class="material-symbols-outlined">shield_check</span>
+      Verify UPI ID
+    </button>
+  </div>
+</section>
+
 <!-- Section: Upload Screenshot -->
 <section id="imageSection" class="space-y-lg">
 <div class="flex items-center justify-between">
@@ -482,33 +560,35 @@
 <p class="text-on-surface-variant mb-6">Check if image is edited or tampered by AI fraud tools</p>
 <input type="file"
        id="imageInput"
+       accept="image/*"
        class="hidden">
 
 <button onclick="document.getElementById('imageInput').click()"
-    class="border-1.5 border-primary text-primary px-8 py-3 rounded-xl">
+    class="border border-primary/60 text-primary px-8 py-3 rounded-xl hover:bg-primary/10 transition-colors">
 
     Choose File
 
 </button>
 
 <img id="previewImage"
-     class="hidden mt-4 w-full rounded-lg border">
+     class="hidden mt-4 w-full max-h-48 object-contain rounded-lg border border-outline-variant/20">
 
 <p id="uploadText"
-   class="hidden text-green-400 mt-2">
+   class="hidden text-success font-label-md mt-2">
 
     Image Uploaded ✅
 
 </p>
 <button onclick="analyzeImage()"
-    class="w-full bg-[#FFC107] text-black py-4 rounded-xl font-bold mt-4">
+    class="w-full bg-primary-container text-on-primary-container py-4 rounded-xl font-headline-md flex items-center justify-center gap-3 hover:bg-primary transition-all active:scale-[0.99] shadow-xl shadow-primary/20 mt-4">
 
+    <span class="material-symbols-outlined">image_search</span>
     Analyze Screenshot
 
 </button>
 
 <p id="status"
-   class="text-sm text-gray-400 mt-2">
+   class="text-sm text-on-surface-variant mt-2">
 </p>
 </div>
 </section>
@@ -516,28 +596,46 @@
 <section id="messageSection" class="space-y-lg">
 <h2 class="font-headline-lg text-headline-lg">Scan Message</h2>
 <div class="bg-surface rounded-xxl p-lg border border-outline-variant/20 shadow-lg space-y-lg">
-<div class="relative">
-<textarea
-    id="messageInput"
-    class="w-full bg-surface-container-low border border-outline-variant/30 rounded-xl p-lg text-on-surface placeholder:text-on-surface-variant/50 focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all outline-none resize-none font-body-md"
-    placeholder="Paste SMS, WhatsApp message, or any suspicious link here..."
-    rows="6">
-</textarea>
-<div class="absolute bottom-4 right-4 flex gap-2">
-<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary" data-icon="content_paste">content_paste</span>
-<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-error" data-icon="delete">delete</span>
-</div>
-</div>
-<button onclick="analyzeMessage()"
-    class="w-full bg-primary-container text-on-primary-container py-4 rounded-xl font-headline-md flex items-center justify-center gap-3 hover:bg-primary transition-all active:scale-[0.99] shadow-xl shadow-primary/20">
 
-    <span class="material-symbols-outlined">
-        psychology
-    </span>
+  <!-- Sample scam message chips -->
+  <div class="space-y-2">
+    <p class="text-xs text-on-surface-variant font-semibold uppercase tracking-wider">⚡ Try sample scam messages</p>
+    <div class="flex flex-wrap gap-2">
+      <button onclick="pasteScamSample(0)" class="text-xs px-3 py-1.5 rounded-full bg-error/10 text-error border border-error/20 hover:bg-error/20 transition flex items-center gap-1">
+        <span class="material-symbols-outlined text-[14px]">warning</span> Cashback Scam
+      </button>
+      <button onclick="pasteScamSample(1)" class="text-xs px-3 py-1.5 rounded-full bg-error/10 text-error border border-error/20 hover:bg-error/20 transition flex items-center gap-1">
+        <span class="material-symbols-outlined text-[14px]">warning</span> KYC Fraud
+      </button>
+      <button onclick="pasteScamSample(2)" class="text-xs px-3 py-1.5 rounded-full bg-error/10 text-error border border-error/20 hover:bg-error/20 transition flex items-center gap-1">
+        <span class="material-symbols-outlined text-[14px]">warning</span> Prize Winner
+      </button>
+      <button onclick="pasteScamSample(3)" class="text-xs px-3 py-1.5 rounded-full bg-secondary/10 text-secondary border border-secondary/20 hover:bg-secondary/20 transition flex items-center gap-1">
+        <span class="material-symbols-outlined text-[14px]">check_circle</span> Legitimate
+      </button>
+    </div>
+  </div>
 
-    Analyze Message
+  <div class="relative">
+    <textarea
+        id="messageInput"
+        class="w-full bg-surface-container-low border border-outline-variant/30 rounded-xl p-lg text-on-surface placeholder:text-on-surface-variant/50 focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all outline-none resize-none font-body-md"
+        placeholder="Paste SMS, WhatsApp message, or any suspicious link here..."
+        rows="6"
+        oninput="updateCharCount()"
+        maxlength="5000">
+    </textarea>
+    <div class="absolute bottom-3 right-3 flex items-center gap-3">
+      <span id="charCount" class="text-xs text-on-surface-variant">0 / 5000</span>
+      <span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition" onclick="document.getElementById('messageInput').value=''; updateCharCount()">delete</span>
+    </div>
+  </div>
 
-</button>
+  <button onclick="analyzeMessage()"
+      class="w-full bg-primary-container text-on-primary-container py-4 rounded-xl font-headline-md flex items-center justify-center gap-3 hover:bg-primary transition-all active:scale-[0.99] shadow-xl shadow-primary/20">
+      <span class="material-symbols-outlined">psychology</span>
+      Analyze Message
+  </button>
 </div>
 </section>
 <!-- Section: Learn & Stay Safe -->
@@ -717,6 +815,13 @@
                 Proceed to Pay
             </button>
             
+            <!-- Report Fraud (shown only for HIGH/CRITICAL) -->
+            <button id="btnReportFraud"
+                    class="hidden w-full bg-red-500/10 hover:bg-red-500/20 active:scale-[0.99] text-red-400 py-3 rounded-xl font-semibold tracking-wide transition-all border border-red-500/20 cursor-pointer text-center text-sm flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined text-[16px]">flag</span>
+                Report Fraud
+            </button>
+
             <!-- Close Button -->
             <button id="btnCancelPay" onclick="closePopup()"
                     class="w-full bg-white/5 hover:bg-white/10 active:scale-[0.99] text-white/80 py-3 rounded-xl font-medium tracking-wide transition-all border border-white/5 cursor-pointer text-center text-xs">
@@ -765,6 +870,71 @@
                 UPI deep links standard protocol initiates secure local payment gateway launcher.
             </p>
         </div>
+    </div>
+</div>
+<!-- SCREENSHOT AUTHENTICITY SPECIFIC POPUP 🔥 -->
+<div id="screenshotResultPopup"
+     class="hidden fixed inset-0 bg-black/85 backdrop-blur-sm items-center justify-center z-50">
+
+    <div class="bg-[#111827]/90 backdrop-blur-xl border border-white/10 p-6 rounded-2xl w-full max-w-md text-white shadow-2xl shadow-black/80 space-y-4 animate-fadeIn">
+
+        <!-- Top Header & Icon -->
+        <div class="text-center space-y-2">
+            <div id="screenshotIconContainer" class="inline-flex p-3 rounded-full mb-2">
+                <span class="material-symbols-outlined text-4xl" data-icon="image_search">image_search</span>
+            </div>
+            <h2 id="screenshotAlert" class="text-2xl font-bold tracking-tight text-center"></h2>
+            <div id="screenshotSafe" class="text-sm font-semibold tracking-wide uppercase"></div>
+        </div>
+
+        <hr class="border-white/10" />
+
+        <!-- Metrics Grid -->
+        <div class="grid grid-cols-2 gap-3 text-sm">
+            <div class="bg-white/5 p-3 rounded-xl border border-white/5 space-y-1">
+                <span class="text-gray-400 block text-xs font-medium">Forgery Risk</span>
+                <span id="screenshotScore" class="text-lg font-bold text-primary"></span>
+            </div>
+            <div class="bg-white/5 p-3 rounded-xl border border-white/5 space-y-1">
+                <span class="text-gray-400 block text-xs font-medium">Detector Confidence</span>
+                <span id="screenshotConfidence" class="text-lg font-bold"></span>
+            </div>
+        </div>
+
+        <!-- Risk Bar -->
+        <div class="space-y-1">
+            <div class="flex justify-between text-xs text-gray-400">
+                <span>Tamper Intensity</span>
+                <span id="screenshotLevel" class="font-bold"></span>
+            </div>
+            <div class="w-full bg-white/5 h-3 rounded-full overflow-hidden border border-white/5">
+                <div id="screenshotRiskBar" class="h-full rounded-full transition-all duration-700 bg-primary" style="width: 0%;"></div>
+            </div>
+        </div>
+
+        <!-- Details -->
+        <div class="bg-white/5 p-4 rounded-xl border border-white/5 space-y-3 text-sm">
+            <div class="flex justify-between">
+                <span class="text-gray-400">Analysis Type:</span>
+                <span class="font-semibold text-secondary">Image Forgery &amp; EXIF Checker</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-400">Action:</span>
+                <span id="screenshotAction" class="font-semibold"></span>
+            </div>
+        </div>
+
+        <!-- Indicators / Reasons -->
+        <div class="space-y-2">
+            <span class="text-xs text-gray-400 font-semibold tracking-wider uppercase block">Forgery Indicators &amp; Footprints</span>
+            <ul id="screenshotReasons" class="max-h-28 overflow-y-auto space-y-1.5 pr-2 custom-scrollbar"></ul>
+        </div>
+
+        <!-- Close Button (No Pay Options!) -->
+        <button onclick="closeScreenshotPopup()"
+                class="w-full bg-white/10 hover:bg-white/20 active:scale-[0.99] text-white py-3.5 rounded-xl font-semibold tracking-wide transition-all border border-white/10 cursor-pointer text-center">
+            Acknowledge &amp; Close
+        </button>
     </div>
 </div>
 <div id="loader"
