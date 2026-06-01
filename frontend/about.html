@@ -461,34 +461,34 @@
 <h2 class="font-headline-lg text-headline-lg mb-md">The Team</h2>
 <p class="text-on-surface-variant">Built for Hackathon 2024 by a team of dedicated students passionate about cybersecurity.</p>
 </div>
-<div class="flex flex-wrap justify-center gap-xl">
-<div class="text-center">
-<div class="w-32 h-32 rounded-full bg-surface-variant border-2 border-primary mx-auto mb-md flex items-center justify-center">
-<span class="material-symbols-outlined text-primary text-xxl">person</span>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-lg justify-center max-w-5xl mx-auto">
+<div class="text-center p-md bg-surface-container/50 border border-outline-variant/10 rounded-2xl hover:scale-105 hover:border-primary/20 transition-all duration-300 shadow-sm">
+<div class="w-24 h-24 rounded-full bg-gradient-to-br from-blue-600 to-indigo-500 mx-auto mb-md flex items-center justify-center shadow-lg shadow-blue-500/10 border-2 border-primary/20">
+<span class="text-white font-bold text-headline-md tracking-wider">SP</span>
 </div>
-<h4 class="font-bold">Team Member 1</h4>
-<p class="text-label-sm text-on-surface-variant">Lead Developer</p>
+<h4 class="font-bold text-on-surface">Suraj Patel</h4>
+<p class="text-label-sm text-on-surface-variant">Lead AI Architect</p>
 </div>
-<div class="text-center">
-<div class="w-32 h-32 rounded-full bg-surface-variant border-2 border-primary mx-auto mb-md flex items-center justify-center">
-<span class="material-symbols-outlined text-primary text-xxl">person</span>
+<div class="text-center p-md bg-surface-container/50 border border-outline-variant/10 rounded-2xl hover:scale-105 hover:border-primary/20 transition-all duration-300 shadow-sm">
+<div class="w-24 h-24 rounded-full bg-gradient-to-br from-purple-600 to-pink-500 mx-auto mb-md flex items-center justify-center shadow-lg shadow-purple-500/10 border-2 border-primary/20">
+<span class="text-white font-bold text-headline-md tracking-wider">NS</span>
 </div>
-<h4 class="font-bold">Team Member 2</h4>
-<p class="text-label-sm text-on-surface-variant">UI/UX Designer</p>
+<h4 class="font-bold text-on-surface">Nisha Sharma</h4>
+<p class="text-label-sm text-on-surface-variant">Lead Security Researcher</p>
 </div>
-<div class="text-center">
-<div class="w-32 h-32 rounded-full bg-surface-variant border-2 border-primary mx-auto mb-md flex items-center justify-center">
-<span class="material-symbols-outlined text-primary text-xxl">person</span>
+<div class="text-center p-md bg-surface-container/50 border border-outline-variant/10 rounded-2xl hover:scale-105 hover:border-primary/20 transition-all duration-300 shadow-sm">
+<div class="w-24 h-24 rounded-full bg-gradient-to-br from-emerald-600 to-teal-500 mx-auto mb-md flex items-center justify-center shadow-lg shadow-emerald-500/10 border-2 border-primary/20">
+<span class="text-white font-bold text-headline-md tracking-wider">VA</span>
 </div>
-<h4 class="font-bold">Team Member 3</h4>
-<p class="text-label-sm text-on-surface-variant">AI Research</p>
+<h4 class="font-bold text-on-surface">Dr. Vikram Aditya</h4>
+<p class="text-label-sm text-on-surface-variant">Fraud Threat Analyst</p>
 </div>
-<div class="text-center">
-<div class="w-32 h-32 rounded-full bg-surface-variant border-2 border-primary mx-auto mb-md flex items-center justify-center">
-<span class="material-symbols-outlined text-primary text-xxl">person</span>
+<div class="text-center p-md bg-surface-container/50 border border-outline-variant/10 rounded-2xl hover:scale-105 hover:border-primary/20 transition-all duration-300 shadow-sm">
+<div class="w-24 h-24 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 mx-auto mb-md flex items-center justify-center shadow-lg shadow-amber-500/10 border-2 border-primary/20">
+<span class="text-white font-bold text-headline-md tracking-wider">AR</span>
 </div>
-<h4 class="font-bold">Team Member 4</h4>
-<p class="text-label-sm text-on-surface-variant">Security Analyst</p>
+<h4 class="font-bold text-on-surface">Anjali Rao</h4>
+<p class="text-label-sm text-on-surface-variant">Full-Stack Engineer</p>
 </div>
 </div>
 </section>
@@ -627,7 +627,9 @@
 </footer>
 <script>
 
-const API_BASE = window.location.origin;
+const API_BASE = window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1')
+  ? 'http://127.0.0.1:5000'
+  : window.location.origin;
 document.addEventListener("DOMContentLoaded", () => {
 
   const input = document.getElementById("demoInput");
