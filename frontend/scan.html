@@ -430,6 +430,7 @@
 <div class="flex flex-col items-center justify-center min-h-[400px] text-center space-y-lg">
 <div id="scannerWrapper" class="hidden relative w-64 h-64 rounded-3xl border-4 border-primary/30 overflow-hidden transition-all duration-300">
   <div id="reader" class="w-full h-full"></div>
+  <canvas id="qrOverlayCanvas" class="absolute inset-0 pointer-events-none z-20" style="width: 100%; height: 100%;"></canvas>
   <div id="scannerOverlay" class="absolute inset-0 pointer-events-none z-10 transition-opacity duration-300">
     <div class="absolute inset-0 border-[30px] border-black/40"></div>
     <div class="absolute inset-[30px] border border-primary/40 rounded-xl">
@@ -601,43 +602,158 @@
   <div class="space-y-2">
     <p class="text-xs text-on-surface-variant font-semibold uppercase tracking-wider">⚡ Try sample scam messages</p>
     <div class="flex flex-wrap gap-2">
-      <button onclick="pasteScamSample(0)" class="text-xs px-3 py-1.5 rounded-full bg-error/10 text-error border border-error/20 hover:bg-error/20 transition flex items-center gap-1">
+      <button onclick="pasteChatScamSample(0)" class="text-xs px-3 py-1.5 rounded-full bg-error/10 text-error border border-error/20 hover:bg-error/20 transition flex items-center gap-1 cursor-pointer">
         <span class="material-symbols-outlined text-[14px]">warning</span> Cashback Scam
       </button>
-      <button onclick="pasteScamSample(1)" class="text-xs px-3 py-1.5 rounded-full bg-error/10 text-error border border-error/20 hover:bg-error/20 transition flex items-center gap-1">
+      <button onclick="pasteChatScamSample(1)" class="text-xs px-3 py-1.5 rounded-full bg-error/10 text-error border border-error/20 hover:bg-error/20 transition flex items-center gap-1 cursor-pointer">
         <span class="material-symbols-outlined text-[14px]">warning</span> KYC Fraud
       </button>
-      <button onclick="pasteScamSample(2)" class="text-xs px-3 py-1.5 rounded-full bg-error/10 text-error border border-error/20 hover:bg-error/20 transition flex items-center gap-1">
+      <button onclick="pasteChatScamSample(2)" class="text-xs px-3 py-1.5 rounded-full bg-error/10 text-error border border-error/20 hover:bg-error/20 transition flex items-center gap-1 cursor-pointer">
         <span class="material-symbols-outlined text-[14px]">warning</span> Prize Winner
       </button>
-      <button onclick="pasteScamSample(3)" class="text-xs px-3 py-1.5 rounded-full bg-secondary/10 text-secondary border border-secondary/20 hover:bg-secondary/20 transition flex items-center gap-1">
+      <button onclick="pasteChatScamSample(3)" class="text-xs px-3 py-1.5 rounded-full bg-secondary/10 text-secondary border border-secondary/20 hover:bg-secondary/20 transition flex items-center gap-1 cursor-pointer">
         <span class="material-symbols-outlined text-[14px]">check_circle</span> Legitimate
       </button>
     </div>
   </div>
 
-  <div class="relative">
-    <textarea
-        id="messageInput"
-        class="w-full bg-surface-container-low border border-outline-variant/30 rounded-xl p-lg text-on-surface placeholder:text-on-surface-variant/50 focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all outline-none resize-none font-body-md"
-        placeholder="Paste SMS, WhatsApp message, or any suspicious link here..."
-        rows="6"
-        oninput="updateCharCount()"
-        maxlength="5000">
-    </textarea>
-    <div class="absolute bottom-3 right-3 flex items-center gap-3">
-      <span id="charCount" class="text-xs text-on-surface-variant">0 / 5000</span>
-      <span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition" onclick="document.getElementById('messageInput').value=''; updateCharCount()">delete</span>
+  <!-- WhatsApp-style Mobile Chat Simulator Chassis -->
+  <div class="bg-slate-900 border-4 border-slate-700/80 rounded-[32px] p-2 max-w-lg mx-auto shadow-2xl overflow-hidden relative">
+    
+    <!-- Phone Top Camera Bar Notch -->
+    <div class="w-28 h-4 bg-slate-950 absolute top-0 left-1/2 transform -translate-x-1/2 rounded-b-xl z-20 flex items-center justify-center">
+      <div class="w-1.5 h-1.5 rounded-full bg-slate-800"></div>
     </div>
-  </div>
+    
+    <!-- WhatsApp Mobile App Header -->
+    <div class="bg-[#075e54] p-3 pt-6 rounded-t-[24px] flex items-center justify-between text-white border-b border-white/5 relative z-10">
+      <div class="flex items-center gap-2">
+        <div class="w-9 h-9 rounded-full bg-white/10 text-white flex items-center justify-center font-bold relative border border-white/20">
+          <span class="material-symbols-outlined text-[20px]">shield</span>
+          <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border border-[#075e54]"></span>
+        </div>
+        <div>
+          <div class="text-xs font-bold leading-normal tracking-wide">SuRaksha AI Scanner</div>
+          <div class="text-[9px] text-white/70">Online Threat Analyzer</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="material-symbols-outlined text-[18px] opacity-80 cursor-pointer hover:opacity-100">call</span>
+        <span class="material-symbols-outlined text-[18px] opacity-80 cursor-pointer hover:opacity-100">videocam</span>
+        <span class="material-symbols-outlined text-[18px] opacity-80 cursor-pointer hover:opacity-100">more_vert</span>
+      </div>
+    </div>
 
-  <button onclick="analyzeMessage()"
-      class="w-full bg-primary-container text-on-primary-container py-4 rounded-xl font-headline-md flex items-center justify-center gap-3 hover:bg-primary transition-all active:scale-[0.99] shadow-xl shadow-primary/20">
-      <span class="material-symbols-outlined">psychology</span>
-      Analyze Message
-  </button>
+    <!-- Scrolling Conversation Thread Window -->
+    <div id="chatSimulatorWindow" class="bg-[#0b0f19] h-80 overflow-y-auto p-4 space-y-3 custom-scrollbar flex flex-col select-text relative">
+      <div class="text-center my-1">
+        <span class="bg-slate-800/80 border border-white/5 text-white/50 text-[9px] font-mono px-2 py-0.5 rounded-md uppercase tracking-wider">Zero-Trust Inspect Active</span>
+      </div>
+      
+      <!-- System Message -->
+      <div class="self-start max-w-[85%] bg-slate-800 text-white/80 p-3 rounded-2xl rounded-tl-none text-xs leading-normal border border-white/5">
+        👋 Welcome to the SuRaksha Chat Scanner! Paste or click a sample scam chip above to test our NLP message validator.
+      </div>
+    </div>
+
+    <!-- Message input toolbar bar -->
+    <div class="bg-slate-950 p-2.5 rounded-b-[24px] flex items-center gap-2 border-t border-white/5">
+      <input type="text" id="chatMessageInput" 
+             class="flex-1 bg-white/5 border border-white/5 hover:border-white/10 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 rounded-full px-4 py-2 text-xs text-white placeholder:text-white/30 focus:outline-none transition-all" 
+             placeholder="Type or paste suspicious message...">
+      <button onclick="sendChatMessage()" 
+              class="w-9 h-9 bg-emerald-600 hover:bg-emerald-500 rounded-full flex items-center justify-center text-white transition active:scale-95 shadow-lg shadow-emerald-600/20 cursor-pointer border border-white/10">
+        <span class="material-symbols-outlined text-[16px] text-white">send</span>
+      </button>
+    </div>
+    
+  </div>
 </div>
 </section>
+<!-- Section: Zero-Trust Simulation Laboratory -->
+<section id="sandboxSection" class="space-y-lg">
+  <div class="flex items-center gap-3">
+    <span class="material-symbols-outlined text-primary text-3xl">biotech</span>
+    <h2 class="font-headline-lg text-headline-lg">Zero-Trust Threat Simulator</h2>
+  </div>
+  
+  <div class="bg-surface rounded-xxl p-lg border border-outline-variant/20 shadow-lg grid md:grid-cols-3 gap-lg overflow-hidden relative">
+    <!-- Left Panel: Trigger Sandbox Scenarios -->
+    <div class="md:col-span-1 space-y-md flex flex-col justify-between">
+      <div class="space-y-2">
+        <p class="text-xs text-on-surface-variant font-semibold uppercase tracking-wider">Select Live Attack Vector</p>
+        <span class="text-xs text-on-surface-variant block leading-relaxed">Click a real-world scenario to launch a step-by-step simulated interactive attack within the sandbox.</span>
+      </div>
+      
+      <div class="space-y-3 pt-2">
+        <!-- Scenario 1 -->
+        <button onclick="triggerSandboxSimulation('collect')" 
+                class="w-full text-left p-3.5 rounded-xl border border-outline-variant/20 hover:border-error/30 hover:bg-error/5 active:scale-[0.99] transition-all flex items-start gap-3 group cursor-pointer">
+            <span class="material-symbols-outlined text-error p-1 bg-error/10 rounded-lg group-hover:scale-105 transition-transform">sms_failed</span>
+            <div>
+                <span class="font-bold text-sm block text-white/90">1. Utility Collect Bill Fraud</span>
+                <span class="text-[10px] text-on-surface-variant block leading-tight mt-0.5">High urgency collect request mimicking electricity board</span>
+            </div>
+        </button>
+        
+        <!-- Scenario 2 -->
+        <button onclick="triggerSandboxSimulation('typosquat')" 
+                class="w-full text-left p-3.5 rounded-xl border border-outline-variant/20 hover:border-warning/30 hover:bg-warning/5 active:scale-[0.99] transition-all flex items-start gap-3 group cursor-pointer">
+            <span class="material-symbols-outlined text-warning p-1 bg-warning/10 rounded-lg group-hover:scale-105 transition-transform">qr_code_scanner</span>
+            <div>
+                <span class="font-bold text-sm block text-white/90">2. Typosquatted VPA Spoof</span>
+                <span class="text-[10px] text-on-surface-variant block leading-tight mt-0.5">Misspelled shop VPA handle hijack in printed QR code</span>
+            </div>
+        </button>
+        
+        <!-- Scenario 3 -->
+        <button onclick="triggerSandboxSimulation('lottery')" 
+                class="w-full text-left p-3.5 rounded-xl border border-outline-variant/20 hover:border-success/30 hover:bg-success/5 active:scale-[0.99] transition-all flex items-start gap-3 group cursor-pointer">
+            <span class="material-symbols-outlined text-success p-1 bg-success/10 rounded-lg group-hover:scale-105 transition-transform">card_giftcard</span>
+            <div>
+                <span class="font-bold text-sm block text-white/90">3. Cashback PIN-Trap Trap</span>
+                <span class="text-[10px] text-on-surface-variant block leading-tight mt-0.5">Scam notification requesting UPI PIN to 'receive' money</span>
+            </div>
+        </button>
+      </div>
+    </div>
+    
+    <!-- Right Panel: Holographic Simulator Sandbox Console -->
+    <div class="md:col-span-2 bg-[#090b14] rounded-2xl border border-white/5 p-lg flex flex-col justify-between min-h-[320px] relative text-white">
+      <div class="absolute top-2 right-4 text-[9px] font-mono text-white/10 uppercase tracking-widest">Sandbox Ticker Logging</div>
+      
+      <!-- Timeline Ticker log -->
+      <div class="flex-1 font-mono text-xs space-y-4">
+        <div class="flex items-center gap-2 border-b border-white/5 pb-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-red-500/80"></span>
+          <span class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></span>
+          <span class="w-2.5 h-2.5 rounded-full bg-green-500/80"></span>
+          <span class="text-white/30 text-[9px] ml-2 tracking-wider">ZERO-TRUST TELEMETRY CAPTURE</span>
+        </div>
+        
+        <!-- Interactive logs output -->
+        <div id="sandboxTerminal" class="h-44 overflow-y-auto text-emerald-400 space-y-2 pr-2 custom-scrollbar">
+          <div class="text-white/40">&gt; Sandbox initialized. System status: [ACTIVE]</div>
+          <div class="text-white/40">&gt; Awaiting threat simulation trigger. Select a live scenario on the left panel...</div>
+        </div>
+      </div>
+      
+      <!-- Interactive Mobile Shell Overlay for sandbox alerts -->
+      <div id="sandboxMobilePreview" class="hidden border-t border-white/5 pt-4 mt-2 animate-fadeIn flex flex-col md:flex-row items-center gap-3">
+        <div class="flex-1 space-y-1 text-xs">
+          <span class="text-[10px] uppercase font-bold text-primary tracking-wider" id="sandboxEventLabel">MOBILE DETECTED SCAN</span>
+          <div class="text-white font-bold leading-snug" id="sandboxEventTitle">Mock Notification Alert</div>
+          <p class="text-[10px] text-on-surface-variant leading-normal" id="sandboxEventDesc">Checking SMS content headers against blacklist datasets.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="btnSandboxInspect" class="bg-primary hover:bg-blue-600 px-4 py-2 rounded-lg text-[10px] font-bold text-white transition-all shadow-md cursor-pointer">Inspect Payload</button>
+          <button onclick="resetSandboxTerminal()" class="bg-white/5 hover:bg-white/10 px-3 py-2 rounded-lg text-[10px] font-medium text-white/70 transition-all border border-white/5 cursor-pointer">Reset</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- Section: Learn & Stay Safe -->
 <section class="space-y-lg">
 <div class="flex items-center gap-3">
@@ -789,6 +905,12 @@
             </div>
         </div>
 
+        <!-- Dynamic SVG Radar Chart -->
+        <div class="flex justify-center py-2 bg-white/5 rounded-xl border border-white/5 select-none relative" id="qrRadarBlock">
+            <span class="absolute top-2 right-2 text-[8px] text-white/20 font-mono">RISK VECTOR</span>
+            <div id="qrRadarChart" class="w-40 h-40"></div>
+        </div>
+
         <!-- Fraud Types & Actions -->
         <div class="bg-white/5 p-4 rounded-xl border border-white/5 space-y-3 text-sm">
             <div class="flex justify-between">
@@ -889,6 +1011,26 @@
 
         <hr class="border-white/10" />
 
+        <!-- Interactive ELA Comparison Slider -->
+        <div class="relative w-full h-48 bg-slate-950/60 rounded-xl overflow-hidden border border-white/5 group shadow-inner" id="elaSliderContainer">
+            <!-- Original Image Viewport -->
+            <div id="elaSliderOriginal" class="absolute inset-0 w-full h-full select-none pointer-events-none">
+                <img id="elaOrigImg" class="w-full h-full object-contain" src="" alt="Original Image">
+            </div>
+            <!-- ELA Canvas Viewport (Revealed on hover/drag) -->
+            <div id="elaSliderHeatmap" class="absolute inset-0 w-full h-full select-none pointer-events-none overflow-hidden" style="width: 50%; border-right: 2px solid #3b82f6;">
+                <canvas id="screenshotElaCanvas" class="w-full h-full object-contain filter saturate-150 brightness-125" style="width: 100%; height: 100%;"></canvas>
+            </div>
+            <!-- Drag Divider Slider Handle -->
+            <div id="elaSliderDivider" class="absolute top-0 bottom-0 w-1 bg-[#3b82f6] cursor-ew-resize flex items-center justify-center" style="left: 50%; transform: translateX(-50%);">
+                <div class="w-6 h-6 rounded-full bg-[#3b82f6] text-white flex items-center justify-center shadow-lg border border-white/20 select-none pointer-events-none">
+                    <span class="material-symbols-outlined text-[12px] font-bold">unfold_more</span>
+                </div>
+            </div>
+            <div class="absolute bottom-2 left-2 text-[8px] bg-black/60 px-1.5 py-0.5 rounded font-mono text-white/50 select-none">ORIGINAL</div>
+            <div class="absolute bottom-2 right-2 text-[8px] bg-primary/20 px-1.5 py-0.5 rounded font-mono text-primary select-none font-bold">FORENSIC ELA</div>
+        </div>
+
         <!-- Metrics Grid -->
         <div class="grid grid-cols-2 gap-3 text-sm">
             <div class="bg-white/5 p-3 rounded-xl border border-white/5 space-y-1">
@@ -910,6 +1052,12 @@
             <div class="w-full bg-white/5 h-3 rounded-full overflow-hidden border border-white/5">
                 <div id="screenshotRiskBar" class="h-full rounded-full transition-all duration-700 bg-primary" style="width: 0%;"></div>
             </div>
+        </div>
+
+        <!-- Dynamic SVG Radar Chart -->
+        <div class="flex justify-center py-2 bg-white/5 rounded-xl border border-white/5 select-none relative" id="screenshotRadarBlock">
+            <span class="absolute top-2 right-2 text-[8px] text-white/20 font-mono">RISK VECTOR</span>
+            <div id="screenshotRadarChart" class="w-40 h-40"></div>
         </div>
 
         <!-- Details -->

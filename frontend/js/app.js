@@ -931,6 +931,22 @@ function showScreenshotResultPopup(apiResponse) {
     // Action label
     safeText($("screenshotAction"), action);
 
+    // Dynamic Client-side ELA Generation
+    const imgInput = $("imageInput");
+    if (imgInput && imgInput.files && imgInput.files[0]) {
+        generateClientSideEla(imgInput.files[0]);
+    }
+
+    // Dynamic SVG Radar threat vectors
+    const vectors = {
+        vpa: ocrScore >= 40 ? 90 : 15,
+        visual: tamperScore,
+        metadata: metaScore,
+        intent: ocrScore >= 50 ? 85 : 10,
+        social: ocrScore >= 60 ? 95 : 15
+    };
+    renderRadarChart(vectors, "screenshotRadarChart");
+
     // Reasons list
     const list = $("screenshotReasons");
     if (list) {
@@ -938,7 +954,8 @@ function showScreenshotResultPopup(apiResponse) {
         reasons.forEach(reason => {
             const li = document.createElement("li");
             li.textContent = reason;
-            li.className = "text-sm text-gray-300 py-0.5";
+            li.className = "text-sm text-gray-300 py-0.5 flex items-start gap-1.5";
+            li.innerHTML = `<span class="text-secondary font-bold">•</span><span>${reason}</span>`;
             list.appendChild(li);
         });
     }
@@ -1085,7 +1102,7 @@ function updateCharCount() {
 
 
 // -----------------------------
-// 🧩 HELPER: Scam Sample Paster
+// 🧩 HELPER: Scam Sample Paster & Mobile Chat Simulator
 // -----------------------------
 const SCAM_SAMPLES = [
     // 0 — Cashback Scam
@@ -1101,11 +1118,511 @@ const SCAM_SAMPLES = [
     `Hi, this is Rahul. I'm sending ₹500 for the dinner split.\nUPI: rahul.sharma@okicici\nPlease confirm once received. Thanks!`
 ];
 
-function pasteScamSample(index) {
-    const ta = $("messageInput");
-    if (!ta) return;
-    ta.value = SCAM_SAMPLES[index] || "";
-    updateCharCount();
-    ta.focus();
-    ta.scrollIntoView({ behavior: "smooth", block: "center" });
-}
+// ── INTERACTIVE MOBILE CHAT SIMULATOR ──
+function sendChatMessage() {
+    const input = $("chatMessageInput");
+    if (!input) return;
+    const text = input.value.trim();
+    if (!text) return;
+
+    input.value = "";
+    appendChatBubble(text, "user");
+    
+    // Show dynamic SuRaksha scanning indicator
+    const scanBubbleId = "scan_" + Date.now();
+    appendChatBubble(`🔍 SuRaksha AI running NLP heuristic check on message contents...`, "system", scanBubbleId);
+
+    setTimeout(async () => {
+        try {
+            const res = await fetch(`${API_BASE}/analyze/message`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ text, intent: "pay" })
+            });
+            const resData = await res.json();
+            
+            // Remove scanning indicator
+            const scanEl = $(scanBubbleId);
+            if (scanEl) scanEl.remove();
+
+            if (resData.success) {
+                const risk = resData.data.analysis;
+                const badgeColor = {
+                    CRITICAL: "text-red-400 bg-red-500/10 border-red-500/20",
+                    HIGH: "text-orange-400 bg-orange-500/10 border-orange-500/20",
+                    MEDIUM: "text-yellow-400 bg-yellow-500/10 border-yellow-500/20",
+                    LOW: "text-green-400 bg-green-500/10 border-green-500/20"
+                };
+                
+                const colorClass = badgeColor[risk.risk_level] || "text-gray-400 bg-white/5 border-white/10";
+                
+                const reportText = `🛡️ **SuRaksha Risk Diagnosis**: [${risk.risk_level}]\n` +
+                                   `• **Risk Rating**: ${risk.risk_score}/100\n` +
+                                   `• **Indicators**: ${(risk.reasons || []).join(" • ")}\n` +
+                                   `• **Verdict**: ${risk.risk_score >= 50 ? "🚫 High risk scam! Do not proceed." : "✅ Looks safe, verify sender details."}`;
+
+                appendChatBubble(reportText, "system", null, colorClass);
+            } else {
+                throw new Error("Diagnosis failed");
+            }
+        } catch (err) {
+            console.warn(err);
+            const scanEl = $(scanBubbleId);
+            if (scanEl) scanEl.remove();
+            appendChatBubble(`❌ Connection to backend API failed. Threat analyzer is offline, but scan indicators suggest verifying links carefully.`, "system", null, "text-red-400 bg-red-950/20 border-red-900/30");
+        }
+    }, 1400);
+}
+
+function appendChatBubble(text, sender, id = null, extraClass = "") {
+    const chatWin = $("chatSimulatorWindow");
+    if (!chatWin) return;
+
+    const bubble = document.createElement("div");
+    if (id) bubble.id = id;
+
+    const baseStyle = "p-3 rounded-2xl text-xs leading-relaxed max-w-[85%] border select-text ";
+    let senderStyle = "";
+    if (sender === "user") {
+        senderStyle = "self-end bg-[#128c7e] text-white rounded-tr-none border-[#075e54]/30";
+    } else if (sender === "system") {
+        senderStyle = "self-start bg-slate-800 text-white rounded-tl-none border-white/5 " + extraClass;
+    }
+
+    bubble.className = baseStyle + senderStyle;
+    
+    // Handle Markdown newlines and basic list bolding
+    bubble.innerHTML = text
+        .replace(/\n/g, "<br>")
+        .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+
+    chatWin.appendChild(bubble);
+    chatWin.scrollTop = chatWin.scrollHeight;
+}
+
+function pasteChatScamSample(index) {
+    const input = $("chatMessageInput");
+    if (!input) return;
+    input.value = SCAM_SAMPLES[index] || "";
+    input.focus();
+    sendChatMessage();
+}
+
+// ── ELA SLIDER DRAG LOGIC ──
+function setupElaSlider() {
+    const container = $("elaSliderContainer");
+    const handle = $("elaSliderDivider");
+    const heatmap = $("elaSliderHeatmap");
+    if (!container || !handle || !heatmap) return;
+
+    let isDragging = false;
+
+    const onMove = (clientX) => {
+        const rect = container.getBoundingClientRect();
+        let x = clientX - rect.left;
+        if (x < 0) x = 0;
+        if (x > rect.width) x = rect.width;
+        const pct = (x / rect.width) * 100;
+        heatmap.style.width = `${pct}%`;
+        handle.style.left = `${pct}%`;
+    };
+
+    handle.addEventListener("mousedown", (e) => { e.preventDefault(); isDragging = true; });
+    window.addEventListener("mouseup", () => isDragging = false);
+    window.addEventListener("mousemove", (e) => {
+        if (!isDragging) return;
+        onMove(e.clientX);
+    });
+
+    handle.addEventListener("touchstart", (e) => { isDragging = true; });
+    window.addEventListener("touchend", () => isDragging = false);
+    window.addEventListener("touchmove", (e) => {
+        if (!isDragging) return;
+        onMove(e.touches[0].clientX);
+    });
+}
+
+// ── BROWSER ERROR LEVEL ANALYSIS (ELA) HEATMAP GENERATION ──
+function generateClientSideEla(imageFileOrPath) {
+    return new Promise((resolve) => {
+        const canvas = $("screenshotElaCanvas");
+        const origImg = $("elaOrigImg");
+        if (!canvas || !origImg) return resolve(false);
+
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = function() {
+            // Load original image to popup preview
+            origImg.src = img.src;
+
+            const w = img.naturalWidth || img.width;
+            const h = img.naturalHeight || img.height;
+            canvas.width = w;
+            canvas.height = h;
+
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0);
+
+            // Step 1: Re-compress image at JPEG quality 0.75
+            const jpegUrl = canvas.toDataURL("image/jpeg", 0.75);
+            const compImg = new Image();
+            compImg.onload = function() {
+                // Step 2: Draw compressed onto separate buffer canvas
+                const bufferCanvas = document.createElement("canvas");
+                bufferCanvas.width = w;
+                bufferCanvas.height = h;
+                const bufCtx = bufferCanvas.getContext("2d");
+                bufCtx.drawImage(compImg, 0, 0);
+
+                // Step 3: Diff buffers
+                const origData = ctx.getImageData(0, 0, w, h);
+                const compData = bufCtx.getImageData(0, 0, w, h);
+                const outData = ctx.createImageData(w, h);
+
+                const origPixels = origData.data;
+                const compPixels = compData.data;
+                const outPixels = outData.data;
+
+                for (let i = 0; i < origPixels.length; i += 4) {
+                    // Absolute differences
+                    const rDiff = Math.abs(origPixels[i] - compPixels[i]);
+                    const gDiff = Math.abs(origPixels[i+1] - compPixels[i+1]);
+                    const bDiff = Math.abs(origPixels[i+2] - compPixels[i+2]);
+
+                    // Amplify difference by 18x to highlight spliced boundaries!
+                    outPixels[i] = Math.min(255, rDiff * 18);
+                    outPixels[i+1] = Math.min(255, gDiff * 18);
+                    outPixels[i+2] = Math.min(255, bDiff * 25); // tint blue more for cybersecurity styling!
+                    outPixels[i+3] = 255; // fully opaque
+                }
+
+                // Draw ELA onto display canvas
+                ctx.putImageData(outData, 0, 0);
+                setupElaSlider();
+                resolve(true);
+            };
+            compImg.src = jpegUrl;
+        };
+
+        if (typeof imageFileOrPath === "string") {
+            img.src = imageFileOrPath;
+        } else {
+            const reader = new FileReader();
+            reader.onload = (e) => img.src = e.target.result;
+            reader.readAsDataURL(imageFileOrPath);
+        }
+    });
+}
+
+// ── DYNAMIC SVG RADAR CHART GENERATOR ──
+function renderRadarChart(scores, containerId) {
+    const el = $(containerId);
+    if (!el) return;
+
+    // 5 dimensions: VPA Reputation, Visual Tampering, Metadata Integrity, Intent Match, Social Pressure
+    const labels = ["VPA", "Visual", "Metadata", "Intent", "Social"];
+    const keys = ["vpa", "visual", "metadata", "intent", "social"];
+    
+    const maxVal = 100;
+    const radius = 15; // Center is (25, 25) in simplified radar space
+    const cx = 25, cy = 25;
+
+    // Calculate angle coordinates
+    const getCoords = (val, idx) => {
+        const angle = (Math.PI * 2 / 5) * idx - Math.PI / 2;
+        const r = (val / maxVal) * radius;
+        const x = cx + r * Math.cos(angle);
+        const y = cy + r * Math.sin(angle);
+        return { x, y };
+    };
+
+    // Web grid circles
+    let gridSvg = "";
+    for (let scale = 20; scale <= 100; scale += 20) {
+        const points = [];
+        for (let i = 0; i < 5; i++) {
+            const pt = getCoords(scale, i);
+            points.push(`${pt.x},${pt.y}`);
+        }
+        gridSvg += `<polygon points="${points.join(" ")}" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="0.3" />`;
+    }
+
+    // Web spokes (lines from center to outer)
+    let spokesSvg = "";
+    for (let i = 0; i < 5; i++) {
+        const outer = getCoords(100, i);
+        spokesSvg += `<line x1="${cx}" y1="${cy}" x2="${outer.x}" y2="${outer.y}" stroke="rgba(255,255,255,0.1)" stroke-width="0.3" />`;
+        
+        // Labels
+        const labelPt = getCoords(120, i);
+        spokesSvg += `<text x="${labelPt.x}" y="${labelPt.y + 0.8}" fill="rgba(255,255,255,0.4)" font-size="2" font-family="monospace" text-anchor="middle">${labels[i]}</text>`;
+    }
+
+    // Fraud shape polygon coordinates
+    const fraudPoints = [];
+    for (let i = 0; i < 5; i++) {
+        const val = scores[keys[i]] || 10; // default minimum shape for visibility
+        const pt = getCoords(val, i);
+        fraudPoints.push(`${pt.x},${pt.y}`);
+    }
+
+    const svgString = `
+    <svg viewBox="0 0 50 50" class="w-full h-full animate-fadeIn select-none">
+        <!-- Grid Background -->
+        ${gridSvg}
+        ${spokesSvg}
+        <!-- Threat Shape -->
+        <polygon points="${fraudPoints.join(" ")}" fill="rgba(59, 130, 246, 0.25)" stroke="#3b82f6" stroke-width="0.6" />
+        <!-- Value Indicators -->
+        ${fraudPoints.map((ptStr) => {
+            const [x, y] = ptStr.split(",");
+            return `<circle cx="${x}" cy="${y}" r="0.6" fill="#60a5fa" stroke="#ffffff" stroke-width="0.15" />`;
+        }).join("")}
+    </svg>`;
+
+    el.innerHTML = svgString;
+}
+
+// ── ZERO-TRUST FRAUD SIMULATOR SANDBOX CORE ──
+let isSandboxRunning = false;
+
+async function triggerSandboxSimulation(type) {
+    if (isSandboxRunning) return;
+    isSandboxRunning = true;
+
+    const term = $("sandboxTerminal");
+    const preview = $("sandboxMobilePreview");
+    const inspectBtn = $("btnSandboxInspect");
+    if (!term || !preview || !inspectBtn) {
+        isSandboxRunning = false;
+        return;
+    }
+
+    // Reset preview view
+    preview.classList.add("hidden");
+    term.innerHTML = "";
+
+    const log = (msg, delay) => {
+        return new Promise(resolve => {
+            setTimeout(() => {
+                term.innerHTML += `<div class="text-emerald-400 font-mono">&gt; ${msg}</div>`;
+                term.scrollTop = term.scrollHeight;
+                resolve();
+            }, delay);
+        });
+    };
+
+    if (type === "collect") {
+        await log("[SIMULATION INITIALIZED] Scenario: Utility Collect Bill Fraud", 100);
+        await log("[SMS INTERCEPTED] Incoming alert mimicking electric grid provider...", 300);
+        await log(`[NLP ANALYZING] Parsing body text: "Electricity bill overdue. Pay now or account disconnected in 1 hour..."`, 400);
+        await log("[THREAT FOUND] Urgency indicators detected. Score: HIGH", 300);
+        await log("[ACTION VERIFIED] Collecting payment payload checks. Intent mismatch found.", 400);
+        
+        // Display mobile preview details
+        $("sandboxEventLabel").textContent = "Threat Intercept: Urgent SMS";
+        $("sandboxEventTitle").textContent = "⚡ Overdue Power Bill Trap";
+        $("sandboxEventDesc").textContent = "Scammer posing as power distribution board requesting instant collect VPA pay.";
+        preview.classList.remove("hidden");
+
+        inspectBtn.onclick = () => {
+            // Show standard message modal results prefilled!
+            showChatMessageScamModal("Electricity bill overdue. Pay now or account disconnected in 1 hour. upi://pay?pa=power_board@paytm&pn=State%20Electricity&am=1499");
+        };
+    } 
+    else if (type === "typosquat") {
+        await log("[SIMULATION INITIALIZED] Scenario: Typosquatted VPA QR Spoof", 100);
+        await log("[QR SCAN CAPTURED] Scanner bounding brackets active...", 300);
+        await log("[PARSING VPA] Target destination found: grocery.storee@ybl", 400);
+        await log("[HEURISTICS VALIDATING] Typo distance checks running against merchant registries...", 500);
+        await log("[WARNING] High similarity index matching verified 'grocery.store@ybl' detected spoof handle: 'storee' (added extra 'e')", 400);
+        await log("[DB CACHE] Cache query returned zero transactions for this handle. Threat rating: CRITICAL", 300);
+
+        $("sandboxEventLabel").textContent = "Threat Intercept: Typosquatted QR";
+        $("sandboxEventTitle").textContent = "🛍️ Misspelled Merchant VPA Spoof";
+        $("sandboxEventDesc").textContent = "Printed QR code sticker tampered to divert money from 'grocery.store' to 'grocery.storee'.";
+        preview.classList.remove("hidden");
+
+        inspectBtn.onclick = () => {
+            showSandboxQrResult("upi://pay?pa=grocery.storee@ybl&pn=Grocery%20Store&am=100");
+        };
+    } 
+    else if (type === "lottery") {
+        await log("[SIMULATION INITIALIZED] Scenario: Cashback PIN-Trap", 100);
+        await log("[ALERT CAPTURED] WhatsApp incoming card mimicking GPay reward cashback...", 300);
+        await log(`[NLP PARSING] "Dear Customer, you won ₹25,000 lottery reward. Enter UPI PIN to claim..."`, 400);
+        await log("[THREAT VERDICT] PIN-Trap scam signature flagged. Never enter UPI PIN to receive money.", 400);
+        await log("[BLACKLIST DETECTED] Target destination matches known lottery scam VPA bank handle.", 300);
+
+        $("sandboxEventLabel").textContent = "Threat Intercept: PIN Trap Alert";
+        $("sandboxEventTitle").textContent = "🎁 Congratulations! You Won ₹25,000";
+        $("sandboxEventDesc").textContent = "Scammer requesting user to verify transaction and enter UPI PIN in payment portal.";
+        preview.classList.remove("hidden");
+
+        inspectBtn.onclick = () => {
+            showChatMessageScamModal("Congratulations! You won ₹25,000 lottery award. Scan and enter UPI PIN to claim immediately: upi://pay?pa=lottery_agent@paytm&pn=Lottery%20Cashback");
+        };
+    }
+
+    isSandboxRunning = false;
+}
+
+function resetSandboxTerminal() {
+    const term = $("sandboxTerminal");
+    const preview = $("sandboxMobilePreview");
+    if (!term || !preview) return;
+    term.innerHTML = `<div class="text-white/40">&gt; Sandbox initialized. System status: [ACTIVE]</div>` + 
+                     `<div class="text-white/40">&gt; Awaiting threat simulation trigger. Select a live scenario on the left panel...</div>`;
+    preview.classList.add("hidden");
+}
+
+// ── MOCK INSPECT DISPATCHERS FOR SIMULATOR MODALS ──
+function showChatMessageScamModal(text) {
+    showToast("Simulating NLP Threat Scan...", "warning");
+    setTimeout(async () => {
+        try {
+            const res = await fetch(`${API_BASE}/analyze/message`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ text, intent: "pay" })
+            });
+            const resData = await res.json();
+            if (resData.success) {
+                showSandboxResultPopup(resData.data.analysis);
+            }
+        } catch (err) {
+            // Offline mock fallback
+            showSandboxResultPopup({
+                risk_score: 95,
+                risk_level: "CRITICAL",
+                reasons: ["PIN-trap trap signature detected", "Urgent social pressure keywords found", "Target VPA has zero trust profile"],
+                fraud_type: "Phishing / PIN-Trap Scam",
+                recommended_action: "🚫 Block & Report transaction immediately!"
+            });
+        }
+    }, 600);
+}
+
+function showSandboxResultPopup(analysis) {
+    const popup = $("resultPopup");
+    if (!popup) return;
+
+    $("popupAlert").textContent = `🚨 ${analysis.risk_level} Fraud Alert`;
+    $("popupAlert").className = "text-2xl font-bold tracking-tight text-center text-red-400 animate-pulse";
+    
+    const safeEl = $("popupSafe");
+    safeEl.textContent = "❌ HIGH RISK - DO NOT PROCEED";
+    safeEl.className = "text-sm font-semibold tracking-wide uppercase text-red-400";
+
+    $("popupScore").textContent = `${analysis.risk_score} / 100`;
+    $("popupConfidence").textContent = "95%";
+    $("popupLevel").textContent = analysis.risk_level;
+    $("riskBar").style.width = `${analysis.risk_score}%`;
+    $("riskBar").className = "h-full rounded-full transition-all duration-700 bg-red-500";
+
+    $("popupType").textContent = analysis.fraud_type || "Social Engineering Scam";
+    $("popupAction").textContent = "Do NOT authorize. High fraud risk.";
+    $("popupAction").className = "font-semibold text-red-400";
+
+    const reasonsEl = $("popupReasons");
+    reasonsEl.innerHTML = "";
+    (analysis.reasons || []).forEach(r => {
+        reasonsEl.innerHTML += `<li class="flex items-start gap-1.5"><span class="text-red-500">•</span><span>${r}</span></li>`;
+    });
+
+    // Render animated radar chart!
+    renderRadarChart({
+        vpa: 95,
+        visual: 10,
+        metadata: 20,
+        intent: 85,
+        social: 95
+    }, "qrRadarChart");
+
+    popup.style.display = "flex";
+}
+
+function showSandboxQrResult(qrText) {
+    showToast("Scanning sandbox QR Code...", "info");
+    setTimeout(async () => {
+        try {
+            const res = await fetch(`${API_BASE}/analyze/qr`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ qr_text: qrText, intent: "pay" })
+            });
+            const resData = await res.json();
+            if (resData.success) {
+                showSandboxResultPopup(resData.data.analysis);
+            }
+        } catch (err) {
+            showSandboxResultPopup({
+                risk_score: 88,
+                risk_level: "HIGH",
+                reasons: ["VPA destination indicates typosquatted merchant name spoofing", "Target VPA has zero trust profile in local directory"],
+                fraud_type: "VPA Typosquat Spoofing",
+                recommended_action: "🚫 Abort payment. Misspelled account!"
+            });
+        }
+    }, 600);
+}
+
+// ── QR CODE HOLOGRAPHIC TARGET BRACKETS ──
+function drawQrTargetBrackets(x, y, w, h, status) {
+    const canvas = $("qrOverlayCanvas");
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    let color = "#3b82f6"; // default blue
+    if (status === "safe") color = "#10b981"; // green
+    if (status === "warning") color = "#f59e0b"; // yellow
+    if (status === "danger") color = "#ef4444"; // red
+
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 3;
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 8;
+
+    const pad = 10;
+    const left = x - pad;
+    const top = y - pad;
+    const width = w + pad * 2;
+    const height = h + pad * 2;
+    const len = 15;
+
+    ctx.beginPath();
+    ctx.moveTo(left, top + len);
+    ctx.lineTo(left, top);
+    ctx.lineTo(left + len, top);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(left + width - len, top);
+    ctx.lineTo(left + width, top);
+    ctx.lineTo(left + width, top + len);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(left, top + height - len);
+    ctx.lineTo(left, top + height);
+    ctx.lineTo(left + len, top + height);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(left + width - len, top + height);
+    ctx.lineTo(left + width, top + height);
+    ctx.lineTo(left + width, top + height - len);
+    ctx.stroke();
+
+    ctx.fillStyle = "rgba(" + (status === "danger" ? "239,68,68" : "59,130,246") + ", 0.15)";
+    ctx.fillRect(left, top, width, height);
+}
+
+function clearQrOverlay() {
+    const canvas = $("qrOverlayCanvas");
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
