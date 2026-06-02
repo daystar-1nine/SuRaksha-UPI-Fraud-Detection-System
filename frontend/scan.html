@@ -208,6 +208,57 @@
         .animate-fadeIn {
             animation: fadeIn 0.25s ease;
         }
+
+        /* ── WhatsApp Typing Bouncing Dots ── */
+        @keyframes bounceDot {
+            0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+        .typing-dot {
+            animation: bounceDot 1.4s infinite ease-in-out both;
+            display: inline-block;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background-color: currentColor;
+            margin: 0 1px;
+        }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        /* ── circular ELA Zoom Lens Magnifier ── */
+        #elaZoomLens {
+            position: absolute;
+            border: 2.5px solid #3b82f6;
+            border-radius: 50%;
+            cursor: none;
+            width: 110px;
+            height: 110px;
+            display: none;
+            pointer-events: none;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.6), inset 0 0 12px rgba(59, 130, 246, 0.6);
+            z-index: 40;
+            background-repeat: no-repeat;
+            background-color: #000;
+        }
+
+        /* ── Draggable Divider Neon Pulse ── */
+        @keyframes sliderGlow {
+            0%, 100% { box-shadow: 0 0 6px #3b82f6; }
+            50% { box-shadow: 0 0 16px #60a5fa, 0 0 26px #3b82f6; }
+        }
+        .slider-glow {
+            animation: sliderGlow 2s infinite;
+        }
+
+        /* ── SVG Radar growing scale animation ── */
+        @keyframes radarGrow {
+            from { transform: scale(0.1); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .animate-radar-grow {
+            animation: radarGrow 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
 </style>
 </head>
 <body class="bg-background text-on-surface font-body-md selection:bg-primary-container selection:text-on-primary-container">
@@ -1012,7 +1063,7 @@
         <hr class="border-white/10" />
 
         <!-- Interactive ELA Comparison Slider -->
-        <div class="relative w-full h-48 bg-slate-950/60 rounded-xl overflow-hidden border border-white/5 group shadow-inner" id="elaSliderContainer">
+        <div class="relative w-full h-48 bg-slate-950/60 rounded-xl overflow-hidden border border-white/5 group shadow-inner cursor-crosshair" id="elaSliderContainer">
             <!-- Original Image Viewport -->
             <div id="elaSliderOriginal" class="absolute inset-0 w-full h-full select-none pointer-events-none">
                 <img id="elaOrigImg" class="w-full h-full object-contain" src="" alt="Original Image">
@@ -1021,9 +1072,11 @@
             <div id="elaSliderHeatmap" class="absolute inset-0 w-full h-full select-none pointer-events-none overflow-hidden" style="width: 50%; border-right: 2px solid #3b82f6;">
                 <canvas id="screenshotElaCanvas" class="w-full h-full object-contain filter saturate-150 brightness-125" style="width: 100%; height: 100%;"></canvas>
             </div>
+            <!-- Circular ELA Magnifier Lens Overlay -->
+            <div id="elaZoomLens"></div>
             <!-- Drag Divider Slider Handle -->
             <div id="elaSliderDivider" class="absolute top-0 bottom-0 w-1 bg-[#3b82f6] cursor-ew-resize flex items-center justify-center" style="left: 50%; transform: translateX(-50%);">
-                <div class="w-6 h-6 rounded-full bg-[#3b82f6] text-white flex items-center justify-center shadow-lg border border-white/20 select-none pointer-events-none">
+                <div class="w-6 h-6 rounded-full bg-[#3b82f6] text-white flex items-center justify-center shadow-lg border border-white/20 select-none pointer-events-none slider-glow">
                     <span class="material-symbols-outlined text-[12px] font-bold">unfold_more</span>
                 </div>
             </div>

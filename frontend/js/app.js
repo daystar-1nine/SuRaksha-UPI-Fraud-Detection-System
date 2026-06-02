@@ -1118,6 +1118,17 @@ const SCAM_SAMPLES = [
     `Hi, this is Rahul. I'm sending ₹500 for the dinner split.\nUPI: rahul.sharma@okicici\nPlease confirm once received. Thanks!`
 ];
 
+// ── NLP KEYWORD HIGHLIGHTER FOR CHAT BUBBLES ──
+function highlightScamKeywords(text) {
+    const keywords = ["upi pin", "pin", "otp", "blocked", "won", "cashback", "reward", "lottery", "prize", "cash award", "claim", "money transfer", "verify transfer", "overdue"];
+    let highlighted = text;
+    keywords.forEach(kw => {
+        const regex = new RegExp(`\\b(${kw})\\b`, "gi");
+        highlighted = highlighted.replace(regex, `<span class="bg-red-500/35 border border-red-500/40 text-red-300 px-1 py-0.5 rounded font-bold cursor-help transition-all shadow-[0_0_8px_rgba(239,68,68,0.25)]" title="High-Risk scam trigger identified by SuRaksha NLP!">$1</span>`);
+    });
+    return highlighted;
+}
+
 // ── INTERACTIVE MOBILE CHAT SIMULATOR ──
 function sendChatMessage() {
     const input = $("chatMessageInput");
@@ -1126,11 +1137,28 @@ function sendChatMessage() {
     if (!text) return;
 
     input.value = "";
-    appendChatBubble(text, "user");
     
-    // Show dynamic SuRaksha scanning indicator
-    const scanBubbleId = "scan_" + Date.now();
-    appendChatBubble(`🔍 SuRaksha AI running NLP heuristic check on message contents...`, "system", scanBubbleId);
+    // Highlight any keywords inside user's own sent message
+    const highlightedUserMsg = highlightScamKeywords(text);
+    appendChatBubble(highlightedUserMsg, "user");
+    
+    // Set chat header status to "typing..."
+    const headerStatus = document.querySelector("#messageSection .bg-\\[\\#075e54\\] div div:last-child");
+    if (headerStatus) {
+        headerStatus.textContent = "typing...";
+        headerStatus.className = "text-[9px] text-emerald-300 animate-pulse";
+    }
+
+    // Show dynamic SuRaksha scanning / typing indicator
+    const typingBubbleId = "typing_" + Date.now();
+    appendChatBubble(`
+        <div class="flex items-center gap-1.5 text-white/50">
+            <span class="font-bold text-[9px] uppercase tracking-wider">SuRaksha AI is typing</span>
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+        </div>
+    `, "system", typingBubbleId, "border-emerald-600/10 bg-emerald-500/5");
 
     setTimeout(async () => {
         try {
@@ -1141,9 +1169,15 @@ function sendChatMessage() {
             });
             const resData = await res.json();
             
-            // Remove scanning indicator
-            const scanEl = $(scanBubbleId);
-            if (scanEl) scanEl.remove();
+            // Remove typing indicator
+            const typingEl = $(typingBubbleId);
+            if (typingEl) typingEl.remove();
+
+            // Restore header status
+            if (headerStatus) {
+                headerStatus.textContent = "Online Threat Analyzer";
+                headerStatus.className = "text-[9px] text-white/70";
+            }
 
             if (resData.success) {
                 const risk = resData.data.analysis;
@@ -1156,19 +1190,28 @@ function sendChatMessage() {
                 
                 const colorClass = badgeColor[risk.risk_level] || "text-gray-400 bg-white/5 border-white/10";
                 
-                const reportText = `🛡️ **SuRaksha Risk Diagnosis**: [${risk.risk_level}]\n` +
-                                   `• **Risk Rating**: ${risk.risk_score}/100\n` +
-                                   `• **Indicators**: ${(risk.reasons || []).join(" • ")}\n` +
-                                   `• **Verdict**: ${risk.risk_score >= 50 ? "🚫 High risk scam! Do not proceed." : "✅ Looks safe, verify sender details."}`;
+                // Highlight words dynamically in SuRaksha's response as well!
+                const rawReport = `🛡️ **SuRaksha Risk Diagnosis**: [${risk.risk_level}]\n` +
+                                  `• **Risk Rating**: ${risk.risk_score}/100\n` +
+                                  `• **Indicators**: ${(risk.reasons || []).join(" • ")}\n` +
+                                  `• **Verdict**: ${risk.risk_score >= 50 ? "🚫 High risk scam! Do not proceed." : "✅ Looks safe, verify sender details."}`;
+                
+                const highlightedReport = highlightScamKeywords(rawReport);
 
-                appendChatBubble(reportText, "system", null, colorClass);
+                appendChatBubble(highlightedReport, "system", null, colorClass);
             } else {
                 throw new Error("Diagnosis failed");
             }
         } catch (err) {
             console.warn(err);
-            const scanEl = $(scanBubbleId);
-            if (scanEl) scanEl.remove();
+            const typingEl = $(typingBubbleId);
+            if (typingEl) typingEl.remove();
+            
+            if (headerStatus) {
+                headerStatus.textContent = "Online Threat Analyzer";
+                headerStatus.className = "text-[9px] text-white/70";
+            }
+            
             appendChatBubble(`❌ Connection to backend API failed. Threat analyzer is offline, but scan indicators suggest verifying links carefully.`, "system", null, "text-red-400 bg-red-950/20 border-red-900/30");
         }
     }, 1400);
@@ -1184,7 +1227,7 @@ function appendChatBubble(text, sender, id = null, extraClass = "") {
     const baseStyle = "p-3 rounded-2xl text-xs leading-relaxed max-w-[85%] border select-text ";
     let senderStyle = "";
     if (sender === "user") {
-        senderStyle = "self-end bg-[#128c7e] text-white rounded-tr-none border-[#075e54]/30";
+        senderStyle = "self-end bg-[#128c7e] text-white rounded-tr-none border-[#075e54]/30 shadow-inner";
     } else if (sender === "system") {
         senderStyle = "self-start bg-slate-800 text-white rounded-tl-none border-white/5 " + extraClass;
     }
@@ -1208,12 +1251,14 @@ function pasteChatScamSample(index) {
     sendChatMessage();
 }
 
-// ── ELA SLIDER DRAG LOGIC ──
+// ── ELA SLIDER DRAG & MAGNIFIER ZOOM LENS LOGIC ──
 function setupElaSlider() {
     const container = $("elaSliderContainer");
     const handle = $("elaSliderDivider");
     const heatmap = $("elaSliderHeatmap");
-    if (!container || !handle || !heatmap) return;
+    const lens = $("elaZoomLens");
+    const canvas = $("screenshotElaCanvas");
+    if (!container || !handle || !heatmap || !lens || !canvas) return;
 
     let isDragging = false;
 
@@ -1227,6 +1272,7 @@ function setupElaSlider() {
         handle.style.left = `${pct}%`;
     };
 
+    // Drag events
     handle.addEventListener("mousedown", (e) => { e.preventDefault(); isDragging = true; });
     window.addEventListener("mouseup", () => isDragging = false);
     window.addEventListener("mousemove", (e) => {
@@ -1239,6 +1285,42 @@ function setupElaSlider() {
     window.addEventListener("touchmove", (e) => {
         if (!isDragging) return;
         onMove(e.touches[0].clientX);
+    });
+
+    // ── BROWSER-BASED ZOOM LENS LENS FORENSICS OVERLAY ──
+    let lensBgSet = false;
+
+    container.addEventListener("mouseenter", () => {
+        if (isDragging) return;
+        lens.style.display = "block";
+        if (!lensBgSet) {
+            lens.style.backgroundImage = `url(${canvas.toDataURL()})`;
+            lensBgSet = true;
+        }
+    });
+
+    container.addEventListener("mouseleave", () => {
+        lens.style.display = "none";
+    });
+
+    container.addEventListener("mousemove", (e) => {
+        if (isDragging) {
+            lens.style.display = "none";
+            return;
+        }
+        lens.style.display = "block";
+        const rect = container.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        // Position magnifier centered over crosshair cursor
+        lens.style.left = `${x - lens.offsetWidth / 2}px`;
+        lens.style.top = `${y - lens.offsetHeight / 2}px`;
+
+        // Render 3.2x Zoom magnifier ratio
+        const zoom = 3.2;
+        lens.style.backgroundSize = `${rect.width * zoom}px ${rect.height * zoom}px`;
+        lens.style.backgroundPosition = `-${x * zoom - lens.offsetWidth / 2}px -${y * zoom - lens.offsetHeight / 2}px`;
     });
 }
 
@@ -1372,16 +1454,50 @@ function renderRadarChart(scores, containerId) {
         ${gridSvg}
         ${spokesSvg}
         <!-- Threat Shape -->
-        <polygon points="${fraudPoints.join(" ")}" fill="rgba(59, 130, 246, 0.25)" stroke="#3b82f6" stroke-width="0.6" />
-        <!-- Value Indicators -->
-        ${fraudPoints.map((ptStr) => {
+        <polygon points="${fraudPoints.join(" ")}" fill="rgba(59, 130, 246, 0.25)" stroke="#3b82f6" stroke-width="0.6" class="animate-radar-grow" style="transform-origin: 25px 25px;" />
+        <!-- Value Indicators with interactive hover triggers -->
+        ${fraudPoints.map((ptStr, i) => {
             const [x, y] = ptStr.split(",");
-            return `<circle cx="${x}" cy="${y}" r="0.6" fill="#60a5fa" stroke="#ffffff" stroke-width="0.15" />`;
+            const val = scores[keys[i]] || 10;
+            return `<circle cx="${x}" cy="${y}" r="0.8" fill="#60a5fa" stroke="#ffffff" stroke-width="0.2" class="cursor-pointer hover:scale-125 transition-transform" onmouseover="showRadarTooltip('${labels[i]}', ${val}, '${containerId}')" onmouseout="hideRadarTooltip('${containerId}')" />`;
         }).join("")}
     </svg>`;
 
     el.innerHTML = svgString;
+
+    // Append dynamic description vector block
+    const descId = containerId + "_desc";
+    const existingDesc = $(descId);
+    if (existingDesc) existingDesc.remove();
+
+    const descEl = document.createElement("div");
+    descEl.id = descId;
+    descEl.className = "text-[9px] text-center text-white/40 font-mono mt-2 select-none animate-fadeIn leading-normal px-2";
+    descEl.textContent = "Hover radar points to inspect threats";
+    el.parentNode.appendChild(descEl);
 }
+
+// ── GLOBAL SVG RADAR HOVER ACTIONS ──
+window.showRadarTooltip = (label, val, containerId) => {
+    const descEl = $(containerId + "_desc");
+    if (!descEl) return;
+    
+    const explanations = {
+        VPA: `UPI address reputation. Scored ${val}/100. Target handle is spoofed or brand new.`,
+        Visual: `Visual splicing ELA compression variance anomaly index. Scored ${val}/100.`,
+        Metadata: `EXIF software flags & metadata datetime delays verification. Scored ${val}/100.`,
+        Intent: `User intent actions vs transaction collect prompt matching. Scored ${val}/100.`,
+        Social: `NLP urgency words, OTP pressure, & social manipulation index. Scored ${val}/100.`
+    };
+    
+    descEl.innerHTML = `<span class="text-primary font-bold">${label}: ${val}/100</span> — ${explanations[label] || ""}`;
+};
+
+window.hideRadarTooltip = (containerId) => {
+    const descEl = $(containerId + "_desc");
+    if (!descEl) return;
+    descEl.textContent = "Hover radar points to inspect threats";
+};
 
 // ── ZERO-TRUST FRAUD SIMULATOR SANDBOX CORE ──
 let isSandboxRunning = false;
@@ -1414,10 +1530,10 @@ async function triggerSandboxSimulation(type) {
 
     if (type === "collect") {
         await log("[SIMULATION INITIALIZED] Scenario: Utility Collect Bill Fraud", 100);
-        await log("[SMS INTERCEPTED] Incoming alert mimicking electric grid provider...", 300);
-        await log(`[NLP ANALYZING] Parsing body text: "Electricity bill overdue. Pay now or account disconnected in 1 hour..."`, 400);
-        await log("[THREAT FOUND] Urgency indicators detected. Score: HIGH", 300);
-        await log("[ACTION VERIFIED] Collecting payment payload checks. Intent mismatch found.", 400);
+        await log("[STAGE 1/4] Intercept Alert ✅ - SMS read: power power board bill collect request...", 300);
+        await log(`[STAGE 2/4] NLP Parsing Heuristics 🔎 - Scanned words: "overdue, blocked, disconnected"`, 400);
+        await log("[STAGE 3/4] Correlating VPA Blacklist 🔗 - Flagged, handle has 0 transaction counts", 350);
+        await log("[STAGE 4/4] Threat Blocked 🛡️ - Action mismatch: prompt requesting pay instead of refund", 400);
         
         // Display mobile preview details
         $("sandboxEventLabel").textContent = "Threat Intercept: Urgent SMS";
@@ -1426,17 +1542,15 @@ async function triggerSandboxSimulation(type) {
         preview.classList.remove("hidden");
 
         inspectBtn.onclick = () => {
-            // Show standard message modal results prefilled!
             showChatMessageScamModal("Electricity bill overdue. Pay now or account disconnected in 1 hour. upi://pay?pa=power_board@paytm&pn=State%20Electricity&am=1499");
         };
     } 
     else if (type === "typosquat") {
         await log("[SIMULATION INITIALIZED] Scenario: Typosquatted VPA QR Spoof", 100);
-        await log("[QR SCAN CAPTURED] Scanner bounding brackets active...", 300);
-        await log("[PARSING VPA] Target destination found: grocery.storee@ybl", 400);
-        await log("[HEURISTICS VALIDATING] Typo distance checks running against merchant registries...", 500);
-        await log("[WARNING] High similarity index matching verified 'grocery.store@ybl' detected spoof handle: 'storee' (added extra 'e')", 400);
-        await log("[DB CACHE] Cache query returned zero transactions for this handle. Threat rating: CRITICAL", 300);
+        await log("[STAGE 1/4] Intercept Alert ✅ - Scanned printed merchant QR code", 300);
+        await log("[STAGE 2/4] NLP Parsing Heuristics 🔎 - Destination VPA: grocery.storee@ybl", 400);
+        await log("[STAGE 3/4] Correlating VPA Blacklist 🔗 - Typosquatted similarity matching 'grocery.store@ybl'", 450);
+        await log("[STAGE 4/4] Threat Blocked 🛡️ - Identified extra 'e' spoof handle. Risk index score: HIGH", 400);
 
         $("sandboxEventLabel").textContent = "Threat Intercept: Typosquatted QR";
         $("sandboxEventTitle").textContent = "🛍️ Misspelled Merchant VPA Spoof";
@@ -1449,10 +1563,10 @@ async function triggerSandboxSimulation(type) {
     } 
     else if (type === "lottery") {
         await log("[SIMULATION INITIALIZED] Scenario: Cashback PIN-Trap", 100);
-        await log("[ALERT CAPTURED] WhatsApp incoming card mimicking GPay reward cashback...", 300);
-        await log(`[NLP PARSING] "Dear Customer, you won ₹25,000 lottery reward. Enter UPI PIN to claim..."`, 400);
-        await log("[THREAT VERDICT] PIN-Trap scam signature flagged. Never enter UPI PIN to receive money.", 400);
-        await log("[BLACKLIST DETECTED] Target destination matches known lottery scam VPA bank handle.", 300);
+        await log("[STAGE 1/4] Intercept Alert ✅ - WhatsApp card incoming reward claim", 300);
+        await log(`[STAGE 2/4] NLP Parsing Heuristics 🔎 - Scanned words: "Won 25,000 lottery cashback, enter UPI PIN to receive"`, 400);
+        await log("[STAGE 3/4] Correlating VPA Blacklist 🔗 - PIN-trap scam warning signature matched", 400);
+        await log("[STAGE 4/4] Threat Blocked 🛡️ - Cashout receive action requires PIN. Reverse engineering threat signature.", 350);
 
         $("sandboxEventLabel").textContent = "Threat Intercept: PIN Trap Alert";
         $("sandboxEventTitle").textContent = "🎁 Congratulations! You Won ₹25,000";
@@ -1625,4 +1739,5 @@ function clearQrOverlay() {
     const ctx = canvas.getContext("2d");
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
+
 
