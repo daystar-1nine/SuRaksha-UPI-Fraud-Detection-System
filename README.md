@@ -153,10 +153,9 @@ python .system_generated/tasks/test_backend_upgrades.py
 
 ## 👨‍💻 Development Team
 
-* **Suraj Patel** — Lead AI Architect
-* **Nisha Sharma** — Lead Security Researcher
-* **Dr. Vikram Aditya** — Fraud Threat Analyst
-* **Anjali Rao** — Full-Stack Engineer
+* **Suraj Sawant** — Team Lead & Lead AI Architect
+* **Antigravity** — AI Pair Programmer
+* **Stitch** — AI Collaboration Specialist
 
 ---
 
