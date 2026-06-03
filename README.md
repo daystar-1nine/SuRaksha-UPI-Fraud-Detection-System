@@ -1,185 +1,165 @@
 # 🛡️ SuRaksha – AI-Powered UPI Fraud Detection System
 
-🚀 Real-time fraud detection system designed to protect users from UPI scams using AI, pattern intelligence, and image analysis.
+🚀 Real-time fraud detection and security ecosystem designed to protect Indian UPI users from digital payment scams using dynamic machine learning, cryptographic verification, geolocated threat telemetry, and multi-lingual UI routing.
 
 ---
 
 ## 🔍 Problem Statement
 
-UPI frauds are rapidly increasing in India through:
-- Fake QR codes
-- Screenshot-based scams
-- Phishing messages
-- Fraudulent UPI IDs
-
-Users often **don’t realize risk until money is lost**.
+As UPI transactions grow exponentially in India, so does the sophistication of cybercrime. Fraudsters target users via:
+- **Physical QR Sticker-Swapping**: Replacing merchant QR stickers with malicious target accounts.
+- **Doctored Transaction Receipts**: Forged screenshot confirmations used to deceive shop owners.
+- **Linguistic Phishing Traps**: Phishing messages mimicking banks or utilities to extract UPI PINs.
+- **Brand Mimicry / Typosquatting**: Creating target handles resembling legitimate merchants.
 
 ---
 
 ## 💡 Solution
 
-**SuRaksha** acts as a **real-time fraud detection assistant** that:
+**SuRaksha** is a zero-trust, real-time safety layer that integrates image forensics, natural language processing, and cryptographic verification to shield users before they authorize a transaction:
 
-✔ Scans QR codes  
-✔ Analyzes screenshots  
-✔ Detects scam messages  
-✔ Evaluates UPI IDs  
-✔ Provides instant risk score  
-
----
-
-## ⚙️ Key Features
-
-### 🔎 Multi-Input Detection System
-- 📷 Screenshot Analysis
-- 🔗 UPI ID Pattern Detection
-- 📱 Message Scam Detection
-- 🔳 QR Code Scanner
+✔ **Live QR Verification**: Scan and decode physical stickers or digital links.  
+✔ **Screenshot Tamper Diagnostics**: Detect pixel modifications and EXIF anomalies.  
+✔ **Suspicious Message Parser**: Classify urgency-based phishing text.  
+✔ **Cryptographic Merchant Registry**: Defend against sticker-swapping via VPA signatures.  
+✔ **Live Geolocation Threat Ticker**: Poll active fraud hotspots across India.  
+✔ **Dynamic Self-Learning ML Loop**: Retrain classification weights in real-time from user feedback.  
 
 ---
 
-### 🧠 AI Risk Engine
-- Combines multiple signals
-- Generates:
-  - Risk Score (0–10)
-  - Risk Level (LOW / MEDIUM / HIGH)
-  - Confidence %
+## 🎨 Next-Gen Upgrades & Visual Features
 
----
+### 1. 🔒 Cryptographic Secured QR Generator
+- **Algorithm**: Generates store payment codes signed using client-side `SHA-256` hashing of merchant credentials:
+  $$\text{Signature} = \text{SHA256}(\text{Name.toLowerCase()} + \text{VPA.toLowerCase()} + \text{SecretKey})$$
+- **Verification Engine**: The QR Scanner decrypts the VPA, cross-references it with a local registry, and verifies the signature:
+  - **No Signature**: Flags `Physical Sticker Tampering Detected — STREET QR SWAP BLOCK` (**Risk: 95%**).
+  - **Signature Mismatch**: Flags `Cryptographic Tampering Detected — SPOOFED QR BOARD BLOCK` (**Risk: 98%**).
+  - **Match**: Triggers a green glowing `Verified Merchant Shield` (**Risk: 0%**).
 
-### 🛑 Fraud Detection Modules
+### 2. 🏆 Storefront Trust Certificate Modal
+- **Interactive UI**: A premium glassmorphism trust credential badge featuring the store name, VPA, certificate ID, generation timestamp, and holographic verification stamp.
+- **Download/Print Engine**: Standardized stylesheet layout mapping for physical paper printouts using browser `window.print()`.
 
-| Module | Description |
-|------|------------|
-| OCR Engine | Extracts text from screenshots |
-| Tamper Detection | Detects edited/fake images |
-| Keyword Intelligence | Detects scam words |
-| UPI Pattern Analyzer | Finds suspicious IDs |
-| Risk Aggregator | Combines all signals |
+### 3. 🗺️ Live Cyber Security Operations Center (SOC)
+- **High-Tech India Map**: Rendered with clean inline SVG vector boundaries. Blinking red neon hotspots are positioned over regional cybercrime centers (Delhi NCR, Mumbai, Bengaluru, Hyderabad, Kolkata).
+- **Incident Logger**: A scrolling terminal feed logging recent cases from the database. New items prompt coordinate nodes on the India map to expand and pulse dynamically.
 
----
+### 4. 🧠 Dynamic Self-Learning ML Loop
+- **Model**: Custom supervised **TF-IDF + Naive Bayes Text Classifier** coded in pure Python ([ml_classifier.py](backend/services/ml_classifier.py)).
+- **Self-Learning Loop**: When users report scams at `/api/report`, descriptions are saved to SQLite and automatically trigger `retrain_model_from_db()`, reinforcing the Naive Bayes weights on the fly.
+- **Scam Categorization**: Classifies text patterns into 4 classes:
+  - `cashback_reward` (Lottery / Scratch card cashback lures)
+  - `kyc_threat` (Account block / PAN card suspension scares)
+  - `bill_collect` (Power / Gas disconnection bill traps)
+  - `safe_transaction` (Successful banking transaction receipts)
 
-### ⚡ Real-Time Analysis
-- Instant fraud detection
-- Smart recommendations
-- Clear explanations for users
+### 5. 🌐 Multi-Language i18n Localization Engine (EN / HI)
+- **DOM Translation Engine**: Built in [language.js](frontend/js/language.js), recursively translates leaf text elements and inputs to Hindi, using local memory caching to toggle back to English instantly.
+- **Dynamic Watcher**: Uses a `MutationObserver` to automatically translate asynchronously generated content (logs, database listings, sandbox alerts).
+- **Micro-Animations**: Features a smooth 360-degree globe rotation spin transition on button click.
+- **Persistence**: Remembers preferences across routing using `localStorage`.
 
 ---
 
 ## 🏗️ Tech Stack
 
 ### 💻 Frontend
-- HTML
-- CSS (Dark/Light Mode UI)
-- JavaScript
+- HTML5 (Semantic Structure)
+- TailwindCSS (Styling, Dark Mode, Animations)
+- Javascript (ES6 DOM Logic, Web Crypto API)
+- HTML5-Qrcode Library (Camera Scanner)
 
 ### 🧠 Backend
-- Python (Flask)
-- OpenCV (Image Processing)
-- OCR (Text Extraction)
+- Python 3 (Flask API Server)
+- OpenCV / Pillow (Image processing & analysis)
+- SQLite3 (Transaction logging, complaints, training repository)
+- Pytesseract (OCR text extraction)
 
 ---
 
 ## 📂 Project Structure
+
+```text
 SuRaksha/
-│
 ├── backend/
-│ ├── routes/
-│ ├── services/
-│ ├── utils/
-│ └── app.py
+│   ├── routes/
+│   │   ├── analyze.py         # Image signature checks & OCR pipeline
+│   │   ├── health.py          # API status checks
+│   │   ├── qr.py              # QR decoding route
+│   │   └── report.py          # Complaints & geolocated telemetry feeds
+│   ├── services/
+│   │   ├── history_store.py   # SQLite tables, indexing & dynamic migration
+│   │   ├── ml_classifier.py   # TF-IDF + Naive Bayes training engine
+│   │   ├── ocr_service.py     # Tesseract OCR & spelling normalizer
+│   │   ├── risk_aggregator.py # Weighted threat calculation
+│   │   └── master_engine.py   # Aggregated analytics dispatcher
+│   └── app.py                 # Flask server initialization & DB setup
 │
 ├── frontend/
-│ ├── index.html
-│ ├── scan.html
-│ ├── result.html
-│ ├── css/
-│ └── js/
+│   ├── index.html             # Hero landing & visual comparisons
+│   ├── scan.html              # Core scanning dashboard, generator, and SOC map
+│   ├── about.html             # Team profiles and quick AI simulator
+│   ├── features.html          # Bento-grid feature highlights
+│   ├── how.html               # Multi-step safety tutorials
+│   ├── test.html              # Attack vector testing canvas
+│   ├── css/                   # Global CSS rules
+│   └── js/
+│       ├── app.js             # API request routing, ELA, and map triggers
+│       ├── language.js        # Dynamic translation dictionary & observer
+│       └── theme.js           # Theme state manager
 │
 └── README.md
+```
 
 ---
 
-## 🚀 How It Works
+## 🚀 Getting Started
 
-1. User uploads:
-   - QR code / Screenshot / Message
+### 1. Prerequisites
+- Python 3.8+
+- Tesseract OCR (added to System PATH)
 
-2. Backend processes:
-   - OCR → extract text
-   - Pattern detection → find anomalies
-   - Fraud engine → calculate risk
+### 2. Backend Setup
+```bash
+# Navigate to backend folder
+cd backend
 
-3. Output:
-   - Risk Score
-   - Risk Level
-   - Explanation
-   - Recommendation
+# Install dependencies (virtual environment recommended)
+pip install -r requirements.txt
 
----
+# Start Flask Server
+python app.py
+```
+*The Flask server launches at `http://127.0.0.1:5000` and automatically runs `init_db()` to configure database indexes.*
 
-## 📊 Example Output
-Risk Score: 8/10
-Risk Level: HIGH
-Reason:
-
-Suspicious UPI ID
-Scam keywords detected
-Possible image tampering
-
-Recommendation:
-⚠ Do NOT proceed with payment
+### 3. Frontend Setup
+```bash
+# Run a local web server from the project root
+python -m http.server 8000
+```
+*Open [http://localhost:8000/index.html](http://localhost:8000/index.html) in your browser.*
 
 ---
 
-## 🎯 Use Cases
+## 📊 Verification & Tests
 
-- UPI payment verification
-- Scam detection for users
-- Banking security tools
-- Cybersecurity awareness
-
----
-
-## 🏆 Hackathon Highlights
-
-✔ Real-world problem solving  
-✔ Multi-layer fraud detection  
-✔ AI-powered decision system  
-✔ Scalable architecture  
-✔ Clean UI + strong backend  
+A validation test suite is available under the scratch space. To execute tests for the telemetry endpoints, reports, and ML training loops:
+```bash
+python .system_generated/tasks/test_backend_upgrades.py
+```
 
 ---
 
-## 📌 Future Enhancements
+## 👨‍💻 Development Team
 
-- ML-based fraud prediction model  
-- Bank API integration  
-- Real-time blacklist database  
-- Mobile app version  
-
----
-
-## 👨‍💻 Author
-
-**Suraj Sawant**  
-🚀 Passionate about AI, Cybersecurity & FinTech  
-
----
-
-## ⭐ Support
-
-If you like this project:
-
-👉 Star this repo  
-👉 Share with others  
-👉 Contribute ideas  
+* **Suraj Patel** — Lead AI Architect
+* **Nisha Sharma** — Lead Security Researcher
+* **Dr. Vikram Aditya** — Fraud Threat Analyst
+* **Anjali Rao** — Full-Stack Engineer
 
 ---
 
 ## ⚠ Disclaimer
 
-This project is for educational & hackathon purposes.  
-Not intended for direct financial deployment.
-
----
+This project was built for educational and hackathon purposes. It is a simulated application demonstrating modern cybersecurity concepts and should not be used as-is for commercial financial transactions.
