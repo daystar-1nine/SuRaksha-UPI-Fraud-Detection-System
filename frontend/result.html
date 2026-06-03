@@ -10,6 +10,7 @@
   }
 </script>
 <script src="js/theme.js" defer></script>
+<script src="js/language.js" defer></script>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -243,6 +244,15 @@
     <!-- Right Actions -->
     <div class="flex items-center gap-md">
 
+      <!-- Language Toggle -->
+      <button
+        id="language-toggle"
+        aria-label="Toggle Language"
+        class="p-2 rounded-xl hover:bg-surface-variant/20 active:scale-95 transition-all duration-300 font-bold text-xs text-primary flex items-center gap-1 cursor-pointer border border-transparent">
+        <span class="material-symbols-outlined text-[18px] text-primary">language</span>
+        <span id="lang-label" class="text-primary">EN</span>
+      </button>
+
       <!-- Theme Toggle -->
       <button
         id="theme-toggle"
@@ -469,70 +479,72 @@ const data = JSON.parse(localStorage.getItem("result"));
 
 if (!data) {
     alert("No data found");
-}
+    window.location.href = "scan.html";
+} else {
+    // --------------------
+    // BASIC DATA
+    // --------------------
+    document.getElementById("riskScore").innerText = data.risk_score;
+    document.getElementById("riskLevel").innerText = data.risk_level;
+    document.getElementById("fraudType").innerText = data.fraud_type;
+    document.getElementById("confidence").innerText = (data.fraud_confidence * 100).toFixed(0) + "%";
+    document.getElementById("detectedAction").innerText = data.detected_action;
 
-// --------------------
-// BASIC DATA
-// --------------------
-document.getElementById("riskScore").innerText = data.risk_score;
-document.getElementById("riskLevel").innerText = data.risk_level;
-document.getElementById("fraudType").innerText = data.fraud_type;
-document.getElementById("confidence").innerText = (data.fraud_confidence * 100).toFixed(0) + "%";
-document.getElementById("detectedAction").innerText = data.detected_action;
+    // --------------------
+    // ALERT LOGIC 🔥
+    // --------------------
+    const alertText = document.getElementById("alertText");
+    const safeBadge = document.getElementById("safeBadge");
 
-// --------------------
-// ALERT LOGIC 🔥
-// --------------------
-const alertText = document.getElementById("alertText");
-const safeBadge = document.getElementById("safeBadge");
+    if (data.risk_level === "CRITICAL" || data.risk_level === "HIGH") {
+        alertText.innerText = "🚨 FRAUD ALERT";
+        safeBadge.innerText = "Safe to Pay: NO";
+        safeBadge.className = "bg-red-600 text-white px-6 py-3 rounded-full";
+    }
+    else {
+        alertText.innerText = "✅ SAFE TRANSACTION";
+        alertText.className = "text-green-500 font-display-md text-glow";
+        safeBadge.innerText = "Safe to Pay: YES";
+        safeBadge.className = "bg-green-600 text-white px-6 py-3 rounded-full";
+    }
 
-if (data.risk_level === "CRITICAL" || data.risk_level === "HIGH") {
-    alertText.innerText = "🚨 FRAUD ALERT";
-    safeBadge.innerText = "Safe to Pay: NO";
-    safeBadge.className = "bg-red-600 text-white px-6 py-3 rounded-full";
-}
-else {
-    alertText.innerText = "✅ SAFE";
-    safeBadge.innerText = "Safe to Pay: YES";
-    safeBadge.className = "bg-green-600 text-white px-6 py-3 rounded-full";
-}
+    // --------------------
+    // REASONS 🔥
+    // --------------------
+    const container = document.getElementById("reasonsContainer");
 
-// --------------------
-// REASONS 🔥
-// --------------------
-const container = document.getElementById("reasonsContainer");
+    container.innerHTML = "";
 
-container.innerHTML = "";
+    (data.reasons || []).forEach(reason => {
+        const div = document.createElement("div");
+        div.className = "flex gap-md items-start p-md bg-surface/40 rounded-lg border";
 
-(data.reasons || []).forEach(reason => {
-    const div = document.createElement("div");
-    div.className = "flex gap-md items-start p-md bg-surface/40 rounded-lg border";
+        div.innerHTML = `
+            <span class="material-symbols-outlined text-red-500">priority_high</span>
+            <p>${reason}</p>
+        `;
 
-    div.innerHTML = `
-        <span class="material-symbols-outlined text-red-500">priority_high</span>
-        <p>${reason}</p>
-    `;
+        container.appendChild(div);
+    });
 
-    container.appendChild(div);
-});
+    // --------------------
+    // RISK GAUGE 🔥
+    // --------------------
+    const gauge = document.querySelector(".risk-gauge");
+    if (gauge) {
+        const score = data.risk_score;
+        gauge.style.background = `conic-gradient(#ef4444 ${score}%, #1f2937 0)`;
+    }
 
-// --------------------
-// RISK GAUGE 🔥
-// --------------------
-const gauge = document.querySelector(".risk-gauge");
-if (gauge) {
-    const score = data.risk_score;
-    gauge.style.background = `conic-gradient(#ef4444 ${score}%, #1f2937 0)`;
-}
-
-// --------------------
-// BUTTONS
-// --------------------
-const secureBtn = document.getElementById("secure-btn");
-if (secureBtn) {
-    secureBtn.onclick = () => {
-        window.location.href = "scan.html";
-    };
+    // --------------------
+    // BUTTONS
+    // --------------------
+    const secureBtn = document.getElementById("secure-btn");
+    if (secureBtn) {
+        secureBtn.onclick = () => {
+            window.location.href = "scan.html";
+        };
+    }
 }
 </script>
 </body>

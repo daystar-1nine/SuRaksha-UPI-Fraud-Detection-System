@@ -40,6 +40,12 @@ def init_db():
         )
         """)
 
+        # Check if created_at column exists in history table (for backwards compatibility)
+        cursor.execute("PRAGMA table_info(history)")
+        columns = [col[1] for col in cursor.fetchall()]
+        if columns and "created_at" not in columns:
+            cursor.execute("ALTER TABLE history ADD COLUMN created_at TEXT")
+
         # User-submitted fraud reports
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS complaints (
@@ -51,9 +57,20 @@ def init_db():
         )
         """)
 
+        # Feedback scam messages for Naive Bayes dynamic training
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS reported_scams (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            text TEXT NOT NULL,
+            category TEXT NOT NULL,
+            created_at TEXT
+        )
+        """)
+
         # 🔥 Indexes for fast lookup
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_upi ON history (upi)")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_complaint_upi ON complaints (upi)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_reported_scams_cat ON reported_scams (category)")
 
 
 # -------------------------------
@@ -179,3 +196,32 @@ def get_stats():
         "unique_frauds": unique_frauds,
         "total_reports": total_reports
     }
+
+
+# -------------------------------
+# SAVE REPORTED SCAM FOR TRAINING
+# -------------------------------
+def save_reported_scam(text, category):
+    now = datetime.utcnow().isoformat()
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+        INSERT INTO reported_scams (text, category, created_at)
+        VALUES (?, ?, ?)
+        """, (text.strip(), category, now))
+
+
+# -------------------------------
+# GET ALL REPORTED SCAMS FOR TRAINING
+# -------------------------------
+def get_reported_scams():
+    try:
+        with get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+            SELECT text, category FROM reported_scams
+            """)
+            return cursor.fetchall()
+    except sqlite3.OperationalError:
+        # Table might not exist yet if database was not initialized
+        return []

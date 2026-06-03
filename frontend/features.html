@@ -9,6 +9,7 @@
   }
 </script>
 <script src="js/theme.js" defer></script>
+<script src="js/language.js" defer></script>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>SuRaksha | Powerful Fraud Detection Features</title>
@@ -299,6 +300,15 @@ body {
 
     <!-- Right Actions -->
     <div class="flex items-center gap-md">
+
+      <!-- Language Toggle -->
+      <button
+        id="language-toggle"
+        aria-label="Toggle Language"
+        class="p-2 rounded-xl hover:bg-surface-variant/20 active:scale-95 transition-all duration-300 font-bold text-xs text-primary flex items-center gap-1 cursor-pointer border border-transparent">
+        <span class="material-symbols-outlined text-[18px] text-primary">language</span>
+        <span id="lang-label" class="text-primary">EN</span>
+      </button>
 
       <!-- Theme Toggle -->
       <button

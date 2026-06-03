@@ -14,6 +14,7 @@ from services.fraud_intelligence import analyze_fraud_intelligence
 from services.risk_aggregator import compute_weighted_risk
 from services.confidence_engine import compute_confidence
 from services.fraud_classifier import classify_fraud
+from services.ml_classifier import predict_scam_probabilities
 
 
 # -------------------------------
@@ -155,6 +156,12 @@ def run_fraud_analysis(text, user_intent=None):
     duration = round((time.time() - start_time) * 1000, 2)
 
     # -------------------------------
+    # ML TEXT CLASSIFIER PROBABILITIES 🔥
+    # -------------------------------
+    ml_probs = predict_scam_probabilities(text)
+    top_ml_category = max(ml_probs, key=ml_probs.get) if ml_probs else "unknown"
+
+    # -------------------------------
     # FINAL RESPONSE
     # -------------------------------
     return {
@@ -169,6 +176,11 @@ def run_fraud_analysis(text, user_intent=None):
         "confidence": confidence,
 
         "fraud": fraud_class,
+
+        "ml_analysis": {
+            "probabilities": ml_probs,
+            "top_category": top_ml_category
+        },
 
         "decision": {
             "safe_to_pay": safe_to_pay,

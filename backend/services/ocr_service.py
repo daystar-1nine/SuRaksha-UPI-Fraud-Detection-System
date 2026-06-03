@@ -50,6 +50,44 @@ def run_ocr(image, config="--oem 3 --psm 6"):
 
 
 # -------------------------------
+# OCR SPELL CORRECTOR & NORMALIZATION
+# -------------------------------
+import re
+
+def normalize_ocr_text(text):
+    if not text:
+        return ""
+    
+    # Patterns to match typical visual character misreadings in fintech/UPI context
+    replacements = [
+        # GPay variations
+        (r'\bg\s*p[a4]\s*y\b', 'gpay'),
+        (r'\bg\s*p0y\b', 'gpay'),
+        # PhonePe variations
+        (r'\bph[0o]ne\s*pe\b', 'phonepe'),
+        (r'\bph[0o]npe\b', 'phonepe'),
+        # Paytm variations
+        (r'\bpayt[7m]m\b', 'paytm'),
+        (r'\bpoytm\b', 'paytm'),
+        # UPI domains
+        (r'\@up[1li]\b', '@upi'),
+        (r'\@ok\s*axis\b', '@okaxis'),
+        (r'\@ok\s*hdfc\b', '@okhdfcbank'),
+        # Generic terms
+        (r'\bc[a4]shback\b', 'cashback'),
+        (r'\bl[0o]ttery\b', 'lottery'),
+        (r'\bky[c0]\b', 'kyc'),
+        (r'\bv[p1]a\b', 'vpa')
+    ]
+    
+    normalized = text
+    for pattern, replacement in replacements:
+        normalized = re.sub(pattern, replacement, normalized, flags=re.IGNORECASE)
+        
+    return normalized
+
+
+# -------------------------------
 # MAIN FUNCTION
 # -------------------------------
 def extract_text(image_path):
@@ -173,8 +211,9 @@ def extract_text(image_path):
     # -------------------------------
     # FINAL RESPONSE
     # -------------------------------
+    normalized_text = normalize_ocr_text(best_text)
     return {
-        "text": best_text,
+        "text": normalized_text,
         "confidence": confidence,
         "method": best_method
     }

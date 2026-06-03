@@ -2,6 +2,7 @@
 
 import re
 import unicodedata
+from services.ml_classifier import predict_scam_probabilities
 
 
 # ────────────────────────────────────────
@@ -309,6 +310,10 @@ def analyze_qr_risk(parsed_data):
     elif level == "SAFE":
         fraud_type = "No Fraud Detected"
 
+    # ML Classifier check 🔥
+    ml_probs = predict_scam_probabilities(combined)
+    top_ml_category = max(ml_probs, key=ml_probs.get) if ml_probs else "unknown"
+
     return {
         "risk_score": risk_score,
         "risk_level": level,
@@ -320,6 +325,10 @@ def analyze_qr_risk(parsed_data):
             else ("Verify carefully before paying" if risk_score >= 25
                   else "Looks safe — proceed with caution")
         ),
+        "ml_analysis": {
+            "probabilities": ml_probs,
+            "top_category": top_ml_category
+        },
         "signals": signals,
         "reasons": [s["reason"] for s in signals]
     }

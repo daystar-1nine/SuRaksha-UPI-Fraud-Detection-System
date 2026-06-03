@@ -23,6 +23,31 @@ def is_allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
+def verify_image_signature(file_stream):
+    """Inspects file magic bytes to verify it is a real image format (JPEG, PNG, WebP)"""
+    try:
+        header = file_stream.read(12)
+        file_stream.seek(0)  # Reset stream position for downstream PIL saving
+        if not header:
+            return False
+        
+        # Check PNG: 89 50 4E 47 0D 0A 1A 0A
+        if header.startswith(b'\x89PNG\r\n\x1a\n'):
+            return True
+            
+        # Check JPEG: FF D8 FF
+        if header.startswith(b'\xff\xd8\xff'):
+            return True
+            
+        # Check WebP: RIFF ... WEBP
+        if header.startswith(b'RIFF') and b'WEBP' in header[8:12]:
+            return True
+            
+        return False
+    except Exception:
+        return False
+
+
 def error_response(message, status_code, request_id):
     return jsonify({
         "success": False,
@@ -70,6 +95,10 @@ def analyze_image():
 
         if not is_allowed_file(file.filename):
             return error_response("Invalid file type", 400, request_id)
+
+        # Verify binary magic bytes signature to prevent script spoofing
+        if not verify_image_signature(file.stream):
+            return error_response("File signature check failed. Spoofed image format detected.", 400, request_id)
 
         filename = secure_filename(file.filename)
 

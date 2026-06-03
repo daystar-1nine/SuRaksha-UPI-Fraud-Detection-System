@@ -12,6 +12,12 @@ let AppState = {
 
 let localBlacklist = [];
 
+let localTrustedMerchants = [
+    { upi: "sharmakirana@upi", name: "Sharma Kirana Store", secret: "SuRakshaShield2026" },
+    { upi: "starcafe@upi", name: "Star Cafe", secret: "SuRakshaShield2026" },
+    { upi: "arogyamedical@upi", name: "Arogya Pharmacy", secret: "SuRakshaShield2026" }
+];
+
 
 // -----------------------------
 // 🧠 UTILITIES
@@ -240,20 +246,27 @@ async function startScanner() {
         );
     } catch (err) {
         console.error("Scanner error:", err);
+        AppState.scanning = false;
+        AppState.scanner = null;
+        showToast("📷 Camera unavailable. Try 'Upload QR from Gallery'!", "warning", 5000);
     }
 }
 
 function stopScanner() {
 
-    if (!AppState.scanner) return;
+    if (!AppState.scanner) return Promise.resolve();
 
-    AppState.scanner.stop()
+    return AppState.scanner.stop()
         .then(() => {
             AppState.scanner.clear();
             AppState.scanner = null;
             AppState.scanning = false;
         })
-        .catch(() => {});
+        .catch((err) => {
+            console.warn("Scanner stop error:", err);
+            AppState.scanner = null;
+            AppState.scanning = false;
+        });
 }
 
 
@@ -287,6 +300,123 @@ async function sendQR(text) {
 
     // 0ms LOCAL CACHE PRECHECK INTERCEPTOR 🔥
     if (AppState.intent === "pay") {
+        
+        // 0ms LOCAL CRYPTOGRAPHIC TRUST & STICKER-TAMPERING INTERCEPTOR 🔒
+        if (text.startsWith("upi://pay")) {
+            const urlParams = new URLSearchParams(text.split("?")[1] || "");
+            const pa = urlParams.get("pa");
+            const pn = urlParams.get("pn");
+            const am = urlParams.get("am");
+            const sign = urlParams.get("sign");
+
+            if (pa) {
+                const matchedTrusted = localTrustedMerchants.find(m => m.upi.toLowerCase() === pa.toLowerCase());
+                
+                if (matchedTrusted) {
+                    if (!sign) {
+                        toggle($("loader"), false);
+                        const mockApiResponse = {
+                            success: true,
+                            data: {
+                                qr: { parsed: { pa: [pa], pn: [pn || matchedTrusted.name], am: [am || ""] } },
+                                analysis: {
+                                    risk_score: 95,
+                                    risk_level: "CRITICAL",
+                                    fraud_type: "Physical Sticker Tampering",
+                                    detected_action: "STREET QR SWAP BLOCK",
+                                    confidence: 0.98,
+                                    reasons: [
+                                        `CRITICAL ALERT: Physical sticker tampering detected.`,
+                                        `This VPA (${pa}) is a registered store but does NOT have a valid SuRaksha Cryptographic signature.`,
+                                        `Expected signed merchant credential but scanned raw VPA. Sticker has likely been swapped.`
+                                    ]
+                                }
+                            }
+                        };
+                        showResultPopup(mockApiResponse);
+                        return;
+                    }
+
+                    const expectedRaw = (pn || matchedTrusted.name).toLowerCase() + pa.toLowerCase() + matchedTrusted.secret;
+                    const expectedSign = await sha256(expectedRaw);
+
+                    if (sign !== expectedSign) {
+                        toggle($("loader"), false);
+                        const mockApiResponse = {
+                            success: true,
+                            data: {
+                                qr: { parsed: { pa: [pa], pn: [pn || matchedTrusted.name], am: [am || ""] } },
+                                analysis: {
+                                    risk_score: 98,
+                                    risk_level: "CRITICAL",
+                                    fraud_type: "Cryptographic Tampering Detected",
+                                    detected_action: "SPOOFED QR BOARD BLOCK",
+                                    confidence: 0.99,
+                                    reasons: [
+                                        `CRITICAL ALERT: The QR cryptographic signature failed verification.`,
+                                        `Merchant VPA or name has been modified since signature generation.`,
+                                        `Prevented execution of modified merchant pay instruction.`
+                                    ]
+                                }
+                            }
+                        };
+                        showResultPopup(mockApiResponse);
+                        return;
+                    } else {
+                        toggle($("loader"), false);
+                        const mockApiResponse = {
+                            success: true,
+                            data: {
+                                qr: { parsed: { pa: [pa], pn: [pn || matchedTrusted.name], am: [am || ""] } },
+                                analysis: {
+                                    risk_score: 0,
+                                    risk_level: "SAFE",
+                                    fraud_type: "Verified Merchant Shield",
+                                    detected_action: "SuRaksha Cryptographic Signature Validated",
+                                    confidence: 1.0,
+                                    reasons: [
+                                        `Cryptographic signature validated successfully.`,
+                                        `Store owner identity and VPA match registered credentials.`,
+                                        `100% Secure Transaction Shield active.`
+                                    ]
+                                }
+                            }
+                        };
+                        showResultPopup(mockApiResponse);
+                        showToast("✅ Trusted Store Identity Validated!", "success");
+                        return;
+                    }
+                } else if (sign) {
+                    const expectedRaw = (pn || "Recipient").toLowerCase() + pa.toLowerCase() + "SuRakshaShield2026";
+                    const expectedSign = await sha256(expectedRaw);
+                    
+                    if (sign === expectedSign) {
+                        toggle($("loader"), false);
+                        const mockApiResponse = {
+                            success: true,
+                            data: {
+                                qr: { parsed: { pa: [pa], pn: [pn || "Recipient"], am: [am || ""] } },
+                                analysis: {
+                                    risk_score: 0,
+                                    risk_level: "SAFE",
+                                    fraud_type: "Verified Merchant Shield",
+                                    detected_action: "SuRaksha Cryptographic Signature Validated",
+                                    confidence: 0.95,
+                                    reasons: [
+                                        `Cryptographic signature validated using default shared network key.`,
+                                        `Payload integrity confirmed. No tampering found.`
+                                    ]
+                                }
+                            }
+                        };
+                        showResultPopup(mockApiResponse);
+                        showToast("✅ Cryptographic Signature Valid!", "success");
+                        return;
+                    }
+                }
+            }
+        }
+
         const scannedUpi = extractUpiAddress(text);
         if (scannedUpi) {
             AppState.lastScannedUpi = scannedUpi;  // Track for report fraud
@@ -648,6 +778,43 @@ function showResultPopup(apiResponse) {
         : "-"
     );
 
+    // ---------------------------------
+    // 📊 ML PROBABILITY BREAKDOWN
+    // ---------------------------------
+    const mlBlock = $("mlBlock");
+    const mlProbsContainer = $("mlProbsContainer");
+    if (mlBlock && mlProbsContainer) {
+        const mlAnalysis = apiResponse.data.analysis?.ml_analysis || apiResponse.data.ml_analysis;
+        if (mlAnalysis && mlAnalysis.probabilities) {
+            mlBlock.classList.remove("hidden");
+            mlProbsContainer.innerHTML = "";
+
+            const formatLabel = (l) => {
+                return l.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+            };
+
+            Object.entries(mlAnalysis.probabilities).forEach(([category, prob]) => {
+                const percentage = Math.round(prob * 100);
+                if (percentage > 0) {
+                    const row = document.createElement("div");
+                    row.className = "flex items-center justify-between mt-1";
+                    row.innerHTML = `
+                        <span class="text-white/70">${formatLabel(category)}</span>
+                        <div class="flex items-center gap-2 w-1/2 justify-end">
+                            <div class="w-24 bg-white/10 h-1.5 rounded-full overflow-hidden border border-white/5">
+                                <div class="bg-primary h-full rounded-full" style="width: ${percentage}%"></div>
+                            </div>
+                            <span class="font-bold text-white/90 whitespace-nowrap min-w-[30px] text-right">${percentage}%</span>
+                        </div>
+                    `;
+                    mlProbsContainer.appendChild(row);
+                }
+            });
+        } else {
+            mlBlock.classList.add("hidden");
+        }
+    }
+
     // -----------------------------
     // 📈 RISK BAR
     // -----------------------------
@@ -984,19 +1151,40 @@ $("qrImageInput")?.addEventListener("change", async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    let scanner;
+    toggle($("loader"), true);
+
+    // Stop camera first if active to avoid reader element collision
+    const wasScanning = AppState.scanning;
+    if (wasScanning) {
+        await stopScanner();
+        // Wait a brief moment to ensure resources are released
+        await new Promise(resolve => setTimeout(resolve, 300));
+    }
+
+    let fileScanner;
 
     try {
-        scanner = new Html5Qrcode("reader");
-        const text = await scanner.scanFile(file, true);
-
+        fileScanner = new Html5Qrcode("reader");
+        const text = await fileScanner.scanFile(file, true);
         await sendQR(text);
 
-    } catch {
-        alert("QR image scan failed ❌");
+    } catch (err) {
+        console.error("Gallery scan error:", err);
+        showToast("QR image scan failed or could not find QR code ❌", "error");
     } finally {
-        if (scanner) {
-            scanner.clear().catch(() => {});
+        if (fileScanner) {
+            try {
+                await fileScanner.clear();
+            } catch (e) {}
+        }
+        toggle($("loader"), false);
+
+        // Reset input value so same file can be selected again
+        e.target.value = "";
+
+        // Restart camera scanner if it was scanning before
+        if (wasScanning) {
+            setTimeout(startScanner, 200);
         }
     }
 });
@@ -1043,6 +1231,7 @@ window.onload = () => {
     selectIntent("pay");
     syncOfflineBlacklist();
     loadStats();
+    initSocThreatFeed();
 
     // Live UPI format validator
     const upiInput = $("manualUpiInput");
@@ -1738,6 +1927,185 @@ function clearQrOverlay() {
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+// ---------------------------------------------
+// 🔳 CRYPTOGRAPHIC SECURE QR & TRUST CERTIFICATE
+// ---------------------------------------------
+
+async function sha256(message) {
+    const msgBuffer = new TextEncoder().encode(message);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function generateSecureStoreQr() {
+    const name = $("secMerchantName").value.trim();
+    const vpa = $("secMerchantVpa").value.trim();
+    const secret = $("secSecretKey").value.trim();
+
+    if (!name || !vpa) {
+        showToast("Please enter Merchant Name and UPI VPA", "warning");
+        return;
+    }
+
+    toggle($("loader"), true);
+    try {
+        const rawPayload = name.toLowerCase() + vpa.toLowerCase() + secret;
+        const signature = await sha256(rawPayload);
+
+        // upi://pay?pa=VPA&pn=Name&am=100&sign=SIGNATURE
+        const upiPayPayload = `upi://pay?pa=${encodeURIComponent(vpa)}&pn=${encodeURIComponent(name)}&am=100&sign=${signature}&cu=INR&tn=SuRaksha%20Verified`;
+
+        // Render QR code using qrserver API
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(upiPayPayload)}`;
+        
+        $("secureQrImage").src = qrUrl;
+        $("secureQrPayloadText").innerText = upiPayPayload;
+        
+        // Hide placeholder, show preview
+        $("secureQrPreviewPlaceholder").classList.add("hidden");
+        $("secureQrPreviewContent").classList.remove("hidden");
+
+        // Pre-populate certificate details
+        $("certStoreName").innerText = name;
+        $("certStoreVpa").innerText = vpa;
+        $("certQrImage").src = qrUrl;
+
+        // Generate dynamic certificate ID and Date
+        const now = new Date();
+        const formattedDate = `${String(now.getDate()).padStart(2, '0')}-${String(now.getMonth() + 1).padStart(2, '0')}-${now.getFullYear()}`;
+        const randomId = `SR-${now.getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
+        $("certDateText").innerText = formattedDate;
+        $("certIdText").innerText = randomId;
+
+        // Dynamically register in local trusted registry for scanning pre-check simulation
+        const existingIdx = localTrustedMerchants.findIndex(m => m.upi.toLowerCase() === vpa.toLowerCase());
+        if (existingIdx >= 0) {
+            localTrustedMerchants[existingIdx] = { upi: vpa, name: name, secret: secret };
+        } else {
+            localTrustedMerchants.push({ upi: vpa, name: name, secret: secret });
+        }
+
+        showToast("Secure Merchant QR Code Generated! 🛡️", "success");
+    } catch (err) {
+        console.error(err);
+        showToast("Error generating secure QR code", "error");
+    } finally {
+        toggle($("loader"), false);
+    }
+}
+
+function toggleSecretVisibility() {
+    const input = $("secSecretKey");
+    const icon = $("visibilityIcon");
+    if (input.type === "password") {
+        input.type = "text";
+        icon.innerText = "visibility";
+    } else {
+        input.type = "password";
+        icon.innerText = "visibility_off";
+    }
+}
+
+function openMerchantCertificateModal() {
+    $("certificateModal").classList.remove("hidden");
+    $("certificateModal").classList.add("flex");
+}
+
+function closeMerchantCertificateModal() {
+    $("certificateModal").classList.add("hidden");
+    $("certificateModal").classList.remove("flex");
+}
+
+// ---------------------------------------------
+// 🗺️ LIVE SOC THREAT FEED ENGINE
+// ---------------------------------------------
+
+const socCities = [
+    { id: "delhi", name: "Delhi NCR", elementId: "node-delhi" },
+    { id: "mumbai", name: "Mumbai", elementId: "node-mumbai" },
+    { id: "bengaluru", name: "Bengaluru", elementId: "node-bengaluru" },
+    { id: "hyderabad", name: "Hyderabad", elementId: "node-hyderabad" },
+    { id: "kolkata", name: "Kolkata", elementId: "node-kolkata" }
+];
+
+const mockThreatVpas = [
+    "electricity-collect@ybl", "refund-gpay@okaxis", "free-cashback-gift@paytm",
+    "complaint-bill-desk@sbi", "win-lottery-rewards@okhdfcbank", "upi-update-kyc@icici",
+    "toll-plaza-fastag@ybl", "emergency-medical-fund@paytm", "income-tax-refund@okaxis"
+];
+
+const threatTypes = [
+    "Typosquat Hijack", "Collect Request Scam", "Lottery PIN-Trap", 
+    "Fake Fastag Portal", "Urgent Utility Fraud", "Government Refund Spoof"
+];
+
+function initSocThreatFeed() {
+    setInterval(updateSocThreatFeed, 4000);
+    updateSocThreatFeed();
+}
+
+async function updateSocThreatFeed() {
+    const feed = $("socTickerFeed");
+    if (!feed) return;
+
+    try {
+        const res = await fetch(`${API_BASE}/api/soc/threats`);
+        const data = await res.json();
+        
+        if (!data.success || !data.threats || data.threats.length === 0) return;
+
+        // Pick one threat randomly from the backend telemetry list
+        const threat = data.threats[Math.floor(Math.random() * data.threats.length)];
+        const cityData = socCities.find(c => c.name.toLowerCase() === threat.location.toLowerCase()) || socCities[0];
+
+        const now = new Date();
+        const timestamp = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+        
+        const risk = threat.risk_level === "CRITICAL" ? 98 : (threat.risk_level === "HIGH" ? 89 : 72);
+
+        // Create log item
+        const item = document.createElement("div");
+        item.className = "p-2 bg-red-955/20 border border-red-500/10 rounded-lg flex flex-col gap-1 text-white animate-fadeIn mb-2 bg-red-950/20";
+        item.innerHTML = `
+            <div class="flex justify-between items-center text-[10px]">
+                <span class="text-red-400 font-bold">${threat.fraud_type} Blocked 🛑</span>
+                <span class="text-white/40">${timestamp}</span>
+            </div>
+            <div class="font-mono text-[9px] text-white/80 break-all">VPA: ${threat.upi}</div>
+            <div class="flex justify-between text-[9px] text-white/50">
+                <span>Location: ${threat.location}</span>
+                <span class="text-red-400 font-semibold">Risk: ${risk}%</span>
+            </div>
+        `;
+
+        // Add to feed list
+        feed.insertBefore(item, feed.firstChild);
+
+        // Caps feed to last 8 logs for visual neatness
+        if (feed.childNodes.length > 8) {
+            feed.removeChild(feed.lastChild);
+        }
+
+        // Dynamic ping pulse animation on corresponding map node
+        const node = $(cityData.elementId);
+        if (node) {
+            const pingSpan = node.querySelector("span:first-child");
+            if (pingSpan) {
+                pingSpan.classList.add("bg-red-500", "h-6", "w-6", "opacity-90");
+                pingSpan.style.animationDuration = "0.6s";
+                
+                setTimeout(() => {
+                    pingSpan.classList.remove("h-6", "w-6", "opacity-90");
+                    pingSpan.style.animationDuration = "";
+                }, 2000);
+            }
+        }
+    } catch (e) {
+        // Fallback silently if API base or network is offline
+    }
 }
 
 
