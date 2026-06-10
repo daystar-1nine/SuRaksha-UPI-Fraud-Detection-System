@@ -39,7 +39,7 @@ graph TD
     Magic --> Parse[Extract VPA, Merchant, Amount parameters]
     Parse --> CheckDB{Query Fraud History SQLite}
     
-    CheckDB -- "Blacklist Match found" --> High[Flag HIGH RISK: Block Payment]
+    CheckDB -- "Blacklist Match found" --> HighBlock[Force CRITICAL RISK: Block Payment]
     CheckDB -- "No matches in DB" --> Heuristics[Run AI & Forensic Checkers]
     
     Heuristics --> Tamper[ELA: Image Modification Detector]
@@ -48,11 +48,14 @@ graph TD
     Heuristics --> Crypto[Crypto Registry: SHA-256 Signatures]
     
     Tamper & OCR & NLP & Crypto --> Score[Aggregate Weighted Threat Score]
-    Score --> Result{Determine Risk Category}
+    Score --> Override{Critical Gate Overrides?}
+    
+    Override -- "Yes (High Tampering/Blacklist)" --> HighBlock
+    Override -- "No" --> Result{Determine Risk Category}
     
     Result -- "Safe Registry (Score = 0)" --> SafeHUD[Display Verified Merchant Shield]
-    Result -- "Medium Risk (Score < 45)" --> MedHUD[Show Caution Warning - Log Event]
-    Result -- "High Risk (Score >= 45)" --> HighHUD[Show Block Alert - Direct to Report]
+    Result -- "Medium Risk (Score < 60)" --> MedHUD[Show Caution Warning - Log Event]
+    Result -- "High Risk (Score >= 60)" --> HighBlock
 ```
 
 ---
@@ -91,51 +94,37 @@ During a scan, the QR analyzer extracts the merchant parameters and matches the 
 * **Signature Mismatch**: Flagged as `Spoofed QR Board Hack` (**Risk: 98%**).
 * **Signature Match**: Renders a glowing green `Verified Merchant Shield` (**Risk: 0%**).
 
-### 2. Image Forensics & Error Level Analysis (ELA)
-Doctored screenshots of successful transactions are analyzed using Pillow and OpenCV:
-* **Metadata Check**: Inspects EXIF data to locate editing software signatures (e.g. Photoshop, Canva) and alerts if file metadata shows creation-date anomalies.
-* **Pixel Density & Laplacian Variance**: Measures the sharpness variance of the image. Sharpness variance $>2000$ points to composite overlays or upscaled text.
-* **Error Level Analysis (ELA)**: Re-saves the image at 75% JPEG quality and computes the absolute difference from the original:
+### 2. Zero-Disk In-Memory Image Forensics (ELA)
+Doctored screenshots of successful transactions are processed **entirely in-memory with zero disk footprint** to defend against file inclusion, directory traversal, and server storage pollution:
+- **EXIF Stripping & Re-encoding**: The Flask server reads the file stream into RAM (`io.BytesIO`), reconstructs the canvas using `PIL.Image` (which strips all EXIF headers and metadata), and saves it as clean JPEG bytes.
+- **Pixel Density & Laplacian Variance**: Measures the sharpness variance of the image. Sharpness variance $>2000$ points to composite overlays or upscaled text.
+- **Error Level Analysis (ELA)**: Re-saves the sanitized image at 75% JPEG quality and computes the absolute difference from the original:
   $$\text{ELA} = |\text{Image}_{\text{original}} - \text{Image}_{\text{resaved-75\%}}|$$
-  A natural image has uniform error distribution. Spliced text or overlaid payment values show high maximum-to-mean local error ratios ($>25$), immediately triggering a tamper warning.
+  A natural image has uniform error distribution. Spliced text or overlaid payment values show high maximum-to-mean local error ratios ($>25$), indicating local tampering.
 
-### 3. Dynamic Self-Learning ML Loop
-Text messages and scam reports are analyzed using a custom Naive Bayes Classifier in Python ([ml_classifier.py](backend/services/ml_classifier.py)):
-* **Feature Extraction**: Input text is normalized, stripped of standard stopwords, and parsed into clean token arrays.
-* **Dynamic Training**: When users submit reports at `/api/report`, the feedback description is saved to SQLite. On save, the backend executes `retrain_model_from_db()`, joining the core training dataset with user-submitted data to retrain token probabilities in real-time.
-* **Scam Categories**:
-  * `cashback_reward`: Phishing links promising lottery or scratch card winnings.
-  * `kyc_threat`: SIM or account disconnection warning templates.
-  * `bill_collect`: Overdue utility bill collection traps.
-  * `safe_transaction`: Successful transactional notifications.
+### 3. Critical Gate Overrides
+To ensure that visual text verification anomalies cannot be "washed out" or hidden by clean text keywords or safe domain names, the risk aggregator implements **Override Gates**:
+- **Tampering Override**: If ELA tampering risk $\ge 75\%$ (score $\ge 7.5/10$), the aggregator bypasses linear weights and forces the risk score to `99% (CRITICAL)`.
+- **Metadata Software Override**: If EXIF metadata indicates the use of disallowed image editing suites (score $\ge 4.5/10$), the aggregator forces the risk score to `95% (CRITICAL)`.
 
-### 4. MutationObserver Localization Engine (EN / HI)
-The UI features complete Bilingual (English / Hindi) support. To prevent translations from flickering on dynamic nodes (such as polling threat tickers or database logs):
-- [language.js](frontend/js/language.js) registers a `MutationObserver` watching document subtree modifications:
-  ```javascript
-  const observer = new MutationObserver((mutations) => {
-      mutations.forEach(mutation => {
-          if (mutation.type === 'childList') {
-              translateDynamicNodes(mutation.addedNodes);
-          }
-      });
-  });
-  ```
-- Any text dynamically injected by AJAX or REST calls is parsed and translated in the background before the browser renders the layout.
+### 4. Rate-Limiting & Data Poisoning Defense
+To prevent automated DDoS spam and **Machine Learning Data Poisoning** (where attackers submit fraudulent reports to skew NLP classifier weights), SuRaksha integrates IP-based rate limiting via `Flask-Limiter`:
+- **JSON Error Handler**: Intercepts rate rejections globally and formats the response as standard JSON (HTTP `429 Too Many Requests`) containing details on active rate thresholds.
+- **Frontend Toast Integration**: The client API handler extracts the rate cooldown details from the JSON payload and displays it inside a temporary warning toast.
 
 ---
 
 ## 📡 REST API Reference
 
-| Endpoint | Method | Payload | Description |
-| :--- | :--- | :--- | :--- |
-| `/analyze` or `/analyze/image` | `POST` | `multipart/form-data`<br>• `image`: File (max 5MB)<br>• `intent`: String | Uploads payment receipts or screenshot notifications to execute EXIF, ELA, and OCR validation. |
-| `/analyze/message` or `/analyze_text` | `POST` | `application/json`<br>• `text`: String (max 5000 chars)<br>• `intent`: String | Validates WhatsApp, SMS, or copied billing messages using the Naive Bayes classifier. |
-| `/analyze/qr` | `POST` | `application/json`<br>• `text`: String | Parses scanned UPI QR codes, checks VPA blacklists, and validates cryptographic signatures. |
-| `/api/report` | `POST` | `application/json`<br>• `upi`: String<br>• `description`: String | Saves a community scam report to SQLite and retrains text classification vectors. |
-| `/api/stats` | `GET` | *None* | Returns platform stats (Total Scans, Threats Blocked, Unique Frauds, Total Reports). |
-| `/api/soc/threats` | `GET` | *None* | Returns geolocated threat feeds mapping active incidents to regional coordinate hotspots. |
-| `/api/blacklist/sync` | `GET` | *None* | Exports all flagged threat VPAs and risk scores for local/offline caching. |
+| Endpoint | Method | Payload | Rate Limit | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `/analyze/image`<br>*(Alias: `/analyze`)* | `POST` | `multipart/form-data`<br>• `image`: File (max 5MB)<br>• `intent`: String | `40 per minute` | Uploads payment receipts or screenshot notifications to execute EXIF, ELA, and OCR validation **entirely in-memory**. |
+| `/analyze/text`<br>*(Alias: `/analyze/message` or `/analyze_text`)* | `POST` | `application/json`<br>• `text`: String (max 5000 chars)<br>• `intent`: String | `60 per minute` | Validates WhatsApp, SMS, or copied billing messages using the Naive Bayes NLP classifier. |
+| `/analyze/qr` | `POST` | `application/json`<br>• `text`: String | `40 per minute` | Parses scanned UPI QR codes, checks VPA blacklists, and validates cryptographic signatures. |
+| `/api/report` | `POST` | `application/json`<br>• `upi`: String<br>• `description`: String | `15 per minute` | Saves a community scam report to SQLite and retrains text classification vectors. |
+| `/api/stats` | `GET` | *None* | *Default* | Returns platform stats (Total Scans, Threats Blocked, Unique Frauds, Total Reports). |
+| `/api/soc/threats` | `GET` | *None* | *Default* | Returns geolocated threat feeds mapping active incidents to regional coordinate hotspots. |
+| `/api/blacklist/sync` | `GET` | *None* | *Default* | Exports all flagged threat VPAs and risk scores for local/offline caching. |
 
 ---
 
@@ -145,9 +134,9 @@ The UI features complete Bilingual (English / Hindi) support. To prevent transla
 SuRaksha/
 ├── backend/
 │   ├── routes/
-│   │   ├── analyze.py         # Image verification, ELA & OCR routes
+│   │   ├── analyze.py         # In-memory image verification, ELA & OCR routes
 │   │   ├── health.py          # API status checks
-│   │   ├── qr.py              # QR parsing & blacklist sync routes
+│   │   ├── qr.py              # QR parsing, limiter & blacklist sync routes
 │   │   └── report.py          # Complaints, stats & threat map feeds
 │   ├── services/
 │   │   ├── history_store.py   # SQLite connection manager & migrations
@@ -156,9 +145,12 @@ SuRaksha/
 │   │   ├── tamper_detector.py # OpenCV Edge, Laplacian & ELA checkers
 │   │   ├── qr_risk_analyzer.py# VPA verification and domain checks
 │   │   └── master_engine.py   # Pipeline aggregator and scoring
+│   ├── utils/
+│   │   ├── limiter.py         # Shared Flask-Limiter configuration
+│   │   └── constants.py       # Global constants & VPA registries
 │   ├── fraud_history.db       # SQLite3 relational database
-│   ├── requirements.txt       # Python dependencies configuration
-│   └── app.py                 # Flask server initialization (port 5000)
+│   ├── requirements.txt       # Python dependencies (includes Flask-Limiter)
+│   └── app.py                 # Flask server & JSON HTTP 429 error handlers
 │
 ├── frontend/
 │   ├── index.html             # Command Center Dashboard
@@ -171,10 +163,11 @@ SuRaksha/
 │   ├── css/
 │   │   └── index.css          # Core Styling Sheet
 │   └── js/
-│       ├── app.js             # API router and event handler
+│       ├── app.js             # API router, toast handler & dynamic translation
 │       ├── language.js        # Bilingual MutationObserver engine
 │       └── theme.js           # Glassmorphic Theme manager (Light / Dark)
 │
+├── verify_security.py         # Automated API, headers, and rate-limiting test suite
 └── README.md                  # System Documentation
 ```
 
@@ -195,11 +188,11 @@ SuRaksha/
 cd backend
 
 # 2. Configure virtual environment
-python -m venv .venv
+python -m venv venv
 # Activate on Windows (PowerShell):
-.venv\Scripts\Activate.ps1
+venv\Scripts\Activate.ps1
 # Activate on Linux/macOS:
-source .venv/bin/activate
+source venv/bin/activate
 
 # 3. Install Python requirements
 pip install -r requirements.txt
@@ -220,9 +213,9 @@ python -m http.server 8000
 ---
 
 ## 📊 Automated Verification Tests
-You can verify the backend pipelines, API connections, and training loop by executing the automated test suite:
+You can verify the backend pipelines, security headers, rate limiters, and in-memory upload configurations by executing the automated test suite:
 ```bash
-python .system_generated/tasks/test_backend_upgrades.py
+python verify_security.py
 ```
 
 ---
