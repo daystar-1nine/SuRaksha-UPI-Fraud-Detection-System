@@ -1,13 +1,36 @@
 # backend/services/tamper_detector.py
 
+"""
+SuRaksha Image Tamper Detection Service
+
+This module performs forensic analysis on transaction screenshots to detect
+potential digital alterations (e.g., changing transaction amounts, dates, or receiver names).
+It uses OpenCV (cv2) to evaluate multiple digital forensics heuristics:
+1. Edge Density Anomalies (Canny filter check)
+2. Laplacian Variance (Sharpness and synthetic upscaling detection)
+3. Contrast Extremes (Standard deviation check)
+4. JPEG Re-compression Error (Mismatch at 92% quality)
+5. Block Artifact Grid Discrepancies (Grid-based variance check)
+6. Error Level Analysis (ELA - localized 75% quality compression check)
+"""
+
 import cv2
 import numpy as np
 
 
-# -------------------------------
+# ----------------------------------------------------------------------
 # HELPERS
-# -------------------------------
+# ----------------------------------------------------------------------
 def make_signal(signal_type, score, confidence, reason):
+    """
+    Standardizes threat signal structure across the tamper detector.
+    
+    Args:
+        signal_type (str): Key identifying the heuristic category.
+        score (float): Raw weight of the warning.
+        confidence (float): Credibility/accuracy rating of the heuristic.
+        reason (str): Human-readable explanation of why this was flagged.
+    """
     return {
         "type": signal_type,
         "score": score,
@@ -16,17 +39,33 @@ def make_signal(signal_type, score, confidence, reason):
     }
 
 
-# -------------------------------
+# ----------------------------------------------------------------------
 # MAIN FUNCTION
-# -------------------------------
+# ----------------------------------------------------------------------
 def detect_image_tampering(image_path_or_arr):
+    """
+    Analyzes an image's pixel grid structure and compression artifacts to identify modifications.
+    
+    Why: Scammers often edit transaction screenshots (e.g., modifying "Requesting" to "Paid"
+    or changing transaction amounts). Because digital edits introduce artificial edges,
+    upscaled pixels, or mismatched JPEG grid boundaries, we can detect them forensic-wise
+    without needing the original file.
+    
+    Args:
+        image_path_or_arr (str/np.ndarray): Path to the image file or a pre-loaded NumPy array.
+        
+    Returns:
+        Dict: Aggregated tampering threat level and individual forensic signals.
+    """
     signals = []
 
+    # Handle both loaded numpy images (already decoded on-the-fly) and local file paths
     if isinstance(image_path_or_arr, np.ndarray):
         image = image_path_or_arr
     else:
         image = cv2.imread(image_path_or_arr)
 
+    # Return safe default if the image cannot be decoded
     if image is None:
         return {
             "risk_score": 0,
@@ -36,14 +75,17 @@ def detect_image_tampering(image_path_or_arr):
             "reasons": ["Unable to load image for tamper analysis"]
         }
 
+    # Convert to grayscale to simplify pixel intensity comparisons across channels
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     h, w = gray.shape
 
-    # ────────────────────────────────────────────
+    # ────────────────────────────────────────────────────────────────────────
     # 1. EDGE DENSITY 🔍
-    # Raised threshold from 0.25 → 0.38 to avoid
-    # false positives on text-heavy screenshots
-    # ────────────────────────────────────────────
+    # 
+    # Why: Splicing elements (pasting numbers/text) creates sharp artificial transitions.
+    # We use Canny edge detection (thresholds 100 & 200) to trace these boundaries.
+    # The threshold has been raised to 0.38 to avoid flagging legitimate high-density text screenshots.
+    # ────────────────────────────────────────────────────────────────────────
     edges = cv2.Canny(gray, 100, 200)
     edge_ratio = np.sum(edges > 0) / edges.size
 
@@ -55,10 +97,14 @@ def detect_image_tampering(image_path_or_arr):
             f"Unusually high edge density ({edge_ratio:.2f}) — possible composite editing"
         ))
 
-    # ────────────────────────────────────────────
+    # ────────────────────────────────────────────────────────────────────────
     # 2. SHARPNESS / LAPLACIAN VARIANCE
-    # Raised from 1200 → 2000 to reduce FP
-    # ────────────────────────────────────────────
+    # 
+    # Why: Convolving the image with a Laplacian kernel reveals high-frequency changes (edges).
+    # Natural images or standard screenshots have a regular distribution of sharpness.
+    # Spliced/sharpened text overlays or AI-upscaling tools leave a very high Laplacian variance.
+    # Threshold is set to 2000 to minimize false positives on high-res clean mobile screenshots.
+    # ────────────────────────────────────────────────────────────────────────
     variance = cv2.Laplacian(gray, cv2.CV_64F).var()
 
     if variance > 2000:
@@ -69,10 +115,13 @@ def detect_image_tampering(image_path_or_arr):
             f"Extreme sharpness variance ({variance:.0f}) — edited or AI-upscaled image"
         ))
 
-    # ────────────────────────────────────────────
+    # ────────────────────────────────────────────────────────────────────────
     # 3. CONTRAST ANOMALY
-    # Raised from 80 → 95
-    # ────────────────────────────────────────────
+    # 
+    # Why: Standard deviation of pixel values represents image contrast.
+    # Extreme contrast (> 95) usually indicates heavy digital filtering, saturation adjustments,
+    # or synthetic overlays designed to hide editing seams.
+    # ────────────────────────────────────────────────────────────────────────
     contrast = gray.std()
 
     if contrast > 95:
@@ -83,10 +132,15 @@ def detect_image_tampering(image_path_or_arr):
             f"Abnormal contrast level ({contrast:.1f}) — potential image manipulation"
         ))
 
-    # ────────────────────────────────────────────
+    # ────────────────────────────────────────────────────────────────────────
     # 4. JPEG COMPRESSION CHECK 🔥
-    # Re-save at quality 92 and compare pixel diff
-    # ────────────────────────────────────────────
+    # 
+    # Why: When a JPEG is saved, it compresses pixels in blocks. If we re-save the image
+    # at a known high quality (92%) and measure the absolute pixel difference between the two,
+    # a genuine, uniform image will have a low, evenly distributed difference score.
+    # A spliced image, having regions with different compression histories, will result
+    # in an elevated difference score (>12) due to block-level quantization mismatches.
+    # ────────────────────────────────────────────────────────────────────────
     encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 92]
     _, encimg = cv2.imencode('.jpg', image, encode_param)
     decimg = cv2.imdecode(encimg, 1)
@@ -102,10 +156,14 @@ def detect_image_tampering(image_path_or_arr):
             f"JPEG re-compression inconsistency score {diff_score:.1f} — image likely processed/edited"
         ))
 
-    # ────────────────────────────────────────────
+    # ────────────────────────────────────────────────────────────────────────
     # 5. BLOCK ARTIFACT DETECTION 🔲
-    # Only flag if variance_std is very high (>700)
-    # ────────────────────────────────────────────
+    # 
+    # Why: JPEG compression divides the image into 8x8 pixel grids. When an image is modified
+    # or spliced, the original 8x8 block alignment is broken or overlaid.
+    # We calculate the variance of each 8x8 block, and check the standard deviation of these variances.
+    # An unusually high standard deviation (>700) indicates localized region variations (splicing).
+    # ────────────────────────────────────────────────────────────────────────
     block_size = 8
     block_variance = []
 
@@ -125,11 +183,15 @@ def detect_image_tampering(image_path_or_arr):
                 f"Block-level pixel inconsistency ({variance_std:.0f}) — spliced or pasted region likely"
             ))
 
-    # ────────────────────────────────────────────
-    # 6. ELA — Error Level Analysis (Lite) 🔥NEW
-    # Re-encode at 75% quality and measure diff
-    # A forged region shows higher ELA than natural areas
-    # ────────────────────────────────────────────
+    # ────────────────────────────────────────────────────────────────────────
+    # 6. ERROR LEVEL ANALYSIS (ELA) — Lite Version 🔥
+    # 
+    # Why: ELA re-saves the image at 75% compression quality and computes the absolute
+    # difference. In a genuine image, all parts should degrade at the same rate, resulting
+    # in a uniform error level. 
+    # Spliced regions (such as fake transaction amounts) have a different digital signature,
+    # meaning they degrade differently, showing high contrast difference spikes (high max diff relative to mean).
+    # ────────────────────────────────────────────────────────────────────────
     ela_param = [int(cv2.IMWRITE_JPEG_QUALITY), 75]
     _, ela_enc = cv2.imencode('.jpg', image, ela_param)
     ela_dec = cv2.imdecode(ela_enc, 1)
@@ -138,7 +200,8 @@ def detect_image_tampering(image_path_or_arr):
     ela_mean = float(np.mean(ela_diff))
     ela_max = float(np.max(ela_diff))
 
-    # Amplify to see regions: high max with low mean = localized edit
+    # Calculate ratio of peak error level to average error level
+    # Localized edit leads to a huge max difference spike with a low average mean.
     ela_ratio = ela_max / (ela_mean + 1e-6)
 
     if ela_ratio > 25 and ela_max > 60:
@@ -157,12 +220,14 @@ def detect_image_tampering(image_path_or_arr):
             f"ELA global error level elevated ({ela_mean:.1f}) — image may have been resaved multiple times"
         ))
 
-    # ────────────────────────────────────────────
-    # FINAL SCORING
-    # ────────────────────────────────────────────
+    # ────────────────────────────────────────────────────────────────────────
+    # FINAL SCORING & DECISION PACKAGING
+    # ────────────────────────────────────────────────────────────────────────
+    # Add weights of all triggered signals and scale to a 0-100 range
     total_score = sum(s["score"] for s in signals)
     risk_score = min(int(total_score * 10), 100)
 
+    # Classify visual risk thresholds
     if risk_score >= 75:
         level = "CRITICAL"
     elif risk_score >= 45:
@@ -174,6 +239,7 @@ def detect_image_tampering(image_path_or_arr):
     else:
         level = "SAFE"
 
+    # Compute a weighted average of individual signal confidence factors
     total_weight = sum(s["score"] for s in signals)
     weighted_conf = sum(s["score"] * s["confidence"] for s in signals)
     confidence = round((weighted_conf / total_weight), 2) if total_weight else 0.0

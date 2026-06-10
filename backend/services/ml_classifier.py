@@ -1,14 +1,31 @@
 # backend/services/ml_classifier.py
-"""Naive Bayes machine learning text classifier for categorizing suspicious payment messages."""
+
+"""
+SuRaksha Machine Learning Text Classifier
+
+This module implements a lightweight, dependency-free Multinomial Naive Bayes
+text classifier in pure Python. It categorizes extracted text from screenshots
+into four main transaction profiles:
+- cashback_reward (lotteries, refunds, cashback scams)
+- kyc_threat (fake suspension warning messages demanding KYC updates)
+- bill_collect (threats of disconnection due to overdue electricity/utility bills)
+- safe_transaction (clean, standard billing alerts and credits)
+
+Why Naive Bayes: Extremely fast training and prediction times, minimal RAM footprint,
+and performs exceptionally well on keyword-rich short texts without requiring heavy
+external ML runtimes (like scikit-learn or PyTorch) on the server.
+"""
 
 import re
 import math
 from collections import defaultdict
 from typing import Dict, List, Set, Tuple
 
-# -------------------------------
+
+# ----------------------------------------------------------------------
 # TRAINING CORPUS (UPI SEC SCAM DATASET)
-# -------------------------------
+# ----------------------------------------------------------------------
+# Seed training dataset. These examples form the base conditional probability distribution.
 TRAINING_DATA: List[Tuple[str, str]] = [
     # Category: cashback_reward
     ("Congratulations! You won Rs 50000 cashback from GPay lottery. Click link to receive to bank account.", "cashback_reward"),
@@ -50,6 +67,7 @@ TRAINING_DATA: List[Tuple[str, str]] = [
     ("HDFC bank: Rs 800 debited for dining at Dominoes on 02-06-2026.", "safe_transaction")
 ]
 
+# Stop words filter to prune out non-informative syntactic fillers
 STOP_WORDS: Set[str] = {
     'is', 'the', 'a', 'to', 'and', 'of', 'in', 'your', 'for', 'from', 'has', 'have',
     'been', 'this', 'that', 'with', 'on', 'at', 'an', 'our', 'we', 'you', 'it', 'me',
@@ -58,7 +76,7 @@ STOP_WORDS: Set[str] = {
 
 
 class NaiveBayesScamClassifier:
-    """Naive Bayes text classifier mapping input strings to fraud vectors."""
+    """Multinomial Naive Bayes model with Laplace smoothing."""
     
     def __init__(self) -> None:
         self.class_counts: Dict[str, int] = defaultdict(int)
@@ -68,15 +86,20 @@ class NaiveBayesScamClassifier:
         self.total_docs: int = 0
 
     def tokenize(self, text: str) -> List[str]:
-        """Cleans and extracts meaningful words from text, filtering stopwords."""
+        """
+        Cleans text and extracts meaningful alphabetic tokens.
+        
+        Removes numbers, punctuation, stop words, and characters with lengths <= 2.
+        """
         words = re.findall(r'[a-zA-Z]+', text.lower())
         return [w for w in words if w not in STOP_WORDS and len(w) > 2]
 
     def train(self, data: List[Tuple[str, str]]) -> None:
-        """Trains the Naive Bayes token frequency mapping lists.
-
+        """
+        Populates class and word frequency tables.
+        
         Args:
-            data: List of tuples where entry is (text, category).
+            data: List of (text, class) tuples.
         """
         self.total_docs += len(data)
         for text, category in data:
@@ -88,15 +111,25 @@ class NaiveBayesScamClassifier:
                 self.vocabulary.add(token)
 
     def classify(self, text: str) -> Dict[str, float]:
-        """Computes probability vector for the categories.
-
+        """
+        Computes the posterior probability of each category given the text.
+        
+        Uses Laplace (add-one) smoothing to avoid zero probability scores for unseen words:
+            P(word | category) = (word_count_in_category + 1) / (total_words_in_category + vocab_size)
+            
+        Why log probabilities: Multiplying many floating-point probabilities between 0 and 1
+        rapidly results in floating-point underflow (where the number becomes too small to represent).
+        Adding the log of the probabilities is mathematically identical and numerically stable.
+        
         Args:
-            text: Message body string to analyze.
-
+            text: Input string to classify.
+            
         Returns:
-            Dict[str, float]: Target class classification confidence percentages.
+            Dict[str, float]: Map of category names to probability percentages.
         """
         tokens = self.tokenize(text)
+        
+        # If no tokens remain after filtering, return uniform prior distributions
         if not tokens or not self.class_counts:
             if self.class_counts:
                 equal_prob = 1.0 / len(self.class_counts)
@@ -107,17 +140,22 @@ class NaiveBayesScamClassifier:
         vocab_size = len(self.vocabulary)
 
         for category, count in self.class_counts.items():
+            # Calculate prior: P(Category)
             prior = count / self.total_docs
             log_prob = math.log(prior)
 
+            # Sum the log likelihoods: P(Word | Category)
             for token in tokens:
                 if token in self.vocabulary:
                     word_freq = self.word_counts[category][token]
+                    # Apply Laplace (+1) smoothing
                     prob = (word_freq + 1) / (self.class_word_totals[category] + vocab_size)
                     log_prob += math.log(prob)
 
             scores[category] = log_prob
 
+        # Softmax normalize log-space scores back into raw probability percentages (0.0 - 1.0).
+        # We subtract the maximum log score before exponentiating to prevent numerical overflow.
         max_log = max(scores.values())
         exp_scores = {c: math.exp(score - max_log) for c, score in scores.items()}
         total_exp = sum(exp_scores.values())
@@ -131,7 +169,12 @@ _classifier = NaiveBayesScamClassifier()
 
 
 def retrain_model_from_db() -> None:
-    """Reloads standard training data and appends SQLite feedback, updating active model."""
+    """
+    Initializes a new classifier instance and trains it from the seed dataset + database.
+    
+    Why: Citizen reports of scam words must be incorporated in real time. We query user-reported
+    scams from the history store, retrain the model, and atomically swap the active classifier pointer.
+    """
     global _classifier
     from services.history_store import get_reported_scams
     

@@ -15,36 +15,45 @@ from services.master_engine import run_fraud_analysis
 from services.history_store import save_case, get_upi_count
 from utils.limiter import limiter
 
+# ----------------------------------------------------------------------
+# BLUEPRINT INITIALIZATION
+# ----------------------------------------------------------------------
 analyze_bp = Blueprint("analyze", __name__)
 
-UPLOAD_FOLDER = "uploads"
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
 
 
-# -------------------------------
-# HELPERS
-# -------------------------------
+# ----------------------------------------------------------------------
+# HELPER FUNCTIONS
+# ----------------------------------------------------------------------
 def is_allowed_file(filename):
+    """Checks if the uploaded file's extension resides in the permitted set."""
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 def verify_image_signature(file_stream):
-    """Inspects file magic bytes to verify it is a real image format (JPEG, PNG, WebP)"""
+    """
+    Validates MIME type integrity by inspecting binary header magic bytes.
+    
+    This defends against file extension spoofing attacks (e.g., naming a malicious script as 
+    'shell.png' to bypass client-side checks). It reads the first 12 bytes and resets the 
+    stream pointer so downstream libraries can reuse the file handle safely.
+    """
     try:
         header = file_stream.read(12)
         file_stream.seek(0)  # Reset stream position for downstream PIL saving
         if not header:
             return False
         
-        # Check PNG: 89 50 4E 47 0D 0A 1A 0A
+        # Check PNG magic bytes: 89 50 4E 47 0D 0A 1A 0A
         if header.startswith(b'\x89PNG\r\n\x1a\n'):
             return True
             
-        # Check JPEG: FF D8 FF
+        # Check JPEG magic bytes: FF D8 FF
         if header.startswith(b'\xff\xd8\xff'):
             return True
             
-        # Check WebP: RIFF ... WEBP
+        # Check WebP magic bytes: RIFF [size] WEBP
         if header.startswith(b'RIFF') and b'WEBP' in header[8:12]:
             return True
             
@@ -54,6 +63,7 @@ def verify_image_signature(file_stream):
 
 
 def error_response(message, status_code, request_id):
+    """Generates standardized JSON error payloads for consistent API error parsing."""
     return jsonify({
         "success": False,
         "request_id": request_id,
@@ -65,7 +75,12 @@ def error_response(message, status_code, request_id):
 
 
 def process_result(result):
-    """Handles history + repeat UPI logic"""
+    """
+    Logs analyzed threat cases in history and tallies VPA repeat counts.
+    
+    This function extracts identified UPI VPAs, logs their status in the SQLite DB, 
+    and queries repeat counts to detect recurring fraudsters.
+    """
     save_case(
         result.get("upi_ids", []),
         result.get("fraud_type"),
@@ -79,13 +94,24 @@ def process_result(result):
     return repeat_counts
 
 
-# -----------------------------------
-# IMAGE ANALYSIS
-# -----------------------------------
+# ----------------------------------------------------------------------
+# IMAGE / SCREENSHOT ANALYSIS ENDPOINT
+# ----------------------------------------------------------------------
 @analyze_bp.route("/analyze/image", methods=["POST"])
 @analyze_bp.route("/analyze", methods=["POST"])
-@limiter.limit("40 per minute") # Configurable relaxed rate limit for scanning
+@limiter.limit("40 per minute")  # Relaxed limit for screenshot file uploads to prevent DoS spam
 def analyze_image():
+    """
+    POST /analyze/image (Alias: /analyze)
+    Processes uploaded payment success screens/receipts entirely in-memory (zero-disk write).
+    
+    Workflow:
+    1. Validation: Verifies presence, file type, magic signature, and limits size (max 5MB).
+    2. EXIF Sanitization: Uses PIL to read image bytes, redraws them onto a new clean canvas 
+       to strip potential EXIF payload exploits (like XSS or injection in software tags).
+    3. Forensics: Runs metadata checks, ELA forensics, and preprocessed Tesseract OCR extraction.
+    4. Scoring: Aggregates weights and applies overrides to return a consolidated risk payload.
+    """
     request_id = str(uuid.uuid4())
     start_time = time.time()
 
@@ -93,25 +119,24 @@ def analyze_image():
         file = request.files.get("image")
         user_intent = request.form.get("intent", "pay")
 
-        # -------------------------------
-        # VALIDATION
-        # -------------------------------
+        # ----------------------------------------------------------------------
+        # payload VALIDATION
+        # ----------------------------------------------------------------------
         if not file:
             return error_response("No image uploaded", 400, request_id)
 
         if not is_allowed_file(file.filename):
             return error_response("Invalid file type", 400, request_id)
 
-        # Verify binary magic bytes signature to prevent script spoofing
+        # Confirm file signature bytes to verify the upload is indeed an image format
         if not verify_image_signature(file.stream):
             return error_response("File signature check failed. Spoofed image format detected.", 400, request_id)
 
         filename = secure_filename(file.filename)
-
         if filename == "":
             return error_response("Invalid filename", 400, request_id)
 
-        # Prevent large file abuse (~5MB)
+        # Enforce file size check in memory using byte offsets to protect against OOM overflows
         file.seek(0, os.SEEK_END)
         file_size = file.tell()
         file.seek(0)
@@ -119,13 +144,15 @@ def analyze_image():
         if file_size > 5 * 1024 * 1024:
             return error_response("File too large (max 5MB)", 413, request_id)
 
-        # -------------------------------
+        # ----------------------------------------------------------------------
         # IN-MEMORY PROCESSING (ZERO-DISK 🔥)
-        # -------------------------------
+        # ----------------------------------------------------------------------
+        # Read file stream bytes directly. No local uploads directory storage occurs.
         image_bytes = file.read()
-        file.seek(0) # Reset stream position just in case
+        file.seek(0)
 
-        # 1. Strip all metadata/EXIF headers by opening in PIL and re-saving
+        # 1. Strip all metadata/EXIF headers by redrawing onto a new PIL canvas
+        # This acts as an anti-exploitation gate before passing bytes to backend decoder libraries.
         try:
             pil_image = Image.open(io.BytesIO(image_bytes))
             clean_canvas = Image.new("RGB", pil_image.size)
@@ -147,16 +174,17 @@ def analyze_image():
         if opencv_img is None:
             return error_response("Failed to decode sanitized image", 400, request_id)
 
-        # 3. For metadata check, keep the original bytes stream in memory
+        # 3. For metadata check, keep the original bytes stream in memory to extract EXIF headers
         original_io = io.BytesIO(image_bytes)
 
-        # -------------------------------
-        # ANALYSIS PIPELINE
-        # -------------------------------
+        # ----------------------------------------------------------------------
+        # ANALYSIS PIPELINE RUN
+        # ----------------------------------------------------------------------
         metadata_data = check_metadata(original_io)
         tamper_data = detect_image_tampering(opencv_img)
         extracted_text = extract_text(opencv_img, filename=filename)
 
+        # Execute aggregator to combine risk metrics, ELA percentages, and OCR strings
         result = run_fraud_analysis(
             extracted_text.get("text", ""),
             user_intent,
@@ -166,9 +194,9 @@ def analyze_image():
 
         repeat_counts = process_result(result)
 
-        # -------------------------------
-        # LOGGING
-        # -------------------------------
+        # ----------------------------------------------------------------------
+        # LOGGING & RESPONSE
+        # ----------------------------------------------------------------------
         duration = round((time.time() - start_time) * 1000, 2)
 
         current_app.logger.info({
@@ -178,9 +206,6 @@ def analyze_image():
             "duration_ms": duration
         })
 
-        # -------------------------------
-        # RESPONSE
-        # -------------------------------
         return jsonify({
             "success": True,
             "request_id": request_id,
@@ -197,18 +222,24 @@ def analyze_image():
 
     except Exception:
         current_app.logger.exception(f"[{request_id}] Image analysis failed")
-
         return error_response("Internal server error", 500, request_id)
 
 
-# -----------------------------------
-# MESSAGE ANALYSIS
-# -----------------------------------
+# ----------------------------------------------------------------------
+# TEXT MESSAGE ANALYSIS ENDPOINT
+# ----------------------------------------------------------------------
 @analyze_bp.route("/analyze/message", methods=["POST"])
 @analyze_bp.route("/analyze/text", methods=["POST"])
 @analyze_bp.route("/analyze_text", methods=["POST"])
-@limiter.limit("60 per minute") # Configurable rate limit for text messages
+@limiter.limit("60 per minute")  # Rate limits raw text analysis requests to prevent scraping API loops
 def analyze_message():
+    """
+    POST /analyze/text (Aliases: /analyze/message, /analyze_text)
+    Validates transactional SMS / copy-pasted text messages using NLP.
+    
+    Parses request body text parameters, validates limits, and feeds the content into the 
+    Naive Bayes scam classifier to inspect linguistic threat vectors (kyc block, lottery cashback, etc.).
+    """
     request_id = str(uuid.uuid4())
     start_time = time.time()
 
@@ -224,19 +255,20 @@ def analyze_message():
         if not text:
             return error_response("Text is required", 400, request_id)
 
+        # Limit string length to 5000 chars to avoid memory-bloat attacks
         if len(text) > 5000:
             return error_response("Text too large", 413, request_id)
 
-        # -------------------------------
-        # ANALYSIS
-        # -------------------------------
+        # ----------------------------------------------------------------------
+        # RUN ANALYSIS
+        # ----------------------------------------------------------------------
         result = run_fraud_analysis(text, user_intent)
 
         repeat_counts = process_result(result)
 
-        # -------------------------------
-        # LOGGING
-        # -------------------------------
+        # ----------------------------------------------------------------------
+        # LOGGING & RESPONSE
+        # ----------------------------------------------------------------------
         duration = round((time.time() - start_time) * 1000, 2)
 
         current_app.logger.info({
@@ -246,9 +278,6 @@ def analyze_message():
             "duration_ms": duration
         })
 
-        # -------------------------------
-        # RESPONSE
-        # -------------------------------
         return jsonify({
             "success": True,
             "request_id": request_id,
@@ -263,5 +292,4 @@ def analyze_message():
 
     except Exception:
         current_app.logger.exception(f"[{request_id}] Message analysis failed")
-
-        return error_response("Internal server error", 500, request_id)
+        return error_response("Internal server error", 500, request_id)

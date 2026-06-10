@@ -7,22 +7,32 @@ from routes.health import health_bp
 from routes.qr import qr_bp
 from routes.report import report_bp
 
-# ✅ History DB
+# Initialize relational database and load persistent indices
 from services.history_store import init_db
 from utils.limiter import limiter
 
 app = Flask(__name__)
 
+# Enable Cross-Origin Resource Sharing (CORS) to allow the frontend client (running on port 8000)
+# to securely make AJAX/Fetch calls to this Flask server (running on port 5000).
 CORS(app)
 
-# -------------------------
+# ----------------------------------------------------------------------
 # SECURITY MIDDLEWARE & LIMITER 🔥
-# -------------------------
+# ----------------------------------------------------------------------
+# Bind the rate limiter configuration to our active Flask application.
 limiter.init_app(app)
 
 @app.errorhandler(RateLimitExceeded)
 def ratelimit_handler(e):
-    """Returns clean JSON response for rate limited requests."""
+    """
+    Handles API rate limit exceedances globally.
+    
+    Rather than letting Flask raise a default HTML 429 page, this custom handler catches the 
+    RateLimitExceeded exception and formats it as a structured JSON object. This allows the 
+    frontend API client (app.js) to catch the error, read the cooldown detail (via 'description'),
+    and display a user-friendly alert toast instead of silently failing.
+    """
     return jsonify({
         "success": False,
         "error": {
@@ -34,7 +44,15 @@ def ratelimit_handler(e):
 
 @app.after_request
 def add_security_headers(response):
-    """Injects essential security headers into every API response."""
+    """
+    HTTP Security Headers Middleware.
+    
+    Runs after every request to intercept responses and inject OWASP-recommended security headers:
+    1. X-Frame-Options: Protects against Clickjacking by preventing the page from loading in frames/iframes.
+    2. X-Content-Type-Options: Prevents MIME-sniffing vulnerability (forces browser to adhere to declared Content-Type).
+    3. Referrer-Policy: Prevents sensitive data leakage inside HTTP referrers when navigating cross-origin.
+    4. Content-Security-Policy: Restricts execution of script files, assets, and network calls only to trusted/safe locations.
+    """
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
@@ -46,21 +64,26 @@ def add_security_headers(response):
     )
     return response
 
-# -------------------------
-# INIT DATABASE 🔥
-# -------------------------
+# ----------------------------------------------------------------------
+# INIT DATABASE
+# ----------------------------------------------------------------------
+# Bootstrap the SQLite schema (history, complaints, and scams feedback tables) 
+# and verify indices exist prior to handling any inbound routes.
 init_db()
 
-# -------------------------
+# ----------------------------------------------------------------------
 # REGISTER ROUTES
-# -------------------------
+# ----------------------------------------------------------------------
+# Register blueprints to keep the codebase modularized, split by scanner categories.
 app.register_blueprint(analyze_bp)
 app.register_blueprint(health_bp)
 app.register_blueprint(qr_bp)
 app.register_blueprint(report_bp)
 
-# -------------------------
+# ----------------------------------------------------------------------
 # RUN APP
-# -------------------------
+# ----------------------------------------------------------------------
 if __name__ == "__main__":
-    app.run(debug=True)
+    # Start the dev server. For production, run behind a WSGI container (e.g. Gunicorn).
+    app.run(debug=True)
+

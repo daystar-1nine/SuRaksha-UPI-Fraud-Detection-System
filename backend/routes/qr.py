@@ -16,19 +16,25 @@ from utils.limiter import limiter
 
 
 def parse_upi_qr(qr_text: str) -> Dict[str, List[str]]:
-    """Parses raw text scanned from a QR code, decoding standard UPI URI parameters.
-
-    Args:
-        qr_text: Scanned string content.
-
-    Returns:
-        Dict[str, List[str]]: Decoded URL query parameters (e.g., pa, pn, am, tn).
+    """
+    Parses raw scanned QR content and extracts standard UPI deep-link query params.
+    
+    Standard UPI QR codes encode parameters using the 'upi://pay' protocol:
+    - pa: Payee Address (VPA, e.g., merchant@bank)
+    - pn: Payee Name (e.g., Sharma Kirana)
+    - am: Transaction Amount
+    - tn: Transaction Note / Reference
+    - sign: Cryptographic signature parameter
+    
+    If the scanned string is a raw VPA (e.g. name@bank) rather than a deep link, 
+    this returns a dictionary mapping 'pa' to that string.
     """
     try:
         url = urlparse(qr_text)
         params = parse_qs(url.query)
         if params:
             return params
+        # Fallback for plain-text VPA scans containing no query scheme
         return {
             "pa": [qr_text],
             "pn": [""],
@@ -40,7 +46,7 @@ def parse_upi_qr(qr_text: str) -> Dict[str, List[str]]:
 
 
 def error_response(message: str, status_code: int, request_id: str) -> Tuple[Response, int]:
-    """Generates standard JSON API error response payload."""
+    """Generates standardized JSON error payloads for consistent API error parsing."""
     return jsonify({
         "success": False,
         "request_id": request_id,
@@ -51,22 +57,30 @@ def error_response(message: str, status_code: int, request_id: str) -> Tuple[Res
     }), status_code
 
 
-# -----------------------------------
-# ROUTE
-# -----------------------------------
+# ----------------------------------------------------------------------
+# QR SCAN RISK ANALYSIS ENDPOINT
+# ----------------------------------------------------------------------
 @qr_bp.route("/analyze/qr", methods=["POST"])
-@limiter.limit("40 per minute") # Configurable relaxed rate limit for scans
+@limiter.limit("40 per minute")  # Rate limits QR checks to defend against lookup automation sweeps
 def analyze_qr() -> Tuple[Response, int]:
-    """POST /analyze/qr
+    """
+    POST /analyze/qr
     Analyzes scanned QR payload text, parses parameters, and computes dynamic risk scores.
+    
+    Validates parameter types, sizes (max 2000 chars), parses the UPI deep link query keys, 
+    and checks:
+    1. Scheme integrity (blocks non-upi redirects).
+    2. Dynamic VPA blacklist records in the SQLite DB.
+    3. Backend cryptographic trusted merchant signature matches.
+    4. Typo-squat impersonation checks.
     """
     request_id = str(uuid.uuid4())
     start_time = time.time()
 
     try:
-        # -------------------------------
+        # ----------------------------------------------------------------------
         # 1. Parse & Validate Input
-        # -------------------------------
+        # ----------------------------------------------------------------------
         data = request.get_json(silent=True)
 
         if not data:
@@ -88,19 +102,19 @@ def analyze_qr() -> Tuple[Response, int]:
         if len(qr_text) > 2000:
             return error_response("QR text too large", 413, request_id)
 
-        # -------------------------------
-        # 2. Parse QR
-        # -------------------------------
+        # ----------------------------------------------------------------------
+        # 2. Parse UPI parameters
+        # ----------------------------------------------------------------------
         parsed_data = parse_upi_qr(qr_text)
 
-        # -------------------------------
-        # 3. Risk Analysis
-        # -------------------------------
+        # ----------------------------------------------------------------------
+        # 3. Execute Core Risk Heuristics
+        # ----------------------------------------------------------------------
         risk_data = analyze_qr_risk(parsed_data, raw_text=qr_text)
 
-        # -------------------------------
-        # 4. Logging
-        # -------------------------------
+        # ----------------------------------------------------------------------
+        # 4. Log Operations Telemetry
+        # ----------------------------------------------------------------------
         duration = round((time.time() - start_time) * 1000, 2)
 
         current_app.logger.info({
@@ -111,9 +125,9 @@ def analyze_qr() -> Tuple[Response, int]:
             "duration_ms": duration
         })
 
-        # -------------------------------
-        # 5. Response
-        # -------------------------------
+        # ----------------------------------------------------------------------
+        # 5. Return Unified Response
+        # ----------------------------------------------------------------------
         return jsonify({
             "success": True,
             "request_id": request_id,
@@ -134,19 +148,24 @@ def analyze_qr() -> Tuple[Response, int]:
         return error_response("Internal server error", 500, request_id)
 
 
-# -----------------------------------
+# ----------------------------------------------------------------------
 # OFFLINE BLACKLIST SYNC ENDPOINT 🔥
-# -----------------------------------
+# ----------------------------------------------------------------------
 @qr_bp.route("/api/blacklist/sync", methods=["GET"])
 def get_blacklist_sync() -> Tuple[Response, int]:
-    """GET /api/blacklist/sync
-    Returns all dynamically recorded threat VPAs for offline synchronization cache.
+    """
+    GET /api/blacklist/sync
+    Compiles all dynamically flagged threat VPAs and return them for offline caching.
+    
+    This enables the client-side browser logic to run '0ms local checks' for reported 
+    fraudsters even when internet connectivity is dropped (e.g. deep inside rural market zones).
     """
     try:
         from services.history_store import get_connection
         
         with get_connection() as conn:
             cursor = conn.cursor()
+            # Compile unique list of blacklisted VPAs with cumulative reports count
             cursor.execute("""
                 SELECT upi, MAX(risk_level) as risk, COUNT(*) as reports 
                 FROM history 
@@ -156,7 +175,7 @@ def get_blacklist_sync() -> Tuple[Response, int]:
             
             blacklist = []
             for r in rows:
-                if r[0]:  # Ensure upi is not null/empty
+                if r[0]:  # Protect against empty database cells
                     blacklist.append({
                         "upi": r[0],
                         "risk_level": r[1],
@@ -173,4 +192,4 @@ def get_blacklist_sync() -> Tuple[Response, int]:
         return jsonify({
             "success": False,
             "error": "Failed to query blacklist database"
-        }), 500
+        }), 500

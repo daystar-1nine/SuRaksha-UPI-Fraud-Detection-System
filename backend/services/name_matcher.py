@@ -1,36 +1,55 @@
 # backend/services/name_matcher.py
 
+"""
+SuRaksha Name Mismatch Verification Service
+
+This service detects merchant spoofing scams (e.g., a sticker displaying a store name
+like "Sharma Kirana Store" but actually registering a personal VPA like "hackers_node@ybl").
+It extracts name candidates from the screenshot OCR, parses name tokens from the VPA,
+and computes a similarity score using tokenized Jaccard indices and fuzzy SequenceMatcher comparisons.
+"""
+
 import re
 from difflib import SequenceMatcher
 
-# -------------------------------
+# ----------------------------------------------------------------------
 # CONFIG
-# -------------------------------
+# ----------------------------------------------------------------------
+# Words commonly seen in transaction logs that skew name comparison metrics
 COMMON_NOISE_WORDS = [
     "upi", "bank", "payment", "paid", "received",
     "account", "transfer", "transaction"
 ]
 
 
-# -------------------------------
+# ----------------------------------------------------------------------
 # HELPERS
-# -------------------------------
+# ----------------------------------------------------------------------
 def normalize(text):
+    """Lowers and strips text values to standardize string matching."""
     return (text or "").lower().strip()
 
 
 def clean_text(text):
+    """Removes all non-alphabetic characters and normalizes spaces."""
     text = normalize(text)
     text = re.sub(r'[^a-z\s]', ' ', text)
     return re.sub(r'\s+', ' ', text).strip()
 
 
 def tokenize(text):
+    """Splits string into lowercase alphanumeric tokens, filtering out noise words."""
     words = clean_text(text).split()
     return [w for w in words if w not in COMMON_NOISE_WORDS]
 
 
 def extract_name_from_upi(upi_id):
+    """
+    Parses a VPA address to extract potential name tokens.
+    
+    Why: VPA addresses split the local part before the "@" symbol. By removing numbers,
+    dots, dashes, and underscores, we isolate the phonetic name components.
+    """
     if not upi_id:
         return ""
 
@@ -40,10 +59,17 @@ def extract_name_from_upi(upi_id):
 
 
 def fuzzy_similarity(a, b):
+    """Calculates Gestalt Pattern Matching ratio (0.0 - 1.0) between strings."""
     return SequenceMatcher(None, a, b).ratio()
 
 
 def token_similarity(tokens1, tokens2):
+    """
+    Computes a Jaccard Similarity index (intersection over union) of token sets.
+    
+    Why: Token set overlap is order-independent, which is critical since names can be
+    re-ordered (e.g., "Sharma Suraj" vs "Suraj Sharma").
+    """
     set1 = set(tokens1)
     set2 = set(tokens2)
 
@@ -54,6 +80,13 @@ def token_similarity(tokens1, tokens2):
 
 
 def combined_similarity(name1, name2):
+    """
+    Aggregates token and string fuzzy metrics into a single matching score.
+    
+    Why: Combining token set overlap (order-invariant) with fuzzy SequenceMatcher (edit-distance)
+    provides high accuracy for varying names. A substring containment check is used
+    as a fast shortcut (e.g., "sharmakirana" inside "sharma kirana store") to reduce false alerts.
+    """
     tokens1 = tokenize(name1)
     tokens2 = tokenize(name2)
 
@@ -63,17 +96,22 @@ def combined_similarity(name1, name2):
     str1 = "".join(tokens1)
     str2 = "".join(tokens2)
 
-    # Substring containment check to prevent false mismatches (e.g. sharmakirana vs sharma kirana store)
+    # Substring containment check prevents false positives on compressed user names
     if str1 in str2 or str2 in str1:
         return 1.0
 
     token_score = token_similarity(tokens1, tokens2)
     fuzzy_score = fuzzy_similarity(" ".join(tokens1), " ".join(tokens2))
 
+    # Return the maximum score of Jaccard vs edit-distance to avoid penalizing word re-ordering
     return max(token_score, fuzzy_score)
 
 
 def extract_possible_names(text):
+    """
+    Scans screenshot OCR lines for patterns indicating sender or payee names.
+    Filters lines containing label terms. Falls back to comparing the entire text.
+    """
     text = normalize(text)
 
     lines = text.split("\n")
@@ -83,7 +121,7 @@ def extract_possible_names(text):
         if any(k in line for k in ["name", "from", "to", "beneficiary"]):
             candidates.append(line)
 
-    # fallback: use full text
+    # Fallback to the entire block of text if no specific name label matches
     if not candidates:
         candidates.append(text)
 
@@ -91,6 +129,7 @@ def extract_possible_names(text):
 
 
 def make_signal(score, confidence, reason):
+    """Factory helper to structure threat signal dictionaries."""
     return {
         "type": "name_mismatch",
         "score": score,
@@ -100,6 +139,7 @@ def make_signal(score, confidence, reason):
 
 
 def deduplicate(signals):
+    """Filters duplicate signals by description reasons to avoid inflating warnings."""
     seen = set()
     unique = []
 
@@ -112,10 +152,20 @@ def deduplicate(signals):
     return unique
 
 
-# -------------------------------
+# ----------------------------------------------------------------------
 # MAIN FUNCTION
-# -------------------------------
+# ----------------------------------------------------------------------
 def detect_name_mismatch(upi_ids, detected_text):
+    """
+    Cross-references VPA targets with invoice/recipient names on the screenshot.
+    
+    Args:
+        upi_ids (List[str]): List of UPI VPAs parsed from the screenshot.
+        detected_text (str): Complete OCR text from the screenshot.
+        
+    Returns:
+        Dict: Final name matching risk score, confidence rating, and details.
+    """
     signals = []
 
     if not upi_ids or not detected_text:
@@ -131,13 +181,16 @@ def detect_name_mismatch(upi_ids, detected_text):
 
         best_similarity = 0
 
+        # Compare the VPA name tokens against each extracted name candidate line
         for name in possible_names:
             sim = combined_similarity(upi_name, name)
             best_similarity = max(best_similarity, sim)
 
-        # -------------------------------
+        # ----------------------------------------------------------------------
         # DECISION LOGIC (SMART 🔥)
-        # -------------------------------
+        # ----------------------------------------------------------------------
+        # Heuristics: similarity < 25% represents strong mismatch (high scam risk)
+        # Heuristics: similarity < 50% represents partial mismatch (medium scam risk)
         if best_similarity < 0.25:
             signals.append(make_signal(
                 3,
@@ -152,14 +205,12 @@ def detect_name_mismatch(upi_ids, detected_text):
                 f"UPI '{upi}' partially mismatches detected name"
             ))
 
-    # -------------------------------
-    # CLEAN SIGNALS
-    # -------------------------------
+    # Deduplicate warning triggers
     signals = deduplicate(signals)
 
-    # -------------------------------
+    # ----------------------------------------------------------------------
     # FINAL SCORING
-    # -------------------------------
+    # ----------------------------------------------------------------------
     total_score = sum(s["score"] for s in signals)
     risk_score = min(total_score, 10)
 
@@ -169,7 +220,6 @@ def detect_name_mismatch(upi_ids, detected_text):
     confidence = (weighted_conf / total_weight) if total_weight else 0
     confidence = round(min(confidence, 0.95), 2)
 
-    # Risk level
     if risk_score >= 7:
         level = "HIGH"
     elif risk_score >= 4:
@@ -186,9 +236,9 @@ def detect_name_mismatch(upi_ids, detected_text):
     }
 
 
-# -------------------------------
-# EMPTY
-# -------------------------------
+# ----------------------------------------------------------------------
+# EMPTY RESPONSE DEFAULT
+# ----------------------------------------------------------------------
 def _empty_response():
     return {
         "risk_score": 0,

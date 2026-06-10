@@ -1,16 +1,21 @@
-// -----------------------------
-// 🌍 GLOBAL STATE
-// -----------------------------
+// ----------------------------------------------------------------------
+// 🌍 GLOBAL STATE & APPLICATION STATE
+// ----------------------------------------------------------------------
+// Base API server URL. All frontend network operations direct to this endpoint.
 const API_BASE = "http://127.0.0.1:5000";
 
+// Tracks active scan mode, HTML5Qrcode scanner references, and cached variables
 let AppState = {
-    intent: "pay",
-    scanner: null,
-    scanning: false,
-    lastScannedUpi: ""   // Tracks UPI for Report Fraud flow
+    intent: "pay",       // "pay" or "receive"
+    scanner: null,       // Instantiated Html5Qrcode reader object
+    scanning: false,     // Flag indicating whether camera video stream is active
+    lastScannedUpi: ""   // Tracks the last scanned VPA address for the report modal
 };
 
+// Locally cached blacklist registry pulled from the backend database (sync offline mode)
 let localBlacklist = [];
+// Locally registered trusted merchants used to simulate signature check during generation/scan
+let localTrustedMerchants = [];
 
 
 // -----------------------------
@@ -100,14 +105,24 @@ function selectIntent(intent) {
 }
 
 
-// -----------------------------
-// 📡 API LAYER (CLEAN 🔥)
-// -----------------------------
+// ----------------------------------------------------------------------
+// 📡 API LAYER - CENTRALISED AJAX REQUEST HANDLER
+// ----------------------------------------------------------------------
 async function apiRequest(endpoint, body, isForm = false) {
-
+    /**
+     * Primary network gateway connecting the user interface to Flask API endpoints.
+     * 
+     * Why: Wraps error interception, payload formatting, CORS checks, and rate-limiting
+     * alerts into a single unified function, making frontend code clean and resilient.
+     * 
+     * Handles HTTP 429 (Rate Limit Exceeded) returned by Flask-Limiter. It intercepts 429
+     * responses, parses custom retry warnings, displays a temporary screen toast, and stops
+     * the execution path to protect server bandwidth.
+     */
     try {
         const options = {
             method: "POST",
+            // If body is FormData (file upload), let browser calculate the boundary headers automatically
             headers: isForm ? {} : { "Content-Type": "application/json" },
             body: isForm ? body : JSON.stringify(body)
         };
@@ -115,6 +130,7 @@ async function apiRequest(endpoint, body, isForm = false) {
         const res = await fetch(`${API_BASE}${endpoint}`, options);
 
         if (!res.ok) {
+            // Handle rate limit headers returned by Flask server
             if (res.status === 429) {
                 const errorData = await res.json().catch(() => ({}));
                 const msg = errorData.error?.description || "Rate limit exceeded. Please try again later.";
@@ -126,6 +142,7 @@ async function apiRequest(endpoint, body, isForm = false) {
 
         const data = await res.json();
 
+        // Standardise error responses that return success=false
         if (data.success === false) {
             throw new Error(data.error || "API Error");
         }
@@ -133,6 +150,7 @@ async function apiRequest(endpoint, body, isForm = false) {
         return data;
 
     } catch (err) {
+        // Prevent showing duplicate toast notifications if rate-limiting alert has already handled it
         if (err.message !== "RATE_LIMIT_EXCEEDED") {
             showToast("⚠ Backend connection failed", "error");
         }
@@ -299,23 +317,30 @@ function extractUpiAddress(text) {
 // 📦 QR SEND
 // -----------------------------
 async function sendQR(text) {
-
+    /**
+     * Dispatches scanned QR code raw payload to the analytical back-end services.
+     * 
+     * Why: Coordinates local offline pre-check interceptors and dispatches network payloads.
+     * If the client is offline or the VPA matches a locally synchronized blacklist in localStorage,
+     * it blocks the transaction instantly (0ms latency), bypassing remote server API dependency.
+     */
     toggle($("loader"), true);
 
     // 0ms LOCAL CACHE PRECHECK INTERCEPTOR 🔥
     if (AppState.intent === "pay") {
         
-        // 0ms LOCAL CRYPTOGRAPHIC TRUST & STICKER-TAMPERING INTERCEPTOR 🔒
-        // (Moved to backend verification registry for security)
-
+        // Extract plain UPI identifier (e.g. name@bank) from upi://pay URI queries
         const scannedUpi = extractUpiAddress(text);
         if (scannedUpi) {
-            AppState.lastScannedUpi = scannedUpi;  // Track for report fraud
+            AppState.lastScannedUpi = scannedUpi;  // Save to enable report-fraud click modal later
+            
+            // Check local in-browser database cache
             const matched = localBlacklist.find(item => item.upi.toLowerCase() === scannedUpi);
             if (matched) {
                 console.log("0ms Local Intercept Match Found for UPI:", scannedUpi);
                 toggle($("loader"), false);
 
+                // Synthesize mockup API response structure to route directly to popup renderer
                 const mockApiResponse = {
                     success: true,
                     data: {
@@ -347,7 +372,8 @@ async function sendQR(text) {
             }
         }
 
-        // OFFLINE MODE COMPATIBILITY CHECK 🔥
+        // OFFLINE MODE COMPATIBILITY CHECK
+        // If client network state is disconnected, block analysis but alert user of offline status
         if (!navigator.onLine) {
             toggle($("loader"), false);
             showToast("⚠ Offline: No local threat found. Verify manually!", "warning", 5000);
@@ -361,10 +387,11 @@ async function sendQR(text) {
             intent: AppState.intent
         });
 
-        // Store UPI for report fraud feature
+        // Cache scanned identifier locally
         const extractedUpi = extractUpiAddress(text);
         if (extractedUpi) AppState.lastScannedUpi = extractedUpi;
 
+        // If intent is "receive" money, notify user that showing their QR carries zero debit risk
         if (AppState.intent === "receive") {
             toggle($("loader"), false);
             $("resultPopup")?.classList.add("hidden");
@@ -575,6 +602,14 @@ document.addEventListener("DOMContentLoaded", () => {
 // 🎬 RESULT POPUP
 // -----------------------------
 function showResultPopup(apiResponse) {
+    /**
+     * Consolidates threat analysis parameters and displays the popup diagnostic UI.
+     * 
+     * Why: Blends NLP text risk, metadata warnings, and computer vision forensics.
+     * Since different files trigger different threat vectors, the frontend calculates
+     * a max-risk aggregate value so that a critical visual forgery cannot be masked
+     * by clean transaction text.
+     */
     if (!apiResponse || !apiResponse.success || !apiResponse.data) {
         console.warn("Skipping result popup: Invalid or unsuccessful API response.", apiResponse);
         return;
@@ -591,14 +626,15 @@ function showResultPopup(apiResponse) {
     const metadata = apiResponse.data.metadata;
     const tamper = apiResponse.data.tamper_analysis;
 
+    // Convert and normalize scores into a standard 0-100 range
     let ocrScore = analysis.risk?.risk_score ?? analysis.risk_score ?? 0;
     let metadataScore = (metadata && metadata.risk_score != null) ? metadata.risk_score * 10 : 0;
     let tamperScore = (tamper && tamper.risk_score != null) ? tamper.risk_score : 0;
 
-    // Take max of OCR, EXIF, and opencv tamper risk
+    // Aggregate threat index: the highest individual vulnerability score is selected
     let riskScore = Math.max(ocrScore, metadataScore, tamperScore);
 
-    // Risk level
+    // Map consolidated risk percentages into taxnomic severity levels
     let riskLevel = "SAFE";
     if (riskScore >= 75) {
         riskLevel = "CRITICAL";
@@ -610,7 +646,7 @@ function showResultPopup(apiResponse) {
         riskLevel = "LOW";
     }
 
-    // Merge fraud details
+    // Classify fraud types based on upload category
     let isScreenshotCheck = (metadata || tamper) ? true : false;
     let fraudType = isScreenshotCheck ? "Screenshot Forgery" : (analysis.fraud?.fraud_type ?? analysis.fraud_type ?? "General");
     let detectedAction = isScreenshotCheck ? "Inspect receipt details carefully" : (analysis.detected_action?.action ?? analysis.detected_action ?? "-");
@@ -618,7 +654,7 @@ function showResultPopup(apiResponse) {
         detectedAction = isScreenshotCheck ? "Forged Receipt Blocked" : detectedAction;
     }
 
-    // Merge reasons
+    // Merge warning strings from all analytical engines into a single audit list
     let combinedReasons = [];
     const ocrReasons = analysis.analysis?.reasons ?? analysis.reasons ?? [];
     ocrReasons.forEach(r => combinedReasons.push(r));
@@ -635,6 +671,7 @@ function showResultPopup(apiResponse) {
         risk_level: riskLevel,
         fraud_type: fraudType,
         detected_action: detectedAction,
+        // Fallback to highest confidence calculation returned
         fraud_confidence: apiResponse.data.tamper_analysis?.confidence ?? apiResponse.data.metadata?.confidence ?? analysis.confidence ?? analysis.fraud_confidence ?? 0.85,
         reasons: combinedReasons
     };
@@ -884,6 +921,12 @@ function closePopup() {
 // 🖼 SCREENSHOT AUTHENTICITY POPUP
 // -----------------------------
 function showScreenshotResultPopup(apiResponse) {
+    /**
+     * Details visual indicators, triggers client-side ELA rendering, and draws threat radar.
+     * 
+     * Why: Renders visual-heavy verification tools (like dynamic magnifier, sliders, and charts)
+     * which helps users immediately spot edited regions on the screenshot.
+     */
     if (!apiResponse || !apiResponse.success) {
         console.warn("Screenshot popup: Invalid API response", apiResponse);
         return;
@@ -894,23 +937,23 @@ function showScreenshotResultPopup(apiResponse) {
     const tamper = data?.tamper_analysis;
     const analysis = data?.analysis;
 
-    // ── Compute consolidated forgery risk ──
+    // Compute consolidated maximum forgery risk percentage
     let metaScore   = (metadata  && metadata.risk_score  != null) ? metadata.risk_score * 10 : 0;
     let tamperScore = (tamper    && tamper.risk_score    != null) ? tamper.risk_score        : 0;
     let ocrScore    = (analysis  && analysis.risk_score  != null) ? analysis.risk_score      : 0;
     let riskScore   = Math.max(metaScore, tamperScore, ocrScore);
 
-    // ── Risk level ──
+    // Map composite risk scores
     let riskLevel = "SAFE";
     if      (riskScore >= 75) riskLevel = "CRITICAL";
     else if (riskScore >= 50) riskLevel = "HIGH";
     else if (riskScore >= 25) riskLevel = "MEDIUM";
     else if (riskScore >  0 ) riskLevel = "LOW";
 
-    // ── Confidence ──
+    // Standard confidence heuristic
     let confidence = tamper?.confidence ?? metadata?.confidence ?? analysis?.confidence ?? 0.85;
 
-    // ── Recommended action ──
+    // Define warnings
     let action = "Screenshot appears authentic";
     if (riskLevel === "CRITICAL" || riskLevel === "HIGH") {
         action = "⛔ Likely forged — do not trust this receipt";
@@ -918,7 +961,7 @@ function showScreenshotResultPopup(apiResponse) {
         action = "⚠ Some anomalies found — verify carefully";
     }
 
-    // ── Build combined reasons list ──
+    // Build consolidated reasons list
     let reasons = [];
     if (metadata?.reasons)  metadata.reasons.forEach(r  => reasons.push("🔍 EXIF: "   + r));
     if (tamper?.reasons)    tamper.reasons.forEach(r    => reasons.push("🖼 Tamper: " + r));
@@ -1084,6 +1127,13 @@ $("qrImageInput")?.addEventListener("change", async (e) => {
 // 🌐 OFFLINE BLACKLIST SYNCER
 // -----------------------------
 async function syncOfflineBlacklist() {
+    /**
+     * Fetches user-reported fraud entries and saves them locally for offline capability.
+     * 
+     * Why: Provides network resiliency. If a user is paying in low-network zones
+     * (e.g. underground metro stations or remote locations), standard network lookups fail.
+     * Caching blacklist entries in localStorage allows instant query intercepts without connections.
+     */
     try {
         if (!navigator.onLine) {
             console.log("Offline: Loading blacklist from localStorage cache...");
@@ -1100,12 +1150,13 @@ async function syncOfflineBlacklist() {
         
         if (data && data.success && data.blacklist) {
             localBlacklist = data.blacklist;
+            // Persist the blacklist locally inside standard browser localStorage
             localStorage.setItem("suraksha_blacklist_cache", JSON.stringify(localBlacklist));
             console.log("Offline Blacklist sync completed. Cached " + localBlacklist.length + " reported accounts.");
         }
     } catch (err) {
         console.warn("Failed to sync offline blacklist cache:", err);
-        // Fallback to cache if exists
+        // Load fallback cache if network request failed due to connectivity drops
         const cached = localStorage.getItem("suraksha_blacklist_cache");
         if (cached) {
             localBlacklist = JSON.parse(cached);
@@ -1843,6 +1894,10 @@ function clearQrOverlay() {
 // ---------------------------------------------
 
 async function sha256(message) {
+    /**
+     * Standard WebCrypto helper calculating SHA-256 hashes inside browser context.
+     * Used to generate the cryptographic verification signature to prevent client-side secret exposure.
+     */
     const msgBuffer = new TextEncoder().encode(message);
     const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
@@ -1850,6 +1905,15 @@ async function sha256(message) {
 }
 
 async function generateSecureStoreQr() {
+    /**
+     * Generates a cryptographically signed QR code to mitigate physical sticker tampering.
+     * 
+     * Why: Scammers physically glue fake QR stickers over a store's genuine QR code.
+     * SuRaksha registers trusted stores. By hashing the name, VPA, and a secret merchant key
+     * locally using WebCrypto, we generate a signature. When scanned, the backend verifies
+     * this signature. If the VPA or merchant name was changed/tampered on the sticker,
+     * signature verification fails, blocking the fraud attempt.
+     */
     const name = $("secMerchantName").value.trim();
     const vpa = $("secMerchantVpa").value.trim();
     const secret = $("secSecretKey").value.trim();

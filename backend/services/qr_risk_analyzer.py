@@ -1,5 +1,18 @@
 # backend/services/qr_risk_analyzer.py
 
+"""
+SuRaksha QR Code Threat Analysis Service
+
+This service evaluates scanned QR code payloads (typically decoded from upi:// pay URLs)
+for a variety of fraud signals:
+1. Malicious Web Redirects (blocking non-upi:// schemes that redirect to phishing sites)
+2. Database Blacklist checks (direct lookup of reported scammer VPAs)
+3. Cryptographic Signature Integrity (detecting physical sticker tampering via SHA-256 signature mismatch)
+4. Typo-squatting / Brand Spoofing (detecting VPAs mimicking SBI, Paytm, PhonePe, etc.)
+5. Multilingual Keyword Scans (flagging reward/scam terms in English, Hindi, Bengali, Tamil, Telugu)
+6. Transaction Amount and Note anomalies (micro-payments, extreme payouts, scam purposes)
+"""
+
 import re
 import unicodedata
 import hashlib
@@ -7,9 +20,11 @@ from services.ml_classifier import predict_scam_probabilities
 from utils.constants import TRUSTED_MERCHANTS
 
 
-# ────────────────────────────────────────
+# ────────────────────────────────────────────────────────────────────────
 # SUSPICIOUS TERMS (MULTILINGUAL 🔥)
-# ────────────────────────────────────────
+# ────────────────────────────────────────────────────────────────────────
+# Scammers target victims in their native language to increase trust.
+# This list matches scam keywords across multiple major Indian languages.
 SUSPICIOUS_TERMS = [
     # English — reward/scam patterns
     "reward", "gift", "refund", "offer", "support", "help",
@@ -17,7 +32,7 @@ SUSPICIOUS_TERMS = [
     "claim", "verify", "kyc", "otp", "wallet", "block",
     "urgent", "expire", "suspended", "activate", "limited",
 
-    # Hindi / Marathi (Devanagari)
+    # Hindi / Marathi (Devanagari script)
     "इनाम", "पुरस्कार", "कैशबैक", "ऑफर",
     "जीतें", "फ्री", "मदत", "रिफंड", "इनाम",
 
@@ -31,10 +46,11 @@ SUSPICIOUS_TERMS = [
     "బహుమతి", "రీఫండ్",
 ]
 
-# ────────────────────────────────────────
+# ────────────────────────────────────────────────────────────────────────
 # HIGH-RISK UPI HANDLES
-# Extended to 25+ known scam VPA suffixes
-# ────────────────────────────────────────
+# ────────────────────────────────────────────────────────────────────────
+# Handles (PSP extensions) and words commonly abused in phishing VPAs
+# to masquerade as official support desks or bank gateways.
 HIGH_RISK_HANDLES = {
     # Commonly spoofed / misused
     "ybl", "paytm", "ibl", "axl", "axisbank",
@@ -47,9 +63,11 @@ HIGH_RISK_HANDLES = {
     "upi", "pay", "cash", "money", "send",
 }
 
-# ────────────────────────────────────────
+# ────────────────────────────────────────────────────────────────────────
 # TYPOSQUAT PATTERNS (spoof detection)
-# ────────────────────────────────────────
+# ────────────────────────────────────────────────────────────────────────
+# Maps popular payment brands to common misspellings used by scammers
+# to trick users into believing they are transferring to a trusted brand.
 SPOOFED_BRANDS = {
     "paytm":  ["paytml", "paytmm", "paymt", "patym", "paiytm"],
     "gpay":   ["gppay", "goglepay", "goooglepay", "gpayy"],
@@ -60,16 +78,21 @@ SPOOFED_BRANDS = {
 }
 
 
-# ────────────────────────────────────────
+# ────────────────────────────────────────────────────────────────────────
 # HELPERS
-# ────────────────────────────────────────
+# ────────────────────────────────────────────────────────────────────────
 def normalize(text):
+    """
+    Cleans and standardizes input string to prevent evasion.
+    Uses Unicode NFKC normalization to resolve homoglyphs/lookalike characters.
+    """
     if not text:
         return ""
     return unicodedata.normalize("NFKC", str(text)).lower().strip()
 
 
 def make_signal(signal_type, score, confidence, reason):
+    """Factory helper to structure threat signal dictionaries."""
     return {
         "type": signal_type,
         "score": score,
@@ -79,38 +102,62 @@ def make_signal(signal_type, score, confidence, reason):
 
 
 def is_valid_upi(upi):
-    """Validate UPI ID format: user@bank"""
+    """
+    Validates general UPI VPA format using strict regular expression constraints.
+    Format: [username]@[psp]
+    """
     return bool(re.match(r"^[a-zA-Z0-9._+\-]{2,}@[a-zA-Z]{2,20}$", upi or ""))
 
 
 def detect_typosquat(upi_id):
-    """Check if UPI ID contains a misspelled brand name"""
+    """
+    Checks if a local VPA prefix contains a typosquatted variant of a top brand.
+    
+    If the brand is paytm (e.g. local name contains 'paytm'), it is fine.
+    If it contains a misspelling like 'paytml', it triggers a typosquat alert.
+    """
     local = upi_id.split("@")[0] if "@" in upi_id else upi_id
     for brand, variants in SPOOFED_BRANDS.items():
         if brand in local:
-            return None  # Genuine brand name — not a spoof
+            return None  # Matches the exact brand keyword (genuine name context)
         for variant in variants:
             if variant in local:
                 return brand
     return None
 
 
-# ────────────────────────────────────────
+# ────────────────────────────────────────────────────────────────────────
 # MAIN FUNCTION
-# ────────────────────────────────────────
+# ────────────────────────────────────────────────────────────────────────
 def analyze_qr_risk(parsed_data, raw_text=""):
+    """
+    Main evaluation pipeline checking UPI parameters, signatures, and string features.
+    
+    Args:
+        parsed_data (Dict): Decoded query arguments from the UPI URI string.
+        raw_text (str): Raw scanned QR payload text (e.g. "upi://pay?pa=...").
+        
+    Returns:
+        Dict: Final QR risk determination payload.
+    """
     signals = []
 
-    # ── Safe extraction ──
+    # Safe extraction of UPI URL query parameters:
+    # pa: Payee Address (VPA), pn: Payee Name, tn: Transaction Note, am: Amount
     upi_id     = normalize((parsed_data.get("pa") or [""])[0])
     payee_name = normalize((parsed_data.get("pn") or [""])[0])
     note       = normalize((parsed_data.get("tn") or [""])[0])
     amount     = (parsed_data.get("am") or [""])[0]
     combined   = f"{upi_id} {payee_name} {note}"
 
-    # ────────────────────────────────────────
+    # ────────────────────────────────────────────────────────────────────────
     # -1. NON-UPI SCHEME / PHISHING REDIRECT CHECK 🔥
-    # ────────────────────────────────────────
+    # 
+    # Why: Scammers often print custom stickers and paste them over legitimate merchant QRs.
+    # If the sticker points to a web URL (http/https) instead of a native 'upi://pay' scheme,
+    # scanning it will redirect the victim's browser to a phishing credential-stealing page.
+    # This check identifies and instantly blocks any non-UPI schemes.
+    # ────────────────────────────────────────────────────────────────────────
     if raw_text and "://" in raw_text and not raw_text.lower().startswith("upi://"):
         signals.append(make_signal(
             "malicious_web_redirect",
@@ -129,9 +176,13 @@ def analyze_qr_risk(parsed_data, raw_text=""):
             "reasons": [s["reason"] for s in signals]
         }
 
-    # ────────────────────────────────────────
-    # 0. DATABASE BLACKLIST CHECK 🔥 (FIRST)
-    # ────────────────────────────────────────
+    # ────────────────────────────────────────────────────────────────────────
+    # 0. DATABASE BLACKLIST CHECK 🔥
+    # 
+    # Why: High-priority immediate block. If the VPA is already recorded in our local
+    # SQLite fraud database as having active reports, we block the payment immediately
+    # rather than letting heuristics decide.
+    # ────────────────────────────────────────────────────────────────────────
     from services.history_store import get_upi_count
 
     complaint_count = get_upi_count(upi_id) if upi_id else 0
@@ -153,9 +204,14 @@ def analyze_qr_risk(parsed_data, raw_text=""):
             "reasons": [s["reason"] for s in signals]
         }
 
-    # ────────────────────────────────────────
+    # ────────────────────────────────────────────────────────────────────────
     # 0.5. CRYPTOGRAPHIC SIGNATURE CHECK 🔒
-    # ────────────────────────────────────────
+    # 
+    # Why: Physical sticker tampering (replacing a store QR with a scammer QR) is common.
+    # SuRaksha allows trusted merchants to register their QR codes with a signature.
+    # The signature is a SHA-256 hash of payee name + VPA + merchant secret.
+    # We verify the signature on the backend to confirm authenticity and prevent tampering.
+    # ────────────────────────────────────────────────────────────────────────
     signature = (parsed_data.get("sign") or [""])[0].strip()
 
     if upi_id in TRUSTED_MERCHANTS:
@@ -165,6 +221,7 @@ def analyze_qr_risk(parsed_data, raw_text=""):
         expected_sign = hashlib.sha256(expected_raw.encode("utf-8")).hexdigest()
 
         if not signature:
+            # Trusted merchant ID found, but scanned QR lacks a signature parameter
             signals.append(make_signal(
                 "unsigned_trusted_merchant",
                 9.5,
@@ -172,6 +229,7 @@ def analyze_qr_risk(parsed_data, raw_text=""):
                 f"Physical sticker tampering detected: '{payee_name}' is a registered store but lacks a valid SuRaksha Cryptographic signature"
             ))
         elif signature != expected_sign:
+            # Signature parameter present but hash verification failed (payload modified)
             signals.append(make_signal(
                 "spoofed_trusted_merchant",
                 9.8,
@@ -179,6 +237,7 @@ def analyze_qr_risk(parsed_data, raw_text=""):
                 f"Cryptographic signature verification failed: Merchant VPA or name has been modified"
             ))
         else:
+            # Valid signature confirms the integrity and identity of the QR code
             signals.append(make_signal(
                 "verified_merchant_shield",
                 0.0,
@@ -196,7 +255,7 @@ def analyze_qr_risk(parsed_data, raw_text=""):
                 "reasons": [s["reason"] for s in signals]
             }
     elif signature:
-        # Check signature using default shared key
+        # Check signature using default network-wide fallback key
         default_secret = "SuRakshaShield2026"
         expected_pn = payee_name or "recipient"
         expected_raw = f"{expected_pn.strip()}{upi_id.strip()}{default_secret}"
@@ -220,10 +279,10 @@ def analyze_qr_risk(parsed_data, raw_text=""):
                 "reasons": [s["reason"] for s in signals]
             }
 
-
-    # ────────────────────────────────────────
+    # ────────────────────────────────────────────────────────────────────────
     # 1. MULTILINGUAL SUSPICIOUS TERMS
-    # ────────────────────────────────────────
+    # ────────────────────────────────────────────────────────────────────────
+    # Scan VPA details, display name, and note fields for regional refund/lottery patterns.
     matched_terms = []
     for term in SUSPICIOUS_TERMS:
         if term in combined:
@@ -238,9 +297,9 @@ def analyze_qr_risk(parsed_data, raw_text=""):
             f"Suspicious terms in QR: {', '.join(matched_terms[:4])}"
         ))
 
-    # ────────────────────────────────────────
+    # ────────────────────────────────────────────────────────────────────────
     # 2. INVALID UPI FORMAT
-    # ────────────────────────────────────────
+    # ────────────────────────────────────────────────────────────────────────
     if upi_id and not is_valid_upi(upi_id):
         signals.append(make_signal(
             "invalid_upi_format",
@@ -249,9 +308,11 @@ def analyze_qr_risk(parsed_data, raw_text=""):
             f"Invalid UPI ID format: '{upi_id}'"
         ))
 
-    # ────────────────────────────────────────
+    # ────────────────────────────────────────────────────────────────────────
     # 3. MISSING PAYEE NAME
-    # ────────────────────────────────────────
+    # ────────────────────────────────────────────────────────────────────────
+    # Standard payments should specify a clear recipient display name.
+    # Missing payee name suggests a custom-generated anonymous payment hook.
     if not payee_name:
         signals.append(make_signal(
             "missing_payee_name",
@@ -260,9 +321,10 @@ def analyze_qr_risk(parsed_data, raw_text=""):
             "QR code has no payee name — anonymous transaction"
         ))
 
-    # ────────────────────────────────────────
+    # ────────────────────────────────────────────────────────────────────────
     # 4. AMOUNT ANALYSIS 💰
-    # ────────────────────────────────────────
+    # ────────────────────────────────────────────────────────────────────────
+    # Evaluate risks based on target payment magnitude.
     try:
         amt = float(amount) if amount else 0
 
@@ -288,7 +350,9 @@ def analyze_qr_risk(parsed_data, raw_text=""):
                 f"High transaction amount ₹{amt:,.0f}"
             ))
         elif 0 < amt < 1:
-            # Re: "₹1 test payment" scam pattern
+            # "₹1 Verification Test" Scam:
+            # Scammers send collect requests of ₹0.50 to victims, telling them it is a "test payment"
+            # to verify their account. Once the victim approves, the scammer initiates a large debit.
             signals.append(make_signal(
                 "micro_amount",
                 2,
@@ -305,9 +369,10 @@ def analyze_qr_risk(parsed_data, raw_text=""):
                 f"Amount field has invalid format: '{amount}'"
             ))
 
-    # ────────────────────────────────────────
+    # ────────────────────────────────────────────────────────────────────────
     # 5. RISKY UPI HANDLE
-    # ────────────────────────────────────────
+    # ────────────────────────────────────────────────────────────────────────
+    # Certain handles are commonly chosen by fraud developers because they offer easy onboarding.
     if "@" in upi_id:
         handle = upi_id.split("@")[1]
 
@@ -319,9 +384,10 @@ def analyze_qr_risk(parsed_data, raw_text=""):
                 f"UPI handle '@{handle}' frequently appears in fraud cases"
             ))
 
-    # ────────────────────────────────────────
-    # 6. TYPOSQUAT / BRAND SPOOFING 🔥NEW
-    # ────────────────────────────────────────
+    # ────────────────────────────────────────────────────────────────────────
+    # 6. TYPOSQUAT / BRAND SPOOFING
+    # ────────────────────────────────────────────────────────────────────────
+    # Flag spoofed accounts mimicking brands like GPay or Paytm.
     spoofed_brand = detect_typosquat(upi_id)
     if spoofed_brand:
         signals.append(make_signal(
@@ -331,9 +397,10 @@ def analyze_qr_risk(parsed_data, raw_text=""):
             f"UPI ID appears to impersonate '{spoofed_brand}' with slight spelling variation"
         ))
 
-    # ────────────────────────────────────────
+    # ────────────────────────────────────────────────────────────────────────
     # 7. GENERIC / SUPPORT-SOUNDING NAME
-    # ────────────────────────────────────────
+    # ────────────────────────────────────────────────────────────────────────
+    # Scammers label their accounts "Paytm Support" or "SBI Refund Team" to look official.
     GENERIC_NAMES = {
         "support", "help", "customer care", "customer service",
         "helpdesk", "care center", "refund team", "kyc team",
@@ -347,9 +414,10 @@ def analyze_qr_risk(parsed_data, raw_text=""):
             f"Payee name '{payee_name}' is a known scammer pattern"
         ))
 
-    # ────────────────────────────────────────
-    # 8. NOTE / PURPOSE ANALYSIS 🔥NEW
-    # ────────────────────────────────────────
+    # ────────────────────────────────────────────────────────────────────────
+    # 8. NOTE / PURPOSE ANALYSIS
+    # ────────────────────────────────────────────────────────────────────────
+    # Check transaction notes for terms that claim blockages or prompt PIN entries.
     SCAM_NOTE_PATTERNS = [
         "kyc update", "account verification", "otp", "pin",
         "bank blocked", "account blocked", "urgent payment",
@@ -365,11 +433,12 @@ def analyze_qr_risk(parsed_data, raw_text=""):
             ))
             break
 
-    # ────────────────────────────────────────
+    # ────────────────────────────────────────────────────────────────────────
     # FINAL SCORING
-    # ────────────────────────────────────────
+    # ────────────────────────────────────────────────────────────────────────
     total_score = sum(s["score"] for s in signals)
-    risk_score = min(int(total_score * 8), 100)  # Scale: 8x (more sensitive)
+    # Multiply score to map to risk percentage (more responsive than visual tamper aggregation)
+    risk_score = min(int(total_score * 8), 100)
 
     if risk_score >= 75:
         level = "CRITICAL"
@@ -382,13 +451,13 @@ def analyze_qr_risk(parsed_data, raw_text=""):
     else:
         level = "SAFE"
 
-    # Confidence (weighted)
+    # Compute weighted average confidence factor
     total_weight = sum(s["score"] for s in signals)
     weighted_conf = sum(s["score"] * s["confidence"] for s in signals)
     confidence = round((weighted_conf / total_weight), 2) if total_weight else 0.0
     confidence = min(confidence, 0.97)
 
-    # Fraud type classification
+    # Classify category taxonomic type based on primary warning trigger
     fraud_type = "Unknown"
     if any(s["type"] == "typosquat_brand" for s in signals):
         fraud_type = "Brand Spoofing"
@@ -401,7 +470,7 @@ def analyze_qr_risk(parsed_data, raw_text=""):
     elif level == "SAFE":
         fraud_type = "No Fraud Detected"
 
-    # ML Classifier check 🔥
+    # Query the ML probability model with all parsed text strings for added signal verification
     ml_probs = predict_scam_probabilities(combined)
     top_ml_category = max(ml_probs, key=ml_probs.get) if ml_probs else "unknown"
 
