@@ -84,6 +84,51 @@ Simple walkthrough tutorial details how SuRaksha intercepts fraud, checking VPAs
 
 ---
 
+## 🛡️ Core Platform Features
+
+SuRaksha leverages a multi-layered defense-in-depth architecture to intercept and neutralize UPI scams:
+
+1. **Real-time Image Forensics (Error Level Analysis - ELA)**
+   * Detects digital splicing and visual alterations (such as modified transaction amounts or dates) on receipts.
+   * Compresses uploads at 75% quality, calculates localized pixel difference ratios ($>25$), and amplifies changes by 18x to generate interactive, magnifier-supported heatmaps in the frontend.
+   * Identifies excessive sharpening variance ($>2000$ Laplacian variance) and block artifact quantization anomalies indicative of AI upscaling or text overlay edits.
+
+2. **Cryptographic QR Signing & Verification**
+   * Protects against physical QR sticker swapping at merchant locations.
+   * Enables verified stores to generate custom QR payloads cryptographically signed using the browser's WebCrypto API with a SHA-256 hash of payee name, VPA, and a secret merchant key.
+   * Back-end verification blocks payments if QR codes are unsigned or if signature validation fails, confirming QR integrity.
+
+3. **Multilingual NLP Threat Classification (English, Hindi, Bengali, Tamil, Telugu)**
+   * Scans transaction screenshots, copied text, and chat messages for high-frequency scam triggers.
+   * Matches urgent language and reward claims across five major Indian languages using Devanagari, Bengali, Tamil, Telugu, and English dictionaries.
+
+4. **Fuzzy Phrase Matching & Typosquat Detection**
+   * Uses Gestalt Pattern Matching (SequenceMatcher ratio $\ge 0.85$) inside a sliding word window to capture hidden scam keywords and typos.
+   * Compares the destination VPA prefix against common payment brands (GPay, Paytm, PhonePe, Bhim, SBI) to catch spelling spoof variations (e.g. `paytml@ybl` typosquatting `paytm`).
+
+5. **Merchant Name Mismatch Analysis**
+   * Correlates display names on invoices and shop boards with VPA prefixes.
+   * Combines token-based Jaccard similarity index ratios (order-invariant matching) with SequenceMatcher edit-distance metrics.
+   * Employs substring containment filters to prevent false positives for legitimately compressed names.
+
+6. **Zero-Disk In-Memory Processing**
+   * Processes all uploaded images entirely in Flask server RAM (`io.BytesIO`) using PIL and OpenCV.
+   * Sanitizes all files by rebuilding the raw image canvas (effectively stripping all EXIF metadata and hidden malicious payloads) without writing temporary files to disk, eliminating directory traversal vectors.
+
+7. **0ms Latency Local Cache Blacklist Intercept**
+   * Synchronizes user-reported fraud registry databases to the browser's `localStorage`.
+   * Intercepts matches locally before executing remote API fetches, providing instant block notifications even in offline or low-connectivity payment zones.
+
+8. **Asynchronous Non-Blocking ML Model Retraining**
+   * Offloads Naive Bayes model retraining (incorporating real-time user scam reports) to a background thread pool (`ThreadPoolExecutor`).
+   * Keeps API routes responsive by preventing the main Flask request loop from blocking on database-heavy ML compilations.
+
+9. **PyCharm Workspace & Shared Run Configurations**
+   * Provides full out-of-the-box PyCharm configuration files (.idea/ directories), excluding heavy virtual environments from indexing.
+   * Packages pre-configured shared Run Configurations for launching the Flask API server and running automated verification tests.
+
+---
+
 ## 🎨 Advanced Engineering Deep-Dive
 
 ### 1. Client-Side Cryptographic QR Signing
