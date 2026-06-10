@@ -1,14 +1,28 @@
-from flask import Blueprint, request, jsonify, current_app
-import uuid
-import time
+# backend/routes/qr.py
+"""Flask routing blueprint handling UPI QR code parsing and risk analysis."""
 
-# ✅ CREATE BLUEPRINT (FIX 1)
+import time
+import uuid
+from typing import Any, Dict, List, Tuple
+from urllib.parse import parse_qs, urlparse
+
+from flask import Blueprint, Response, current_app, jsonify, request
+
+# Create Blueprint
 qr_bp = Blueprint("qr", __name__)
 
-from urllib.parse import urlparse, parse_qs
 from services.qr_risk_analyzer import analyze_qr_risk
 
-def parse_upi_qr(qr_text):
+
+def parse_upi_qr(qr_text: str) -> Dict[str, List[str]]:
+    """Parses raw text scanned from a QR code, decoding standard UPI URI parameters.
+
+    Args:
+        qr_text: Scanned string content.
+
+    Returns:
+        Dict[str, List[str]]: Decoded URL query parameters (e.g., pa, pn, am, tn).
+    """
     try:
         url = urlparse(qr_text)
         params = parse_qs(url.query)
@@ -24,11 +38,26 @@ def parse_upi_qr(qr_text):
         return {}
 
 
+def error_response(message: str, status_code: int, request_id: str) -> Tuple[Response, int]:
+    """Generates standard JSON API error response payload."""
+    return jsonify({
+        "success": False,
+        "request_id": request_id,
+        "error": {
+            "message": message,
+            "code": status_code
+        }
+    }), status_code
+
+
 # -----------------------------------
 # ROUTE
 # -----------------------------------
 @qr_bp.route("/analyze/qr", methods=["POST"])
-def analyze_qr():
+def analyze_qr() -> Tuple[Response, int]:
+    """POST /analyze/qr
+    Analyzes scanned QR payload text, parses parameters, and computes dynamic risk scores.
+    """
     request_id = str(uuid.uuid4())
     start_time = time.time()
 
@@ -100,29 +129,17 @@ def analyze_qr():
 
     except Exception:
         current_app.logger.exception(f"[{request_id}] QR analysis failed")
-
         return error_response("Internal server error", 500, request_id)
-
-
-# -----------------------------------
-# HELPER
-# -----------------------------------
-def error_response(message, status_code, request_id):
-    return jsonify({
-        "success": False,
-        "request_id": request_id,
-        "error": {
-            "message": message,
-            "code": status_code
-        }
-    }), status_code
 
 
 # -----------------------------------
 # OFFLINE BLACKLIST SYNC ENDPOINT 🔥
 # -----------------------------------
 @qr_bp.route("/api/blacklist/sync", methods=["GET"])
-def get_blacklist_sync():
+def get_blacklist_sync() -> Tuple[Response, int]:
+    """GET /api/blacklist/sync
+    Returns all dynamically recorded threat VPAs for offline synchronization cache.
+    """
     try:
         from services.history_store import get_connection
         
@@ -150,6 +167,7 @@ def get_blacklist_sync():
             }), 200
             
     except Exception as e:
+        current_app.logger.error(f"Blacklist sync compilation query failed: {str(e)}")
         return jsonify({
             "success": False,
             "error": "Failed to query blacklist database"

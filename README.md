@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="frontend/assets/screenshots/logo.png" alt="SuRaksha Logo" width="160" height="160">
+</p>
+
 # 🛡️ SuRaksha – AI-Powered UPI Fraud Detection System
 
 🚀 Real-time fraud detection and security ecosystem designed to protect Indian UPI users from digital payment scams using dynamic machine learning, cryptographic verification, geolocated threat telemetry, and multi-lingual UI routing.
@@ -24,6 +28,30 @@ As UPI transactions grow exponentially in India, so does the sophistication of c
 ✔ **Cryptographic Merchant Registry**: Defend against sticker-swapping via VPA signatures.  
 ✔ **Live Geolocation Threat Ticker**: Poll active fraud hotspots across India.  
 ✔ **Dynamic Self-Learning ML Loop**: Retrain classification weights in real-time from user feedback.  
+
+---
+
+## 📸 Interface Showcase
+
+### 🖥️ Command Center Dashboard
+The main landing dashboard features a premium glassmorphic HUD telemetry, real-time cyber threats ticker, and interactive feature navigation.
+![Command Center Dashboard](frontend/assets/screenshots/hero_landing.png)
+
+### 🔍 Real-Time Threat Analysis & Reporting
+When a threat is scanned, the analysis engine generates an instant visual warning classifying the risk level (Low, Medium, or High Risk) with contextual explanations.
+![Threat Scan Analysis](frontend/assets/screenshots/threat_analysis.png)
+
+### 📷 Secure QR Scanner & Signer
+Integrates a live camera QR reader with a scanning laser animation and a SHA-256 client-side cryptographic QR generator for verified store credentials.
+![Secure QR Scanner & Generator](frontend/assets/screenshots/qr_scanner.png)
+
+### 🧪 Attack Vector Simulator Sandbox
+An interactive canvas allowing developers and security auditors to upload customized fake receipts or messages to simulate and verify AI classifications.
+![Attack Simulator Sandbox](frontend/assets/screenshots/attack_simulator.png)
+
+### 📈 Step-by-Step Security Pipeline
+Simple onboarding tutorial layout outlining how SuRaksha intercepts payment spoofing before PIN entries.
+![Workflow & Process](frontend/assets/screenshots/how_it_works.png)
 
 ---
 

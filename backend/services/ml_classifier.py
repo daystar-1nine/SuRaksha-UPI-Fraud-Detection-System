@@ -1,13 +1,15 @@
 # backend/services/ml_classifier.py
+"""Naive Bayes machine learning text classifier for categorizing suspicious payment messages."""
 
 import re
 import math
 from collections import defaultdict
+from typing import Dict, List, Set, Tuple
 
 # -------------------------------
 # TRAINING CORPUS (UPI SEC SCAM DATASET)
 # -------------------------------
-TRAINING_DATA = [
+TRAINING_DATA: List[Tuple[str, str]] = [
     # Category: cashback_reward
     ("Congratulations! You won Rs 50000 cashback from GPay lottery. Click link to receive to bank account.", "cashback_reward"),
     ("Dear customer, Rs 25000 reward cash is pending in your PhonePe wallet. Claim now.", "cashback_reward"),
@@ -48,26 +50,35 @@ TRAINING_DATA = [
     ("HDFC bank: Rs 800 debited for dining at Dominoes on 02-06-2026.", "safe_transaction")
 ]
 
-STOP_WORDS = {
+STOP_WORDS: Set[str] = {
     'is', 'the', 'a', 'to', 'and', 'of', 'in', 'your', 'for', 'from', 'has', 'have',
     'been', 'this', 'that', 'with', 'on', 'at', 'an', 'our', 'we', 'you', 'it', 'me',
     'my', 'will', 'was', 'were', 'be', 'by', 'as', 'but'
 }
 
-class NaiveBayesScamClassifier:
-    def __init__(self):
-        self.class_counts = defaultdict(int)
-        self.word_counts = defaultdict(lambda: defaultdict(int))
-        self.class_word_totals = defaultdict(int)
-        self.vocabulary = set()
-        self.total_docs = 0
 
-    def tokenize(self, text):
+class NaiveBayesScamClassifier:
+    """Naive Bayes text classifier mapping input strings to fraud vectors."""
+    
+    def __init__(self) -> None:
+        self.class_counts: Dict[str, int] = defaultdict(int)
+        self.word_counts: Dict[str, Dict[str, int]] = defaultdict(lambda: defaultdict(int))
+        self.class_word_totals: Dict[str, int] = defaultdict(int)
+        self.vocabulary: Set[str] = set()
+        self.total_docs: int = 0
+
+    def tokenize(self, text: str) -> List[str]:
+        """Cleans and extracts meaningful words from text, filtering stopwords."""
         words = re.findall(r'[a-zA-Z]+', text.lower())
         return [w for w in words if w not in STOP_WORDS and len(w) > 2]
 
-    def train(self, data):
-        self.total_docs = len(data)
+    def train(self, data: List[Tuple[str, str]]) -> None:
+        """Trains the Naive Bayes token frequency mapping lists.
+
+        Args:
+            data: List of tuples where entry is (text, category).
+        """
+        self.total_docs += len(data)
         for text, category in data:
             self.class_counts[category] += 1
             tokens = self.tokenize(text)
@@ -76,12 +87,23 @@ class NaiveBayesScamClassifier:
                 self.class_word_totals[category] += 1
                 self.vocabulary.add(token)
 
-    def classify(self, text):
+    def classify(self, text: str) -> Dict[str, float]:
+        """Computes probability vector for the categories.
+
+        Args:
+            text: Message body string to analyze.
+
+        Returns:
+            Dict[str, float]: Target class classification confidence percentages.
+        """
         tokens = self.tokenize(text)
         if not tokens or not self.class_counts:
-            return {c: 1.0 / len(self.class_counts) for c in self.class_counts} if self.class_counts else {"unknown": 1.0}
+            if self.class_counts:
+                equal_prob = 1.0 / len(self.class_counts)
+                return {c: equal_prob for c in self.class_counts}
+            return {"unknown": 1.0}
 
-        scores = {}
+        scores: Dict[str, float] = {}
         vocab_size = len(self.vocabulary)
 
         for category, count in self.class_counts.items():
@@ -103,10 +125,13 @@ class NaiveBayesScamClassifier:
         probabilities = {c: round(v / total_exp, 2) for c, v in exp_scores.items()}
         return probabilities
 
+
 # Global classifier instance
 _classifier = NaiveBayesScamClassifier()
 
-def retrain_model_from_db():
+
+def retrain_model_from_db() -> None:
+    """Reloads standard training data and appends SQLite feedback, updating active model."""
     global _classifier
     from services.history_store import get_reported_scams
     
@@ -120,6 +145,7 @@ def retrain_model_from_db():
         
     _classifier = new_classifier
 
+
 # Initialize and pre-train classifier from database on startup
 try:
     retrain_model_from_db()
@@ -127,5 +153,7 @@ except Exception:
     # Safe fallback if database is not initialized yet during load
     _classifier.train(TRAINING_DATA)
 
-def predict_scam_probabilities(text):
+
+def predict_scam_probabilities(text: str) -> Dict[str, float]:
+    """Exposes prediction interface on the active classifier instance."""
     return _classifier.classify(text)

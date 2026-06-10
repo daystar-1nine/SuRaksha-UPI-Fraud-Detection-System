@@ -1,8 +1,10 @@
 # backend/services/history_store.py
+"""SQLite persistent history store for UPI threats, complaints, and user feedback."""
 
 import sqlite3
 from contextlib import contextmanager
-from datetime import datetime
+from datetime import datetime, timezone
+from typing import Any, Dict, Generator, List, Tuple
 
 DB_PATH = "fraud_history.db"
 
@@ -11,7 +13,8 @@ DB_PATH = "fraud_history.db"
 # DB CONNECTION (SAFE 🔥)
 # -------------------------------
 @contextmanager
-def get_connection():
+def get_connection() -> Generator[sqlite3.Connection, None, None]:
+    """Provides a thread-safe context managed SQLite connection with automatic rollback."""
     conn = sqlite3.connect(DB_PATH)
     try:
         yield conn
@@ -26,7 +29,8 @@ def get_connection():
 # -------------------------------
 # INIT DATABASE
 # -------------------------------
-def init_db():
+def init_db() -> None:
+    """Initializes schema tables and indexes in the SQLite history database."""
     with get_connection() as conn:
         cursor = conn.cursor()
 
@@ -76,11 +80,18 @@ def init_db():
 # -------------------------------
 # SAVE CASE (OPTIMIZED 🔥)
 # -------------------------------
-def save_case(upi_ids, fraud_type, risk_level):
+def save_case(upi_ids: List[str], fraud_type: str | None, risk_level: str | None) -> None:
+    """Saves analyzed UPI threat records to the database history.
+
+    Args:
+        upi_ids: List of extracted UPI addresses.
+        fraud_type: Type of threat identified (e.g. Cashback Trap).
+        risk_level: Aggregated risk classification (e.g. HIGH, CRITICAL).
+    """
     if not upi_ids:
         return
 
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).isoformat()
 
     records = [
         (upi, fraud_type, risk_level, now)
@@ -99,7 +110,8 @@ def save_case(upi_ids, fraud_type, risk_level):
 # -------------------------------
 # GET UPI COUNT
 # -------------------------------
-def get_upi_count(upi):
+def get_upi_count(upi: str) -> int:
+    """Returns the total number of times a UPI address was flagged in the history."""
     with get_connection() as conn:
         cursor = conn.cursor()
 
@@ -114,7 +126,8 @@ def get_upi_count(upi):
 # -------------------------------
 # 🔥 NEW: GET RECENT CASES
 # -------------------------------
-def get_recent_cases(limit=10):
+def get_recent_cases(limit: int = 10) -> List[Tuple[str, str | None, str | None, str]]:
+    """Fetches the most recent threat events recorded in the system."""
     with get_connection() as conn:
         cursor = conn.cursor()
 
@@ -131,7 +144,8 @@ def get_recent_cases(limit=10):
 # -------------------------------
 # 🔥 NEW: GET HIGH-RISK UPIs
 # -------------------------------
-def get_high_risk_upis():
+def get_high_risk_upis() -> List[Tuple[str, int]]:
+    """Returns a list of high-risk blacklisted UPIs sorted by frequency."""
     with get_connection() as conn:
         cursor = conn.cursor()
 
@@ -150,25 +164,32 @@ def get_high_risk_upis():
 # -------------------------------
 # 🔥 SAVE USER COMPLAINT
 # -------------------------------
-def save_complaint(upi, description="", reporter_ip=""):
-    """Save a user-submitted fraud complaint"""
-    now = datetime.utcnow().isoformat()
+def save_complaint(upi: str, description: str = "", reporter_ip: str = "") -> None:
+    """Saves a user-submitted fraud complaint and adds the target address to history.
+
+    Args:
+        upi: Target UPI VPA reported.
+        description: Fraud details described by user.
+        reporter_ip: Remote address of reporter.
+    """
+    now = datetime.now(timezone.utc).isoformat()
+    clean_upi = upi.lower().strip()
     with get_connection() as conn:
         cursor = conn.cursor()
         cursor.execute("""
         INSERT INTO complaints (upi, description, reporter_ip, created_at)
         VALUES (?, ?, ?, ?)
-        """, (upi.lower().strip(), description[:500], reporter_ip, now))
+        """, (clean_upi, description[:500], reporter_ip, now))
 
     # Also record into history so it affects blacklist
-    save_case([upi.lower().strip()], "User Report", "HIGH")
+    save_case([clean_upi], "User Report", "HIGH")
 
 
 # -------------------------------
 # 🔥 GET PLATFORM STATS
 # -------------------------------
-def get_stats():
-    """Return aggregate stats for trust-building widget"""
+def get_stats() -> Dict[str, int]:
+    """Returns aggregated platform metrics for the trust stats bar."""
     with get_connection() as conn:
         cursor = conn.cursor()
 
@@ -201,8 +222,9 @@ def get_stats():
 # -------------------------------
 # SAVE REPORTED SCAM FOR TRAINING
 # -------------------------------
-def save_reported_scam(text, category):
-    now = datetime.utcnow().isoformat()
+def save_reported_scam(text: str, category: str) -> None:
+    """Persists reported fraud description snippet to feed Naive Bayes pipeline."""
+    now = datetime.now(timezone.utc).isoformat()
     with get_connection() as conn:
         cursor = conn.cursor()
         cursor.execute("""
@@ -214,7 +236,8 @@ def save_reported_scam(text, category):
 # -------------------------------
 # GET ALL REPORTED SCAMS FOR TRAINING
 # -------------------------------
-def get_reported_scams():
+def get_reported_scams() -> List[Tuple[str, str]]:
+    """Queries all historical user scam submissions for Naive Bayes reinforcement."""
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
