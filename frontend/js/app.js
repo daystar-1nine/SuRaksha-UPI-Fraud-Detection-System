@@ -12,12 +12,6 @@ let AppState = {
 
 let localBlacklist = [];
 
-let localTrustedMerchants = [
-    { upi: "sharmakirana@upi", name: "Sharma Kirana Store", secret: "SuRakshaShield2026" },
-    { upi: "starcafe@upi", name: "Star Cafe", secret: "SuRakshaShield2026" },
-    { upi: "arogyamedical@upi", name: "Arogya Pharmacy", secret: "SuRakshaShield2026" }
-];
-
 
 // -----------------------------
 // 🧠 UTILITIES
@@ -312,120 +306,7 @@ async function sendQR(text) {
     if (AppState.intent === "pay") {
         
         // 0ms LOCAL CRYPTOGRAPHIC TRUST & STICKER-TAMPERING INTERCEPTOR 🔒
-        if (text.startsWith("upi://pay")) {
-            const urlParams = new URLSearchParams(text.split("?")[1] || "");
-            const pa = urlParams.get("pa");
-            const pn = urlParams.get("pn");
-            const am = urlParams.get("am");
-            const sign = urlParams.get("sign");
-
-            if (pa) {
-                const matchedTrusted = localTrustedMerchants.find(m => m.upi.toLowerCase() === pa.toLowerCase());
-                
-                if (matchedTrusted) {
-                    if (!sign) {
-                        toggle($("loader"), false);
-                        const mockApiResponse = {
-                            success: true,
-                            data: {
-                                qr: { parsed: { pa: [pa], pn: [pn || matchedTrusted.name], am: [am || ""] } },
-                                analysis: {
-                                    risk_score: 95,
-                                    risk_level: "CRITICAL",
-                                    fraud_type: "Physical Sticker Tampering",
-                                    detected_action: "STREET QR SWAP BLOCK",
-                                    confidence: 0.98,
-                                    reasons: [
-                                        `CRITICAL ALERT: Physical sticker tampering detected.`,
-                                        `This VPA (${pa}) is a registered store but does NOT have a valid SuRaksha Cryptographic signature.`,
-                                        `Expected signed merchant credential but scanned raw VPA. Sticker has likely been swapped.`
-                                    ]
-                                }
-                            }
-                        };
-                        showResultPopup(mockApiResponse);
-                        return;
-                    }
-
-                    const expectedRaw = (pn || matchedTrusted.name).toLowerCase() + pa.toLowerCase() + matchedTrusted.secret;
-                    const expectedSign = await sha256(expectedRaw);
-
-                    if (sign !== expectedSign) {
-                        toggle($("loader"), false);
-                        const mockApiResponse = {
-                            success: true,
-                            data: {
-                                qr: { parsed: { pa: [pa], pn: [pn || matchedTrusted.name], am: [am || ""] } },
-                                analysis: {
-                                    risk_score: 98,
-                                    risk_level: "CRITICAL",
-                                    fraud_type: "Cryptographic Tampering Detected",
-                                    detected_action: "SPOOFED QR BOARD BLOCK",
-                                    confidence: 0.99,
-                                    reasons: [
-                                        `CRITICAL ALERT: The QR cryptographic signature failed verification.`,
-                                        `Merchant VPA or name has been modified since signature generation.`,
-                                        `Prevented execution of modified merchant pay instruction.`
-                                    ]
-                                }
-                            }
-                        };
-                        showResultPopup(mockApiResponse);
-                        return;
-                    } else {
-                        toggle($("loader"), false);
-                        const mockApiResponse = {
-                            success: true,
-                            data: {
-                                qr: { parsed: { pa: [pa], pn: [pn || matchedTrusted.name], am: [am || ""] } },
-                                analysis: {
-                                    risk_score: 0,
-                                    risk_level: "SAFE",
-                                    fraud_type: "Verified Merchant Shield",
-                                    detected_action: "SuRaksha Cryptographic Signature Validated",
-                                    confidence: 1.0,
-                                    reasons: [
-                                        `Cryptographic signature validated successfully.`,
-                                        `Store owner identity and VPA match registered credentials.`,
-                                        `100% Secure Transaction Shield active.`
-                                    ]
-                                }
-                            }
-                        };
-                        showResultPopup(mockApiResponse);
-                        showToast("✅ Trusted Store Identity Validated!", "success");
-                        return;
-                    }
-                } else if (sign) {
-                    const expectedRaw = (pn || "Recipient").toLowerCase() + pa.toLowerCase() + "SuRakshaShield2026";
-                    const expectedSign = await sha256(expectedRaw);
-                    
-                    if (sign === expectedSign) {
-                        toggle($("loader"), false);
-                        const mockApiResponse = {
-                            success: true,
-                            data: {
-                                qr: { parsed: { pa: [pa], pn: [pn || "Recipient"], am: [am || ""] } },
-                                analysis: {
-                                    risk_score: 0,
-                                    risk_level: "SAFE",
-                                    fraud_type: "Verified Merchant Shield",
-                                    detected_action: "SuRaksha Cryptographic Signature Validated",
-                                    confidence: 0.95,
-                                    reasons: [
-                                        `Cryptographic signature validated using default shared network key.`,
-                                        `Payload integrity confirmed. No tampering found.`
-                                    ]
-                                }
-                            }
-                        };
-                        showResultPopup(mockApiResponse);
-                        showToast("✅ Cryptographic Signature Valid!", "success");
-                        return;
-                    }
-                }
-            }
-        }
+        // (Moved to backend verification registry for security)
 
         const scannedUpi = extractUpiAddress(text);
         if (scannedUpi) {

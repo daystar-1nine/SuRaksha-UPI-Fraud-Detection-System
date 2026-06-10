@@ -15,7 +15,7 @@ DB_PATH = "fraud_history.db"
 @contextmanager
 def get_connection() -> Generator[sqlite3.Connection, None, None]:
     """Provides a thread-safe context managed SQLite connection with automatic rollback."""
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=20.0)
     try:
         yield conn
         conn.commit()

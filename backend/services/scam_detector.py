@@ -19,10 +19,18 @@ def similarity(a, b):
     return SequenceMatcher(None, a, b).ratio()
 
 
-def is_fuzzy_match(word, text_words, threshold=0.85):
-    for t in text_words:
-        if similarity(word, t) >= threshold:
+def is_fuzzy_match(keyword, text_words, threshold=0.85):
+    keyword_words = keyword.split()
+    n = len(keyword_words)
+
+    if n == 0 or len(text_words) < n:
+        return False
+
+    for i in range(len(text_words) - n + 1):
+        window_phrase = " ".join(text_words[i:i+n])
+        if similarity(keyword, window_phrase) >= threshold:
             return True
+
     return False
 
 

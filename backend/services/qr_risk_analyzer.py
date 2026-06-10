@@ -2,7 +2,9 @@
 
 import re
 import unicodedata
+import hashlib
 from services.ml_classifier import predict_scam_probabilities
+from utils.constants import TRUSTED_MERCHANTS
 
 
 # ────────────────────────────────────────
@@ -96,7 +98,7 @@ def detect_typosquat(upi_id):
 # ────────────────────────────────────────
 # MAIN FUNCTION
 # ────────────────────────────────────────
-def analyze_qr_risk(parsed_data):
+def analyze_qr_risk(parsed_data, raw_text=""):
     signals = []
 
     # ── Safe extraction ──
@@ -105,6 +107,27 @@ def analyze_qr_risk(parsed_data):
     note       = normalize((parsed_data.get("tn") or [""])[0])
     amount     = (parsed_data.get("am") or [""])[0]
     combined   = f"{upi_id} {payee_name} {note}"
+
+    # ────────────────────────────────────────
+    # -1. NON-UPI SCHEME / PHISHING REDIRECT CHECK 🔥
+    # ────────────────────────────────────────
+    if raw_text and "://" in raw_text and not raw_text.lower().startswith("upi://"):
+        signals.append(make_signal(
+            "malicious_web_redirect",
+            10,
+            0.99,
+            "QR code contains a non-UPI URL scheme (potential phishing web redirect)"
+        ))
+        return {
+            "risk_score": 100,
+            "risk_level": "CRITICAL",
+            "confidence": 0.99,
+            "suspicious": True,
+            "fraud_type": "Phishing Redirect",
+            "detected_action": "Immediate Block — Malicious web redirect detected",
+            "signals": signals,
+            "reasons": [s["reason"] for s in signals]
+        }
 
     # ────────────────────────────────────────
     # 0. DATABASE BLACKLIST CHECK 🔥 (FIRST)
@@ -129,6 +152,74 @@ def analyze_qr_risk(parsed_data):
             "signals": signals,
             "reasons": [s["reason"] for s in signals]
         }
+
+    # ────────────────────────────────────────
+    # 0.5. CRYPTOGRAPHIC SIGNATURE CHECK 🔒
+    # ────────────────────────────────────────
+    signature = (parsed_data.get("sign") or [""])[0].strip()
+
+    if upi_id in TRUSTED_MERCHANTS:
+        merchant_info = TRUSTED_MERCHANTS[upi_id]
+        expected_pn = payee_name or merchant_info["name"].lower()
+        expected_raw = f"{expected_pn.strip()}{upi_id.strip()}{merchant_info['secret']}"
+        expected_sign = hashlib.sha256(expected_raw.encode("utf-8")).hexdigest()
+
+        if not signature:
+            signals.append(make_signal(
+                "unsigned_trusted_merchant",
+                9.5,
+                0.98,
+                f"Physical sticker tampering detected: '{payee_name}' is a registered store but lacks a valid SuRaksha Cryptographic signature"
+            ))
+        elif signature != expected_sign:
+            signals.append(make_signal(
+                "spoofed_trusted_merchant",
+                9.8,
+                0.99,
+                f"Cryptographic signature verification failed: Merchant VPA or name has been modified"
+            ))
+        else:
+            signals.append(make_signal(
+                "verified_merchant_shield",
+                0.0,
+                1.0,
+                "Verified Merchant Shield active: Identity and integrity confirmed"
+            ))
+            return {
+                "risk_score": 0,
+                "risk_level": "SAFE",
+                "confidence": 1.0,
+                "suspicious": False,
+                "fraud_type": "Verified Merchant Shield",
+                "detected_action": "SuRaksha Cryptographic Signature Validated",
+                "signals": signals,
+                "reasons": [s["reason"] for s in signals]
+            }
+    elif signature:
+        # Check signature using default shared key
+        default_secret = "SuRakshaShield2026"
+        expected_pn = payee_name or "recipient"
+        expected_raw = f"{expected_pn.strip()}{upi_id.strip()}{default_secret}"
+        expected_sign = hashlib.sha256(expected_raw.encode("utf-8")).hexdigest()
+        
+        if signature == expected_sign:
+            signals.append(make_signal(
+                "verified_merchant_shield",
+                0.0,
+                0.95,
+                "Cryptographic signature validated using default shared network key"
+            ))
+            return {
+                "risk_score": 0,
+                "risk_level": "SAFE",
+                "confidence": 0.95,
+                "suspicious": False,
+                "fraud_type": "Verified Merchant Shield",
+                "detected_action": "SuRaksha Cryptographic Signature Validated",
+                "signals": signals,
+                "reasons": [s["reason"] for s in signals]
+            }
+
 
     # ────────────────────────────────────────
     # 1. MULTILINGUAL SUSPICIOUS TERMS

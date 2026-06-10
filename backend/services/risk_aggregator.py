@@ -1,4 +1,4 @@
-# backend/services/risk_aggregator.py
+from utils.constants import WEIGHTS
 
 def compute_weighted_risk(data):
     """
@@ -13,18 +13,6 @@ def compute_weighted_risk(data):
     }
     """
 
-    # -------------------------
-    # WEIGHTS (TUNED 🔥)
-    # -------------------------
-    WEIGHTS = {
-        "intent_mismatch": 0.30,
-        "keyword_score": 0.15,
-        "upi_pattern_score": 0.12,
-        "behavior_score": 0.12,
-        "name_mismatch_score": 0.18,
-        "tampering": 0.08,
-        "metadata": 0.05
-    }
 
     # -------------------------
     # NORMALIZATION HELPERS

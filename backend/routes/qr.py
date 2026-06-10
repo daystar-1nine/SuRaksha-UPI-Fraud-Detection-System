@@ -96,7 +96,7 @@ def analyze_qr() -> Tuple[Response, int]:
         # -------------------------------
         # 3. Risk Analysis
         # -------------------------------
-        risk_data = analyze_qr_risk(parsed_data)
+        risk_data = analyze_qr_risk(parsed_data, raw_text=qr_text)
 
         # -------------------------------
         # 4. Logging

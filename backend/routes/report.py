@@ -3,9 +3,11 @@
 from flask import Blueprint, request, jsonify
 import uuid
 import time
+from concurrent.futures import ThreadPoolExecutor
 from utils.limiter import limiter
 
 report_bp = Blueprint("report", __name__)
+executor = ThreadPoolExecutor(max_workers=1)
 
 
 # ────────────────────────────────────────
@@ -51,7 +53,8 @@ def submit_report():
             
             try:
                 save_reported_scam(description, best_cat)
-                retrain_model_from_db()
+                # Offload model training to a background thread to prevent request blocking
+                executor.submit(retrain_model_from_db)
             except Exception:
                 pass  # Ignore training failures so the main report flow works
 

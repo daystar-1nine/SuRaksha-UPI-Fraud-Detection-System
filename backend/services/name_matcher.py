@@ -57,6 +57,16 @@ def combined_similarity(name1, name2):
     tokens1 = tokenize(name1)
     tokens2 = tokenize(name2)
 
+    if not tokens1 or not tokens2:
+        return 0.0
+
+    str1 = "".join(tokens1)
+    str2 = "".join(tokens2)
+
+    # Substring containment check to prevent false mismatches (e.g. sharmakirana vs sharma kirana store)
+    if str1 in str2 or str2 in str1:
+        return 1.0
+
     token_score = token_similarity(tokens1, tokens2)
     fuzzy_score = fuzzy_similarity(" ".join(tokens1), " ".join(tokens2))
 

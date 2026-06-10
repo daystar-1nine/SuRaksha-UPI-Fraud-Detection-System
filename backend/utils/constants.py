@@ -24,13 +24,13 @@ RISK_THRESHOLDS = {
 # ⚖️ WEIGHT CONFIG (MASTER ENGINE)
 # -------------------------------
 WEIGHTS = {
-    "intent_mismatch": 40,
-    "keyword_score": 20,
-    "upi_pattern_score": 15,
-    "behavior_score": 15,
-    "name_mismatch_score": 25,
-    "tampering": 15,
-    "metadata": 10
+    "intent_mismatch": 0.30,
+    "keyword_score": 0.15,
+    "upi_pattern_score": 0.12,
+    "behavior_score": 0.12,
+    "name_mismatch_score": 0.18,
+    "tampering": 0.08,
+    "metadata": 0.05
 }
 
 
@@ -99,3 +99,13 @@ ENABLE_IMAGE_HASH_CHECK = True
 # -------------------------------
 DEBUG = True
 LOG_LEVEL = "INFO"
+
+
+# -------------------------------
+# 🔐 TRUSTED MERCHANT REGISTRY
+# -------------------------------
+TRUSTED_MERCHANTS = {
+    "sharmakirana@upi": {"name": "Sharma Kirana Store", "secret": "SuRakshaShield2026"},
+    "starcafe@upi": {"name": "Star Cafe", "secret": "SuRakshaShield2026"},
+    "arogyamedical@upi": {"name": "Arogya Pharmacy", "secret": "SuRakshaShield2026"}
+}
