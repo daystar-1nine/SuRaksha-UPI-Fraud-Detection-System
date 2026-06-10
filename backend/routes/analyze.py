@@ -157,7 +157,12 @@ def analyze_image():
         tamper_data = detect_image_tampering(opencv_img)
         extracted_text = extract_text(opencv_img, filename=filename)
 
-        result = run_fraud_analysis(extracted_text.get("text", ""), user_intent)
+        result = run_fraud_analysis(
+            extracted_text.get("text", ""),
+            user_intent,
+            tampering_score=tamper_data.get("risk_score", 0) / 100.0,
+            metadata_score=metadata_data.get("risk_score", 0) / 10.0
+        )
 
         repeat_counts = process_result(result)
 
@@ -200,6 +205,7 @@ def analyze_image():
 # MESSAGE ANALYSIS
 # -----------------------------------
 @analyze_bp.route("/analyze/message", methods=["POST"])
+@analyze_bp.route("/analyze/text", methods=["POST"])
 @analyze_bp.route("/analyze_text", methods=["POST"])
 @limiter.limit("60 per minute") # Configurable rate limit for text messages
 def analyze_message():

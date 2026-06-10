@@ -121,6 +121,12 @@ async function apiRequest(endpoint, body, isForm = false) {
         const res = await fetch(`${API_BASE}${endpoint}`, options);
 
         if (!res.ok) {
+            if (res.status === 429) {
+                const errorData = await res.json().catch(() => ({}));
+                const msg = errorData.error?.description || "Rate limit exceeded. Please try again later.";
+                showToast(`⏳ ${msg}`, "warning", 5000);
+                throw new Error("RATE_LIMIT_EXCEEDED");
+            }
             throw new Error(`HTTP Error: ${res.status}`);
         }
 
@@ -133,7 +139,9 @@ async function apiRequest(endpoint, body, isForm = false) {
         return data;
 
     } catch (err) {
-        showToast("⚠ Backend connection failed", "error");
+        if (err.message !== "RATE_LIMIT_EXCEEDED") {
+            showToast("⚠ Backend connection failed", "error");
+        }
         console.error("API ERROR:", err);
         throw err;
     }
@@ -197,7 +205,7 @@ async function analyzeImage() {
     const file = fileInput.files[0];
 
     if (!file) {
-        alert("Upload image first");
+        showToast("Upload image first", "warning");
         return;
     }
 
@@ -215,7 +223,9 @@ async function analyzeImage() {
 
     } catch (err) {
 
-        alert("Backend error");
+        if (err.message !== "RATE_LIMIT_EXCEEDED") {
+            showToast("Backend error during scan", "error");
+        }
         console.error(err);
 
     } finally {
@@ -1351,11 +1361,21 @@ function sendChatMessage() {
 
     setTimeout(async () => {
         try {
-            const res = await fetch(`${API_BASE}/analyze/message`, {
+            const res = await fetch(`${API_BASE}/analyze/text`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ text, intent: "pay" })
             });
+            if (!res.ok) {
+                if (res.status === 429) {
+                    const errorData = await res.json().catch(() => ({}));
+                    showToast(`⏳ ${errorData.error?.description || "Rate limit exceeded"}`, "warning", 5000);
+                    const typingEl = $(typingBubbleId);
+                    if (typingEl) typingEl.remove();
+                    return;
+                }
+                throw new Error(`HTTP ${res.status}`);
+            }
             const resData = await res.json();
             
             // Remove typing indicator
@@ -1784,11 +1804,19 @@ function showChatMessageScamModal(text) {
     showToast("Simulating NLP Threat Scan...", "warning");
     setTimeout(async () => {
         try {
-            const res = await fetch(`${API_BASE}/analyze/message`, {
+            const res = await fetch(`${API_BASE}/analyze/text`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ text, intent: "pay" })
             });
+            if (!res.ok) {
+                if (res.status === 429) {
+                    const errorData = await res.json().catch(() => ({}));
+                    showToast(`⏳ ${errorData.error?.description || "Rate limit exceeded"}`, "warning", 5000);
+                    return;
+                }
+                throw new Error(`HTTP ${res.status}`);
+            }
             const resData = await res.json();
             if (resData.success) {
                 showSandboxResultPopup(resData.data.analysis);

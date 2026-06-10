@@ -66,6 +66,24 @@ def compute_weighted_risk(data):
     risk_score = int(weighted_sum * 100)
 
     # -------------------------
+    # CRITICAL GATE OVERRIDES 🔥
+    # -------------------------
+    override_triggered = False
+    override_factor = None
+
+    tampering_val = data.get("tampering", 0.0)
+    metadata_val = data.get("metadata", 0.0)
+
+    if tampering_val >= 0.75:
+        risk_score = 99
+        override_triggered = True
+        override_factor = "tampering"
+    elif metadata_val >= 0.45:
+        risk_score = 95
+        override_triggered = True
+        override_factor = "metadata"
+
+    # -------------------------
     # RISK LEVELS
     # -------------------------
     if risk_score <= 20:
@@ -89,7 +107,10 @@ def compute_weighted_risk(data):
     # -------------------------
     # TOP FACTOR
     # -------------------------
-    top_factor = max(contributions, key=contributions.get) if contributions else None
+    if override_triggered:
+        top_factor = override_factor
+    else:
+        top_factor = max(contributions, key=contributions.get) if contributions else None
 
     return {
         "risk_score": risk_score,

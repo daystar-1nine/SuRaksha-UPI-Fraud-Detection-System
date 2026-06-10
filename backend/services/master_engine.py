@@ -36,7 +36,7 @@ def deduplicate_signals(signals):
 # -------------------------------
 # MAIN ENGINE
 # -------------------------------
-def run_fraud_analysis(text, user_intent=None):
+def run_fraud_analysis(text, user_intent=None, tampering_score=0.0, metadata_score=0.0):
     request_id = str(uuid.uuid4())
     start_time = time.time()
 
@@ -84,15 +84,15 @@ def run_fraud_analysis(text, user_intent=None):
     # 4. WEIGHTED RISK ENGINE
     # -------------------------------
     weighted_data = {
-        "intent_mismatch": int(
+        "intent_mismatch": 1 if (
             user_intent and detected_action and user_intent.lower() != detected_action.lower()
-        ),
+        ) else 0,
         "keyword_score": keyword_ai.get("risk_score", 0),
         "behavior_score": behavior.get("risk_score", 0),
         "upi_pattern_score": upi_pattern.get("risk_score", 0),
         "name_mismatch_score": name_match.get("risk_score", 0),
-        "tampering": 0,
-        "metadata": 0
+        "tampering": tampering_score,
+        "metadata": metadata_score
     }
 
     risk = compute_weighted_risk(weighted_data)
