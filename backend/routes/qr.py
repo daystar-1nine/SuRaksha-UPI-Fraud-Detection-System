@@ -12,6 +12,7 @@ from flask import Blueprint, Response, current_app, jsonify, request
 qr_bp = Blueprint("qr", __name__)
 
 from services.qr_risk_analyzer import analyze_qr_risk
+from utils.limiter import limiter
 
 
 def parse_upi_qr(qr_text: str) -> Dict[str, List[str]]:
@@ -54,6 +55,7 @@ def error_response(message: str, status_code: int, request_id: str) -> Tuple[Res
 # ROUTE
 # -----------------------------------
 @qr_bp.route("/analyze/qr", methods=["POST"])
+@limiter.limit("40 per minute") # Configurable relaxed rate limit for scans
 def analyze_qr() -> Tuple[Response, int]:
     """POST /analyze/qr
     Analyzes scanned QR payload text, parses parameters, and computes dynamic risk scores.

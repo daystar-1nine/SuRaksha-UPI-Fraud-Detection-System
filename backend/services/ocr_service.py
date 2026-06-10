@@ -90,18 +90,26 @@ def normalize_ocr_text(text):
 # -------------------------------
 # MAIN FUNCTION
 # -------------------------------
-def extract_text(image_path):
-    if not image_path or not os.path.exists(image_path):
-        return {
-            "text": "",
-            "confidence": 0.0,
-            "method": "invalid_path"
-        }
+def extract_text(image_path_or_arr, filename=None):
+    if isinstance(image_path_or_arr, np.ndarray):
+        image = image_path_or_arr
+        if not filename:
+            filename = "in_memory_file.png"
+    else:
+        if not image_path_or_arr or not os.path.exists(image_path_or_arr):
+            return {
+                "text": "",
+                "confidence": 0.0,
+                "method": "invalid_path"
+            }
+        image = cv2.imread(image_path_or_arr)
+        if not filename:
+            filename = os.path.basename(image_path_or_arr).lower()
 
-    image = cv2.imread(image_path)
+    filename = filename.lower()
 
     if image is None:
-        filename = os.path.basename(image_path).lower()
+        fallback_text = ""
         fallback_text = ""
         fallback_method = "read_error"
         fallback_conf = 0.0
@@ -183,7 +191,7 @@ def extract_text(image_path):
 
     if not best_text:
         # Smart Fallback for Hackathon Demos when OCR is not functional / missing tesseract
-        filename = os.path.basename(image_path).lower()
+        pass
         if "reward" in filename:
             best_text = "Urgent: You won a reward of Rs 50000 cashback! Click here to claim your cash award now. upi://pay?pa=scammer@ybl&pn=Reward%20Office&am=50000"
             best_method = "fallback_mock_reward"

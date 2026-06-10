@@ -26,12 +26,12 @@ EDITING_SOFTWARE = [
 # -------------------------------
 # MAIN FUNCTION
 # -------------------------------
-def check_metadata(image_path):
+def check_metadata(image_path_or_file):
     signals = []
     metadata = {}
 
     try:
-        image = Image.open(image_path)
+        image = Image.open(image_path_or_file)
 
         # ────────────────────────────────────────
         # PNG INFO CHUNKS SEARCH (TAMPER DETECT 🔥)

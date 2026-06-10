@@ -19,10 +19,13 @@ def make_signal(signal_type, score, confidence, reason):
 # -------------------------------
 # MAIN FUNCTION
 # -------------------------------
-def detect_image_tampering(image_path):
+def detect_image_tampering(image_path_or_arr):
     signals = []
 
-    image = cv2.imread(image_path)
+    if isinstance(image_path_or_arr, np.ndarray):
+        image = image_path_or_arr
+    else:
+        image = cv2.imread(image_path_or_arr)
 
     if image is None:
         return {

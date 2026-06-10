@@ -3,6 +3,7 @@
 from flask import Blueprint, request, jsonify
 import uuid
 import time
+from utils.limiter import limiter
 
 report_bp = Blueprint("report", __name__)
 
@@ -11,6 +12,7 @@ report_bp = Blueprint("report", __name__)
 # POST /api/report  — Submit fraud complaint
 # ────────────────────────────────────────
 @report_bp.route("/api/report", methods=["POST"])
+@limiter.limit("15 per minute") # Configurable relaxed rate limit for user reports
 def submit_report():
     request_id = str(uuid.uuid4())
 

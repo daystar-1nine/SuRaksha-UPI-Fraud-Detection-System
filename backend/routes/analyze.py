@@ -1,6 +1,10 @@
 import os
 import uuid
 import time
+import io
+import cv2
+import numpy as np
+from PIL import Image
 from werkzeug.utils import secure_filename
 from flask import Blueprint, request, jsonify, current_app
 
@@ -9,6 +13,7 @@ from services.metadata_checker import check_metadata
 from services.tamper_detector import detect_image_tampering
 from services.master_engine import run_fraud_analysis
 from services.history_store import save_case, get_upi_count
+from utils.limiter import limiter
 
 analyze_bp = Blueprint("analyze", __name__)
 
@@ -79,6 +84,7 @@ def process_result(result):
 # -----------------------------------
 @analyze_bp.route("/analyze/image", methods=["POST"])
 @analyze_bp.route("/analyze", methods=["POST"])
+@limiter.limit("40 per minute") # Configurable relaxed rate limit for scanning
 def analyze_image():
     request_id = str(uuid.uuid4())
     start_time = time.time()
@@ -114,20 +120,42 @@ def analyze_image():
             return error_response("File too large (max 5MB)", 413, request_id)
 
         # -------------------------------
-        # SAVE FILE
+        # IN-MEMORY PROCESSING (ZERO-DISK 🔥)
         # -------------------------------
-        os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+        image_bytes = file.read()
+        file.seek(0) # Reset stream position just in case
 
-        unique_name = f"{uuid.uuid4()}_{filename}"
-        filepath = os.path.join(UPLOAD_FOLDER, unique_name)
-        file.save(filepath)
+        # 1. Strip all metadata/EXIF headers by opening in PIL and re-saving
+        try:
+            pil_image = Image.open(io.BytesIO(image_bytes))
+            clean_canvas = Image.new("RGB", pil_image.size)
+            if pil_image.mode == "RGBA":
+                clean_canvas.paste(pil_image, mask=pil_image.split()[3])
+            else:
+                clean_canvas.paste(pil_image)
+            
+            clean_io = io.BytesIO()
+            clean_canvas.save(clean_io, format="JPEG", quality=95)
+            sanitized_bytes = clean_io.getvalue()
+        except Exception as e:
+            return error_response(f"Image sanitization failed: {str(e)}", 400, request_id)
+
+        # 2. Decode the sanitized bytes directly into an OpenCV numpy array
+        nparr = np.frombuffer(sanitized_bytes, np.uint8)
+        opencv_img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+
+        if opencv_img is None:
+            return error_response("Failed to decode sanitized image", 400, request_id)
+
+        # 3. For metadata check, keep the original bytes stream in memory
+        original_io = io.BytesIO(image_bytes)
 
         # -------------------------------
         # ANALYSIS PIPELINE
         # -------------------------------
-        metadata_data = check_metadata(filepath)
-        tamper_data = detect_image_tampering(filepath)
-        extracted_text = extract_text(filepath)
+        metadata_data = check_metadata(original_io)
+        tamper_data = detect_image_tampering(opencv_img)
+        extracted_text = extract_text(opencv_img, filename=filename)
 
         result = run_fraud_analysis(extracted_text.get("text", ""), user_intent)
 
@@ -173,6 +201,7 @@ def analyze_image():
 # -----------------------------------
 @analyze_bp.route("/analyze/message", methods=["POST"])
 @analyze_bp.route("/analyze_text", methods=["POST"])
+@limiter.limit("60 per minute") # Configurable rate limit for text messages
 def analyze_message():
     request_id = str(uuid.uuid4())
     start_time = time.time()
