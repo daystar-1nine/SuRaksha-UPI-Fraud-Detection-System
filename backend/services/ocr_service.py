@@ -32,8 +32,93 @@ LANGUAGES = "eng+hin+ben"
 
 
 # ----------------------------------------------------------------------
-# PREPROCESSING
+# PREPROCESSING & PERSPECTIVE WARPING
 # ----------------------------------------------------------------------
+def align_receipt(image):
+    """
+    Applies perspective warp to align and flatten receipt photos taken at angles.
+    
+    If a large 4-corner boundary (like a phone screen or paper receipt in a photo) 
+    is detected, we warp it to a flat, normalized view. If not detected, we return 
+    the original image.
+    """
+    orig = image.copy()
+    h, w = image.shape[:2]
+    if h == 0 or w == 0:
+        return orig
+
+    # Resize image to speed up contour processing and keep ratio
+    ratio = h / 500.0
+    img_resized = cv2.resize(image, (int(w / ratio), 500))
+    
+    # Preprocess for contour detection
+    gray = cv2.cvtColor(img_resized, cv2.COLOR_BGR2GRAY)
+    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+    
+    # Edge detection
+    edged = cv2.Canny(blurred, 75, 200)
+    
+    # Find contours
+    contours, _ = cv2.findContours(edged, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+    contours = sorted(contours, key=cv2.contourArea, reverse=True)[:5]
+    
+    screen_cnt = None
+    for c in contours:
+        # Approximate the contour
+        peri = cv2.arcLength(c, True)
+        approx = cv2.approxPolyDP(c, 0.02 * peri, True)
+        
+        # If the contour has 4 points, we found a potential rectangle
+        if len(approx) == 4:
+            # Check if the contour area is at least 15% of the resized image area
+            if cv2.contourArea(c) > (500 * (w / ratio) * 0.15):
+                screen_cnt = approx
+                break
+                
+    if screen_cnt is None:
+        return orig
+
+    # Rescale contour coordinates back to original image size
+    pts = screen_cnt.reshape(4, 2) * ratio
+    
+    # Order points: top-left, top-right, bottom-right, bottom-left
+    rect = np.zeros((4, 2), dtype="float32")
+    
+    s = pts.sum(axis=1)
+    rect[0] = pts[np.argmin(s)]
+    rect[2] = pts[np.argmax(s)]
+    
+    diff = np.diff(pts, axis=1)
+    rect[1] = pts[np.argmin(diff)]
+    rect[3] = pts[np.argmax(diff)]
+    
+    (tl, tr, br, bl) = rect
+    
+    # Compute width of new image
+    widthA = np.sqrt(((br[0] - bl[0]) ** 2) + ((br[1] - bl[1]) ** 2))
+    widthB = np.sqrt(((tr[0] - tl[0]) ** 2) + ((tr[1] - tl[1]) ** 2))
+    maxWidth = max(int(widthA), int(widthB))
+    
+    # Compute height of new image
+    heightA = np.sqrt(((tr[0] - br[0]) ** 2) + ((tr[1] - br[1]) ** 2))
+    heightB = np.sqrt(((tl[0] - bl[0]) ** 2) + ((tl[1] - bl[1]) ** 2))
+    maxHeight = max(int(heightA), int(heightB))
+    
+    # Destination points for perspective transform
+    dst = np.array([
+        [0, 0],
+        [maxWidth - 1, 0],
+        [maxWidth - 1, maxHeight - 1],
+        [0, maxHeight - 1]
+    ], dtype="float32")
+    
+    # Compute perspective transform matrix and warp image
+    M = cv2.getPerspectiveTransform(rect, dst)
+    warped = cv2.warpPerspective(orig, M, (maxWidth, maxHeight))
+    
+    return warped
+
+
 def preprocess_image(image):
     """
     Applies filters to prepare the pixel grid for OCR character segmentation.
@@ -164,6 +249,9 @@ def extract_text(image_path_or_arr, filename=None):
             "confidence": 0.0,
             "method": "read_error"
         }
+
+    # Apply OpenCV perspective alignment for skewed/rotated uploads
+    image = align_receipt(image)
 
     # ----------------------------------------------------------------------
     # STRATEGY 1: NORMAL PREPROCESS
