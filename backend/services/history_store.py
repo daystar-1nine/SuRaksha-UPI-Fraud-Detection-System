@@ -76,6 +76,51 @@ def init_db() -> None:
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_complaint_upi ON complaints (upi)")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_reported_scams_cat ON reported_scams (category)")
 
+        # UPI Directory for Safe/Unsafe categories
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS upi_directory (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            upi_id TEXT UNIQUE NOT NULL,
+            category TEXT NOT NULL,
+            subtype TEXT NOT NULL,
+            name TEXT NOT NULL,
+            description TEXT
+        )
+        """)
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_directory_upi ON upi_directory (upi_id)")
+
+        # Seed initial data for faculty demo
+        cursor.execute("SELECT COUNT(*) FROM upi_directory")
+        if cursor.fetchone()[0] == 0:
+            seeds = [
+                # Safe Business
+                ("sharmakirana@upi", "safe", "business", "Sharma Kirana Store", "Verified local grocery merchant"),
+                ("starcafe@upi", "safe", "business", "Star Cafe", "Verified food and beverage outlet"),
+                ("arogyamedical@upi", "safe", "business", "Arogya Pharmacy", "Verified healthcare pharmacy store"),
+                ("bookstore@paytm", "safe", "business", "Gyan Book Store", "Verified retail bookstore"),
+                ("supermart@okhdfcbank", "safe", "business", "Big Basket Supermart", "Verified grocery merchant"),
+                
+                # Safe Personal
+                ("surajsawant@okaxis", "safe", "personal", "Suraj Sawant", "Verified student account"),
+                ("facultyadmin@sbi", "safe", "personal", "College Faculty Advisor", "Verified academic advisor account"),
+                ("studentunion@icici", "safe", "personal", "Student Activity Fund", "Verified institutional group account"),
+                ("rahulsharma@ybl", "safe", "personal", "Rahul Sharma", "Verified personal account"),
+                ("priyasingh@okicici", "safe", "personal", "Priya Singh", "Verified personal account"),
+                
+                # Unsafe Fraud
+                ("scammer@ybl", "unsafe", "fraud", "Fake GPay Rewards Portal", "KYC phishing reward scam"),
+                ("prizeclaim@okaxis", "unsafe", "fraud", "KBC Lottery Center", "Fake lottery cashback sweepstakes"),
+                ("phishingtrap@okhdfcbank", "unsafe", "fraud", "Phishing Collect Request", "Unverified money collect pressure trap"),
+                
+                # Unsafe Criminal
+                ("electricitysupport@paytm", "unsafe", "criminal", "Fake Electricity Support", "Utility bill payment phishing desk"),
+                ("fakebillpay@sbi", "unsafe", "criminal", "SBI Bill Pay Spoof", "Typosquat bank portal redirect link")
+            ]
+            cursor.executemany("""
+            INSERT OR IGNORE INTO upi_directory (upi_id, category, subtype, name, description)
+            VALUES (?, ?, ?, ?, ?)
+            """, seeds)
+
 
 # -------------------------------
 # SAVE CASE (OPTIMIZED 🔥)
@@ -248,3 +293,33 @@ def get_reported_scams() -> List[Tuple[str, str]]:
     except sqlite3.OperationalError:
         # Table might not exist yet if database was not initialized
         return []
+
+
+# -------------------------------
+# LOOKUP UPI IN DIRECTORY
+# -------------------------------
+def lookup_upi_in_directory(upi_id: str) -> dict | None:
+    """Queries the custom upi_directory table for verified safe/unsafe statuses."""
+    if not upi_id:
+        return None
+    clean_upi = upi_id.lower().strip()
+    try:
+        with get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+            SELECT category, subtype, name, description
+            FROM upi_directory
+            WHERE upi_id = ?
+            """, (clean_upi,))
+            row = cursor.fetchone()
+            if row:
+                return {
+                    "upi_id": clean_upi,
+                    "category": row[0],
+                    "subtype": row[1],
+                    "name": row[2],
+                    "description": row[3]
+                }
+    except Exception:
+        pass
+    return None

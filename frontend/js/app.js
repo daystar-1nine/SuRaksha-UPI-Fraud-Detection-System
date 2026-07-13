@@ -620,6 +620,8 @@ document.addEventListener("DOMContentLoaded", () => {
         reader.readAsDataURL(file);
     });
 
+    $("profile-settings-btn")?.addEventListener("click", openProfileModal);
+    initProfile();
 });
 
 
@@ -1346,25 +1348,151 @@ function sendChatMessage() {
             }
 
             if (resData.success) {
-                const risk = resData.data.analysis;
-                const badgeColor = {
-                    CRITICAL: "text-red-400 bg-red-500/10 border-red-500/20",
-                    HIGH: "text-orange-400 bg-orange-500/10 border-orange-500/20",
-                    MEDIUM: "text-yellow-400 bg-yellow-500/10 border-yellow-500/20",
-                    LOW: "text-green-400 bg-green-500/10 border-green-500/20"
-                };
-                
-                const colorClass = badgeColor[risk.risk_level] || "text-gray-400 bg-white/5 border-white/10";
-                
-                // Highlight words dynamically in SuRaksha's response as well!
-                const rawReport = `🛡️ **SuRaksha Risk Diagnosis**: [${risk.risk_level}]\n` +
-                                  `• **Risk Rating**: ${risk.risk_score}/100\n` +
-                                  `• **Indicators**: ${(risk.reasons || []).join(" • ")}\n` +
-                                  `• **Verdict**: ${risk.risk_score >= 50 ? "🚫 High risk scam! Do not proceed." : "✅ Looks safe, verify sender details."}`;
-                
-                const highlightedReport = highlightScamKeywords(rawReport);
+                const analysis = resData.data.analysis;
+                const risk = analysis.risk;
+                const decision = analysis.decision;
+                const upiAnalysis = resData.data.upi_analysis || { upi_ids: [], suspicious: [], directory_info: {} };
+                const directoryInfo = upiAnalysis.directory_info || {};
 
-                appendChatBubble(highlightedReport, "system", null, colorClass);
+                // Determine styling and icons based on risk level
+                let badgeColor = "bg-green-500/10 text-green-400 border-green-500/20";
+                let progressColor = "bg-green-500";
+                let statusIcon = "check_circle";
+                let statusText = "Safe to Proceed";
+                let cardBorder = "border-green-500/30";
+
+                if (risk.risk_level === "CRITICAL") {
+                    badgeColor = "bg-red-500/10 text-red-400 border-red-500/20 animate-pulse";
+                    progressColor = "bg-red-500";
+                    statusIcon = "gpp_bad";
+                    statusText = "FRAUD DETECTED";
+                    cardBorder = "border-red-500/40 shadow-red-950/10";
+                } else if (risk.risk_level === "HIGH") {
+                    badgeColor = "bg-orange-500/10 text-orange-400 border-orange-500/20";
+                    progressColor = "bg-orange-500";
+                    statusIcon = "warning";
+                    statusText = "HIGH RISK";
+                    cardBorder = "border-orange-500/30";
+                } else if (risk.risk_level === "MEDIUM") {
+                    badgeColor = "bg-yellow-500/10 text-yellow-400 border-yellow-500/20";
+                    progressColor = "bg-yellow-500";
+                    statusIcon = "info";
+                    statusText = "SUSPICIOUS";
+                    cardBorder = "border-yellow-500/30";
+                }
+
+                // Render VPA checks
+                let upiHtml = "";
+                if (upiAnalysis.upi_ids && upiAnalysis.upi_ids.length > 0) {
+                    upiHtml += `
+                    <div class="mt-3 border-t border-white/5 pt-2">
+                        <span class="text-[9px] font-bold text-white/40 block mb-1 uppercase tracking-wider">UPI Registry Verification</span>
+                        <div class="space-y-1.5">
+                    `;
+                    for (const upi of upiAnalysis.upi_ids) {
+                        const dir = directoryInfo[upi];
+                        if (dir) {
+                            if (dir.category === "unsafe") {
+                                upiHtml += `
+                                <div class="bg-red-950/20 border border-red-900/30 rounded-lg p-2 flex flex-col gap-0.5">
+                                    <div class="flex justify-between items-center">
+                                        <span class="font-mono text-[9px] font-semibold text-red-400 break-all select-all">${upi}</span>
+                                        <span class="text-[8px] bg-red-500/20 text-red-400 px-1 py-0.5 rounded border border-red-500/30 font-bold uppercase tracking-wider">Blocked</span>
+                                    </div>
+                                    <span class="text-[9px] text-white/80 font-bold mt-0.5">${dir.name}</span>
+                                    <span class="text-[8px] text-white/50 leading-tight">${dir.description}</span>
+                                </div>
+                                `;
+                            } else {
+                                upiHtml += `
+                                <div class="bg-emerald-950/10 border border-emerald-900/20 rounded-lg p-2 flex flex-col gap-0.5">
+                                    <div class="flex justify-between items-center">
+                                        <span class="font-mono text-[9px] font-semibold text-emerald-400 break-all select-all">${upi}</span>
+                                        <span class="text-[8px] bg-emerald-500/20 text-emerald-400 px-1 py-0.5 rounded border border-emerald-500/30 font-bold uppercase tracking-wider flex items-center gap-0.5"><span class="material-symbols-outlined text-[8px]">verified</span>Verified</span>
+                                    </div>
+                                    <span class="text-[9px] text-white/80 font-bold mt-0.5">${dir.name} (${dir.subtype})</span>
+                                    <span class="text-[8px] text-white/50 leading-tight">${dir.description}</span>
+                                </div>
+                                `;
+                            }
+                        } else {
+                            // Standard unlisted
+                            const isSuspicious = upiAnalysis.suspicious && upiAnalysis.suspicious.includes(upi);
+                            const badge = isSuspicious 
+                                ? `<span class="text-[8px] bg-yellow-500/10 text-yellow-400 px-1 py-0.5 rounded border border-yellow-500/20 font-bold uppercase tracking-wider">Unverified</span>`
+                                : `<span class="text-[8px] bg-white/5 text-white/50 px-1 py-0.5 rounded border border-white/10 font-bold uppercase tracking-wider">Unlisted</span>`;
+                            
+                            upiHtml += `
+                            <div class="bg-slate-900/50 border border-white/5 rounded-lg p-2 flex justify-between items-center">
+                                <span class="font-mono text-[9px] text-white/60 break-all select-all">${upi}</span>
+                                ${badge}
+                            </div>
+                            `;
+                        }
+                    }
+                    upiHtml += `</div></div>`;
+                }
+
+                // Render threat indicators list
+                let reasonsHtml = "";
+                const reasonsList = analysis.analysis.reasons || [];
+                if (reasonsList.length > 0) {
+                    reasonsHtml = `
+                    <div class="mt-3 border-t border-white/5 pt-2 text-left">
+                        <span class="text-[9px] font-bold text-white/40 block mb-1 uppercase tracking-wider">Risk Indicators</span>
+                        <ul class="space-y-1 text-[9px] text-white/70">
+                            ${reasonsList.map(r => `<li class="flex items-start gap-1"><span class="text-primary mt-0.5">•</span><span>${r}</span></li>`).join("")}
+                        </ul>
+                    </div>
+                    `;
+                }
+
+                // Compile final report card HTML
+                const reportCardHtml = `
+                <div class="flex flex-col gap-2 p-1.5 w-full text-left">
+                    <!-- Header -->
+                    <div class="flex items-center justify-between pb-2 border-b border-white/5">
+                        <div class="flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-sm ${risk.risk_level === 'SAFE' ? 'text-emerald-400' : 'text-red-400'}">${statusIcon}</span>
+                            <span class="font-bold text-[10px] tracking-wide text-white">${statusText}</span>
+                        </div>
+                        <span class="text-[8px] px-1.5 py-0.5 border rounded-md uppercase font-bold tracking-wider ${badgeColor}">${risk.risk_level}</span>
+                    </div>
+
+                    <!-- Risk Gauge -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-[9px]">
+                            <span class="text-white/40">Aggregated Threat Rating</span>
+                            <span class="font-bold text-white">${risk.risk_score}/100</span>
+                        </div>
+                        <div class="w-full bg-white/5 rounded-full h-1.5 overflow-hidden">
+                            <div class="${progressColor} h-full transition-all duration-500" style="width: ${risk.risk_score}%"></div>
+                        </div>
+                    </div>
+
+                    <!-- ML Probability -->
+                    <div class="flex justify-between text-[9px] py-1 border-b border-white/5">
+                        <span class="text-white/40">Classifier Category</span>
+                        <span class="font-mono text-white/80 font-bold">${analysis.ml_analysis?.top_category?.toUpperCase() || 'UNKNOWN'}</span>
+                    </div>
+
+                    <!-- Reasons -->
+                    ${reasonsHtml}
+
+                    <!-- UPI Verification -->
+                    ${upiHtml}
+
+                    <!-- Verdict Block -->
+                    <div class="mt-2 p-2.5 rounded-xl text-[9px] font-semibold leading-relaxed border ${risk.risk_score >= 50 ? 'bg-red-950/20 border-red-500/20 text-red-300' : 'bg-emerald-950/10 border-emerald-500/20 text-emerald-300'}">
+                        ${risk.risk_score >= 50 
+                            ? '🚫 <strong>Block Transfer</strong>: SuRaksha analysis recommends blocking this receiver. Proceeding may result in loss.' 
+                            : '✅ <strong>Verified Safe</strong>: No anomalies detected. Trust certificate validated.'
+                        }
+                    </div>
+                </div>
+                `;
+
+                appendChatBubble(reportCardHtml, "system", null, cardBorder);
             } else {
                 throw new Error("Diagnosis failed");
             }
@@ -1400,10 +1528,15 @@ function appendChatBubble(text, sender, id = null, extraClass = "") {
 
     bubble.className = baseStyle + senderStyle;
     
-    // Handle Markdown newlines and basic list bolding
-    bubble.innerHTML = text
-        .replace(/\n/g, "<br>")
-        .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+    // Check if the input is pre-formatted HTML card
+    if (text.trim().startsWith("<")) {
+        bubble.innerHTML = text;
+    } else {
+        // Handle Markdown newlines and basic list bolding
+        bubble.innerHTML = text
+            .replace(/\n/g, "<br>")
+            .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+    }
 
     chatWin.appendChild(bubble);
     chatWin.scrollTop = chatWin.scrollHeight;
@@ -1942,6 +2075,16 @@ async function generateSecureStoreQr() {
     const name = $("secMerchantName").value.trim();
     const vpa = $("secMerchantVpa").value.trim();
     const secret = $("secSecretKey").value.trim();
+    let limitAmount = parseFloat($("secAmountLimit")?.value) || 100;
+
+    if (limitAmount > 100) {
+        limitAmount = 100;
+        if ($("secAmountLimit")) $("secAmountLimit").value = 100;
+    }
+    if (limitAmount < 1) {
+        limitAmount = 1;
+        if ($("secAmountLimit")) $("secAmountLimit").value = 1;
+    }
 
     if (!name || !vpa) {
         showToast("Please enter Merchant Name and UPI VPA", "warning");
@@ -1953,8 +2096,8 @@ async function generateSecureStoreQr() {
         const rawPayload = name.toLowerCase() + vpa.toLowerCase() + secret;
         const signature = await sha256(rawPayload);
 
-        // upi://pay?pa=VPA&pn=Name&am=100&sign=SIGNATURE
-        const upiPayPayload = `upi://pay?pa=${encodeURIComponent(vpa)}&pn=${encodeURIComponent(name)}&am=100&sign=${signature}&cu=INR&tn=SuRaksha%20Verified`;
+        // upi://pay?pa=VPA&pn=Name&am=LIMIT&sign=SIGNATURE
+        const upiPayPayload = `upi://pay?pa=${encodeURIComponent(vpa)}&pn=${encodeURIComponent(name)}&am=${limitAmount}&sign=${signature}&cu=INR&tn=SuRaksha%20Verified`;
 
         // Render QR code using qrserver API
         const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(upiPayPayload)}`;
@@ -2026,7 +2169,10 @@ const socCities = [
     { id: "mumbai", name: "Mumbai", elementId: "node-mumbai" },
     { id: "bengaluru", name: "Bengaluru", elementId: "node-bengaluru" },
     { id: "hyderabad", name: "Hyderabad", elementId: "node-hyderabad" },
-    { id: "kolkata", name: "Kolkata", elementId: "node-kolkata" }
+    { id: "kolkata", name: "Kolkata", elementId: "node-kolkata" },
+    { id: "jamtara", name: "Jamtara", elementId: "node-jamtara" },
+    { id: "nuh", name: "Nuh / Mewat", elementId: "node-nuh" },
+    { id: "bharatpur", name: "Bharatpur", elementId: "node-bharatpur" }
 ];
 
 const mockThreatVpas = [
@@ -2104,6 +2250,97 @@ async function updateSocThreatFeed() {
     } catch (e) {
         // Fallback silently if API base or network is offline
     }
+}
+
+
+// ----------------------------------------------------------------------
+// 👤 USER PROFILE CONTROLLER
+// ----------------------------------------------------------------------
+function initProfile() {
+    const name = localStorage.getItem("profile_name") || "Suraj Sawant";
+    const vpa = localStorage.getItem("profile_vpa") || "9168772121@mbk";
+    const photo = localStorage.getItem("profile_photo");
+
+    // Pre-populate modal form inputs
+    if ($("profileDisplayName")) $("profileDisplayName").value = name;
+    if ($("profileUpiId")) $("profileUpiId").value = vpa;
+
+    // Update navbar and modal preview
+    if (photo) {
+        if ($("navbar-profile-img")) {
+            $("navbar-profile-img").src = photo;
+            $("navbar-profile-img").classList.remove("hidden");
+        }
+        if ($("navbar-profile-icon")) $("navbar-profile-icon").classList.add("hidden");
+        
+        if ($("profile-modal-preview-img")) {
+            $("profile-modal-preview-img").src = photo;
+            $("profile-modal-preview-img").classList.remove("hidden");
+        }
+        if ($("profile-modal-preview-icon")) $("profile-modal-preview-icon").classList.add("hidden");
+    } else {
+        if ($("navbar-profile-img")) $("navbar-profile-img").classList.add("hidden");
+        if ($("navbar-profile-icon")) $("navbar-profile-icon").classList.remove("hidden");
+        if ($("profile-modal-preview-img")) $("profile-modal-preview-img").classList.add("hidden");
+        if ($("profile-modal-preview-icon")) $("profile-modal-preview-icon").classList.remove("hidden");
+    }
+
+    // Update Receive QR UI
+    if ($("receiveQRNameText")) $("receiveQRNameText").innerText = "Name: " + name;
+    if ($("receiveQRUpiText")) $("receiveQRUpiText").innerText = "UPI: " + vpa;
+    if ($("receiveQRImg")) {
+        const payload = `upi://pay?pa=${encodeURIComponent(vpa)}&pn=${encodeURIComponent(name)}&cu=INR&tn=SuRaksha%20Verified`;
+        $("receiveQRImg").src = `https://api.qrserver.com/v1/create-qr-code/?size=256x256&data=${encodeURIComponent(payload)}`;
+    }
+}
+
+function openProfileModal() {
+    initProfile();
+    toggle($("profileSettingsModal"), true);
+}
+
+function closeProfileModal() {
+    toggle($("profileSettingsModal"), false);
+}
+
+function handleProfilePhotoUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const photoData = e.target.result;
+        // Update modal preview immediately
+        if ($("profile-modal-preview-img")) {
+            $("profile-modal-preview-img").src = photoData;
+            $("profile-modal-preview-img").classList.remove("hidden");
+        }
+        if ($("profile-modal-preview-icon")) $("profile-modal-preview-icon").classList.add("hidden");
+        // Store temporarily in memory or dataset
+        $("profileSettingsModal").dataset.uploadedPhoto = photoData;
+    };
+    reader.readAsDataURL(file);
+}
+
+function saveUserProfile() {
+    const name = $("profileDisplayName").value.trim();
+    const vpa = $("profileUpiId").value.trim();
+    const photo = $("profileSettingsModal").dataset.uploadedPhoto;
+
+    if (!name || !vpa) {
+        showToast("Please enter both display name and UPI VPA", "warning");
+        return;
+    }
+
+    localStorage.setItem("profile_name", name);
+    localStorage.setItem("profile_vpa", vpa);
+    if (photo) {
+        localStorage.setItem("profile_photo", photo);
+    }
+
+    closeProfileModal();
+    initProfile();
+    showToast("👤 Profile settings saved successfully!", "success", 3000);
 }
 
 

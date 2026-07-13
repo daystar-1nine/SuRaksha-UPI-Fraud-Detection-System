@@ -176,6 +176,47 @@ def analyze_qr_risk(parsed_data, raw_text=""):
             "reasons": [s["reason"] for s in signals]
         }
 
+    # 0. DIRECTORY REGISTRY CHECK 🔥
+    # ────────────────────────────────────────────────────────────────────────
+    from services.history_store import lookup_upi_in_directory
+    
+    dir_info = lookup_upi_in_directory(upi_id) if upi_id else None
+    if dir_info:
+        if dir_info["category"] == "unsafe":
+            signals.append(make_signal(
+                "directory_blacklist",
+                10,
+                0.99,
+                f"Blacklisted {dir_info['subtype'].upper()} VPA: Flagged as suspicious ({dir_info['name']} - {dir_info['description']})"
+            ))
+            return {
+                "risk_score": 100,
+                "risk_level": "CRITICAL",
+                "confidence": 0.99,
+                "suspicious": True,
+                "fraud_type": f"Criminal / {dir_info['subtype'].capitalize()}",
+                "detected_action": "Immediate Block — Listed in National Cyber Fraud Registry",
+                "signals": signals,
+                "reasons": [s["reason"] for s in signals]
+            }
+        elif dir_info["category"] == "safe":
+            signals.append(make_signal(
+                "directory_whitelist",
+                0.0,
+                1.0,
+                f"Verified Safe {dir_info['subtype'].capitalize()} VPA: {dir_info['name']} ({dir_info['description']})"
+            ))
+            return {
+                "risk_score": 0,
+                "risk_level": "SAFE",
+                "confidence": 1.0,
+                "suspicious": False,
+                "fraud_type": f"Verified {dir_info['subtype'].capitalize()}",
+                "detected_action": "Safe to Proceed — Trust Certificate Active",
+                "signals": signals,
+                "reasons": [s["reason"] for s in signals]
+            }
+
     # ────────────────────────────────────────────────────────────────────────
     # 0. DATABASE BLACKLIST CHECK 🔥
     # 

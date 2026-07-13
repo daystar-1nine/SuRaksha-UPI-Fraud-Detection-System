@@ -126,7 +126,10 @@ HOTSPOTS = [
     {"city": "Mumbai", "lat": 19.0760, "lon": 72.8777},
     {"city": "Bengaluru", "lat": 12.9716, "lon": 77.5946},
     {"city": "Hyderabad", "lat": 17.3850, "lon": 78.4867},
-    {"city": "Kolkata", "lat": 22.5726, "lon": 88.3639}
+    {"city": "Kolkata", "lat": 22.5726, "lon": 88.3639},
+    {"city": "Jamtara", "lat": 23.9620, "lon": 86.8016},
+    {"city": "Nuh / Mewat", "lat": 28.1130, "lon": 77.0150},
+    {"city": "Bharatpur", "lat": 27.2152, "lon": 77.4895}
 ]
 
 @report_bp.route("/api/soc/threats", methods=["GET"])

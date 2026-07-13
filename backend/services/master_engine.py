@@ -92,6 +92,24 @@ def run_fraud_analysis(text, user_intent=None, tampering_score=0.0, metadata_sco
     # Check if any extracted UPI handles match known phishing templates or patterns
     suspicious_upi = detect_suspicious_upi(upi_ids)
 
+    # Check safe/unsafe directory blacklist/whitelist
+    from services.history_store import lookup_upi_in_directory
+    directory_info = {}
+    has_unsafe = False
+    has_safe = False
+    unsafe_match = None
+    safe_match = None
+    for upi in upi_ids:
+        info = lookup_upi_in_directory(upi)
+        if info:
+            directory_info[upi] = info
+            if info["category"] == "unsafe":
+                has_unsafe = True
+                unsafe_match = info
+            elif info["category"] == "safe":
+                has_safe = True
+                safe_match = info
+
     # Search OCR text against database of known fraud phrases and high-frequency keywords
     scan_data = detect_scam_keywords(text)
     keywords = scan_data.get("keywords", [])
@@ -179,10 +197,22 @@ def run_fraud_analysis(text, user_intent=None, tampering_score=0.0, metadata_sco
     unique_reasons = list(dict.fromkeys(all_reasons))
 
     # ----------------------------------------------------------------------
-    # 8. TOP RISK FACTOR
+    # 8. TOP RISK FACTOR & DIRECTORY OVERRIDES
     # ----------------------------------------------------------------------
     # Find the feature that contributed the highest raw score to help target UI alerts
     top_risk_factor = max(weighted_data, key=weighted_data.get)
+
+    # Apply database directory overrides
+    if has_unsafe and unsafe_match:
+        risk["risk_score"] = 100
+        risk["risk_level"] = "CRITICAL"
+        top_risk_factor = "directory_blacklist"
+        unique_reasons.insert(0, f"Blacklisted {unsafe_match['subtype'].upper()} VPA: Flagged as suspicious ({unsafe_match['name']} - {unsafe_match['description']})")
+    elif has_safe and safe_match and not has_unsafe:
+        risk["risk_score"] = 0
+        risk["risk_level"] = "SAFE"
+        top_risk_factor = "directory_whitelist"
+        unique_reasons.insert(0, f"Verified Safe {safe_match['subtype'].capitalize()} VPA: {safe_match['name']} ({safe_match['description']})")
 
     # ----------------------------------------------------------------------
     # 9. ALERT SYSTEM
@@ -258,7 +288,8 @@ def run_fraud_analysis(text, user_intent=None, tampering_score=0.0, metadata_sco
 
         "upi_analysis": {
             "upi_ids": upi_ids,
-            "suspicious": suspicious_upi
+            "suspicious": suspicious_upi,
+            "directory_info": directory_info
         },
 
         "keywords": keywords,
