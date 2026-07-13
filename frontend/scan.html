@@ -260,6 +260,13 @@
         .animate-radar-grow {
             animation: radarGrow 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
         }
+
+        /* ── HTML5 QR Scanner Video Alignment Fix ── */
+        #reader video {
+            object-fit: cover !important;
+            width: 100% !important;
+            height: 100% !important;
+        }
 </style>
 </head>
 <body class="bg-background text-on-surface font-body-md selection:bg-primary-container selection:text-on-primary-container">

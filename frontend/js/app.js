@@ -258,8 +258,33 @@ async function startScanner() {
     AppState.scanner = new Html5Qrcode("reader");
     AppState.scanning = true;
     try {
+        // Query available cameras to explicitly request the rear/back-facing lens
+        let cameraConstraint = { facingMode: "environment" };
+        try {
+            const devices = await Html5Qrcode.getCameras();
+            if (devices && devices.length > 0) {
+                // Find primary back-facing lens matching labels
+                const backCamera = devices.find(device => 
+                    device.label.toLowerCase().includes("back") || 
+                    device.label.toLowerCase().includes("rear") || 
+                    device.label.toLowerCase().includes("environment") ||
+                    device.label.toLowerCase().includes("camera 0")
+                );
+                if (backCamera) {
+                    cameraConstraint = backCamera.id;
+                    console.log("Using back camera:", backCamera.label);
+                } else {
+                    // Default to the last listed camera (often rear camera on multi-cam units)
+                    cameraConstraint = devices[devices.length - 1].id;
+                    console.log("No back camera label match. Defaulting to last camera:", devices[devices.length - 1].label);
+                }
+            }
+        } catch (e) {
+            console.warn("Unable to query camera list, falling back to facingMode constraint:", e);
+        }
+
         await AppState.scanner.start(
-            { facingMode: "environment" },
+            cameraConstraint,
             { fps: 10, qrbox: 250 },
             async (text) => {
                 stopScanner();
