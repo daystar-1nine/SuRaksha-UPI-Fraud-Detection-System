@@ -205,44 +205,39 @@ To prevent automated DDoS spam and **Machine Learning Data Poisoning** (where at
 
 ```text
 SuRaksha/
-├── backend/
-│   ├── routes/
-│   │   ├── analyze.py         # In-memory image verification, ELA & OCR routes
-│   │   ├── health.py          # API status checks
-│   │   ├── qr.py              # QR parsing, limiter & blacklist sync routes
-│   │   └── report.py          # Complaints, stats & threat map feeds
-│   ├── services/
-│   │   ├── history_store.py   # SQLite connection manager & migrations
-│   │   ├── ml_classifier.py   # TF-IDF + Naive Bayes training loop
-│   │   ├── ocr_service.py     # Tesseract OCR parser
-│   │   ├── tamper_detector.py # OpenCV Edge, Laplacian & ELA checkers
-│   │   ├── qr_risk_analyzer.py# VPA verification and domain checks
-│   │   └── master_engine.py   # Pipeline aggregator and scoring
-│   ├── utils/
-│   │   ├── limiter.py         # Shared Flask-Limiter configuration
-│   │   └── constants.py       # Global constants & VPA registries
-│   ├── fraud_history.db       # SQLite3 relational database
-│   ├── requirements.txt       # Python dependencies (includes Flask-Limiter)
-│   └── app.py                 # Flask server & JSON HTTP 429 error handlers
+├── backend/                  # Python Flask API Backend
+│   ├── routes/               # API endpoint routers (analyze, qr, report)
+│   │   ├── analyze.py
+│   │   ├── health.py
+│   │   ├── qr.py
+│   │   └── report.py
+│   ├── services/             # Heuristic engines (tamper, OCR, NLP, ML)
+│   │   ├── history_store.py
+│   │   ├── ml_classifier.py
+│   │   ├── ocr_service.py
+│   │   ├── tamper_detector.py
+│   │   ├── qr_risk_analyzer.py
+│   │   └── master_engine.py
+│   ├── utils/                # Shared settings and constants
+│   │   ├── limiter.py
+│   │   └── constants.py
+│   ├── fraud_history.db       # SQLite3 database
+│   ├── requirements.txt      # Backend Python dependencies
+│   └── app.py                # Flask main runner
 │
-├── frontend/
-│   ├── index.html             # Command Center Dashboard (Features & How It Works integrated)
-│   ├── scan.html              # Camera QR Scanner, Cryptographic QR Generator & SOC Map
-│   ├── test.html              # Interactive Attack Vector Sandbox
-│   ├── about.html             # Team showcase & quick simulator
-│   ├── profile.html           # User profile and history metrics
-│   ├── result.html            # Detailed Threat Analysis HUD
-│   ├── css/
-│   │   ├── index.css          # Core Styling Sheet
-│   │   └── theme-style.css    # Advanced UI overrides & components
-│   └── js/
-│       ├── app.js             # API router, toast handler & dynamic translation
-│       ├── language.js        # Bilingual MutationObserver engine
-│       ├── theme.js           # Glassmorphic Theme manager (Light / Dark)
-│       └── upi_database.js    # Local offline threat registry intercepts
+├── assets/                   # UI images, logos, and screenshots
+├── css/                      # Main stylesheets (index.css, theme-style.css)
+├── js/                       # Frontend application logic (app.js, theme.js, language.js, upi_database.js)
+├── index.html                # Home / Command Center Dashboard
+├── scan.html                 # Live QR Scanner & Interactive Threat Maps
+├── test.html                 # Attack Sandbox simulator
+├── about.html                # About / Help Center
+├── profile.html              # Threat Log & Profile statistics
+├── result.html               # Risk HUD page
 │
-├── verify_security.py         # Automated API, headers, and rate-limiting test suite
-└── README.md                  # System Documentation
+├── .vercelignore             # Ignored paths to keep Vercel static builds clean
+├── verify_security.py        # Local security testing script
+└── README.md                 # System Documentation
 ```
 
 ---

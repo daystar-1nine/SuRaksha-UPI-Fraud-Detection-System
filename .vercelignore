@@ -1,5 +1,9 @@
-﻿backend/
+backend/
 fraud_history.db
 verify_security.py
 .idea/
 scratch/
+*.py
+*.db
+*.txt
+*.svg
