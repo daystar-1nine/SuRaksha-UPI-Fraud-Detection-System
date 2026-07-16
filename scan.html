@@ -271,6 +271,13 @@
         </div>
       </div>
 
+      <!-- Camera Selection Dropdown -->
+      <div id="cameraSelectContainer" class="hidden w-full max-w-sm mx-auto">
+        <select id="cameraSelect" class="w-full bg-surface-container-low border border-outline-variant/30 rounded-xl px-3 py-2 text-on-surface text-sm focus:ring-2 focus:ring-primary/40 outline-none">
+          <option value="">Detecting cameras...</option>
+        </select>
+      </div>
+
       <!-- Upload button -->
       <div id="uploadQRSection" class="flex flex-col items-center gap-2">
         <input type="file" id="qrImageInput" accept="image/*" class="hidden">

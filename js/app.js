@@ -263,17 +263,63 @@ async function startScanner() {
         try {
             const devices = await Html5Qrcode.getCameras();
             if (devices && devices.length > 0) {
-                const backCamera = devices.find(device => 
-                    device.label.toLowerCase().includes("back") || 
-                    device.label.toLowerCase().includes("rear") || 
-                    device.label.toLowerCase().includes("environment")
-                );
-                if (backCamera) {
-                    cameraConstraint = backCamera.id;
-                } else if (devices.length > 1) {
-                    cameraConstraint = devices[devices.length - 1].id;
-                } else {
-                    cameraConstraint = devices[0].id;
+                const selectEl = document.getElementById("cameraSelect");
+                const selectContainer = document.getElementById("cameraSelectContainer");
+                
+                if (selectEl) {
+                    selectEl.innerHTML = "";
+                    devices.forEach(device => {
+                        const opt = document.createElement("option");
+                        opt.value = device.id;
+                        opt.text = device.label || `Camera ${selectEl.options.length + 1}`;
+                        selectEl.appendChild(opt);
+                    });
+
+                    // Match label logic to pick default
+                    const backCamera = devices.find(device => 
+                        device.label.toLowerCase().includes("back") || 
+                        device.label.toLowerCase().includes("rear") || 
+                        device.label.toLowerCase().includes("environment")
+                    );
+
+                    let selectedId = backCamera ? backCamera.id : (devices.length > 1 ? devices[devices.length - 1].id : devices[0].id);
+                    selectEl.value = selectedId;
+                    cameraConstraint = selectedId;
+
+                    // Bind change listener to dynamically swap source
+                    selectEl.onchange = async () => {
+                        const newId = selectEl.value;
+                        if (newId) {
+                            await stopScanner();
+                            AppState.scanner = new Html5Qrcode("reader");
+                            AppState.scanning = true;
+                            try {
+                                await AppState.scanner.start(
+                                    newId,
+                                    {
+                                        fps: 10,
+                                        aspectRatio: 1.0,
+                                        qrbox: function(viewfinderWidth, viewfinderHeight) {
+                                            const minDim = Math.min(viewfinderWidth, viewfinderHeight);
+                                            const size = Math.floor(minDim * 0.85);
+                                            return { width: size, height: size };
+                                        },
+                                        disableFlip: false,
+                                    },
+                                    async (text) => {
+                                        stopScanner();
+                                        await sendQR(text);
+                                    }
+                                );
+                            } catch (e) {
+                                console.error("Error switching camera:", e);
+                            }
+                        }
+                    };
+
+                    if (selectContainer) {
+                        selectContainer.classList.remove("hidden");
+                    }
                 }
             }
         } catch (e) {
