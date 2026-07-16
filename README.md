@@ -84,6 +84,33 @@ Simple walkthrough tutorial details how SuRaksha intercepts fraud, checking VPAs
 
 ---
 
+## 👨‍⚖️ Demonstration Guide (For Judges)
+
+To properly demonstrate SuRaksha's backend ML pipelines and database checks, we have seeded the database with 10 dummy fraud records. 
+
+### How it actually works:
+1. **The Scanner**: The frontend uses a live camera feed or an image upload to extract the raw text/QR string.
+2. **The Pipeline**: That string is routed to the Python Flask backend where our heuristic engine runs multiple checks:
+   - Does it match a known fraudster in the local SQLite database? (Instantly blocked).
+   - Does it have typos (e.g. `paytml` instead of `paytm`)?
+   - Is it a malicious web redirect instead of a valid `upi://` protocol?
+3. **The Result**: The backend computes a confidence score and risk level (`SAFE`, `LOW`, `HIGH`, `CRITICAL`), sending the JSON payload back to the frontend to render the HUD.
+
+### Test Scenarios to Scan/Type:
+You can use a QR code generator, or just type these strings manually into the **Message / Link** input box on the Scan page to show the judges how the engine catches threats:
+
+**🚨 CRITICAL / HIGH RISK (Blocked by Database or Typosquat)**
+*   `upi://pay?pa=scammer@ybl&pn=FakeMerchant` *(Caught by Blacklist)*
+*   `upi://pay?pa=kbc.reward@paytm&pn=KBC` *(Caught by ML & Blacklist)*
+*   `upi://pay?pa=electricity.update@sbi` *(Caught by Blacklist)*
+*   `upi://pay?pa=merchant@paytml` *(Caught by Typosquatting engine - mimicking Paytm)*
+*   `https://phishing-site.com/login` *(Caught as Malicious Web Redirect)*
+
+**✅ SAFE (Passed)**
+*   `upi://pay?pa=legit.store@okicici&pn=DailyStore` *(Passes cleanly)*
+
+---
+
 ## 🛡️ Core Platform Features
 
 SuRaksha leverages a multi-layered defense-in-depth architecture to intercept and neutralize UPI scams:
@@ -256,6 +283,23 @@ cd ..
 python -m http.server 8000
 ```
 *Open [http://localhost:8000/frontend/index.html](http://localhost:8000/frontend/index.html) in your browser.*
+
+---
+
+## ☁️ Production Deployment (Vercel & Render)
+
+Due to heavy C++ system binary dependencies (Tesseract OCR & Zbar) and SQLite limitations, the frontend and backend must be deployed separately.
+
+### 1. Frontend (Vercel)
+The repository is pre-configured with a `vercel.json` file. Simply connect the repository to Vercel, and it will automatically deploy the frontend.
+
+### 2. Backend (Render, Railway, or Heroku)
+Deploy the `backend/` folder to a service that supports Docker or full Linux containers (so Tesseract and Zbar can be installed).
+1. Create a Web Service on Render.
+2. Set the Root Directory to `backend/`.
+3. Set the Build Command to: `apt-get update && apt-get install -y tesseract-ocr libzbar0 && pip install -r requirements.txt`
+4. Set the Start Command to: `gunicorn app:app`
+5. Once deployed, copy your Render URL and update the `API_BASE` variable at the top of `frontend/js/app.js` to point to it.
 
 ---
 

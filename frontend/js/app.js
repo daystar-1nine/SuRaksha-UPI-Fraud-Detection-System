@@ -1,8 +1,9 @@
 // ----------------------------------------------------------------------
 // 🌍 GLOBAL STATE & APPLICATION STATE
 // ----------------------------------------------------------------------
-// Base API server URL. All frontend network operations direct to this endpoint.
-const API_BASE = "http://127.0.0.1:5000";
+// Base API server URL. Dynamically switch between local dev and Vercel/Render production endpoints.
+const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+const API_BASE = isLocal ? "http://127.0.0.1:5000" : "https://suraksha-backend.onrender.com"; // <-- Update this URL once your backend is deployed on Render/Railway
 
 // Tracks active scan mode, HTML5Qrcode scanner references, and cached variables
 let AppState = {
