@@ -164,9 +164,10 @@ To prevent automated DDoS spam and **Machine Learning Data Poisoning** (where at
 | Endpoint | Method | Payload | Rate Limit | Description |
 | :--- | :--- | :--- | :--- | :--- |
 | `/analyze/image`<br>*(Alias: `/analyze`)* | `POST` | `multipart/form-data`<br>• `image`: File (max 5MB)<br>• `intent`: String | `40 per minute` | Uploads payment receipts or screenshot notifications to execute EXIF, ELA, and OCR validation **entirely in-memory**. |
+| `/analyze/qr-image` | `POST` | `multipart/form-data`<br>• `image`: File | `20 per minute` | Uploads QR images for highly accurate backend parsing using Python's `pyzbar`, bypassing unreliable client-side extraction. |
 | `/analyze/text`<br>*(Alias: `/analyze/message` or `/analyze_text`)* | `POST` | `application/json`<br>• `text`: String (max 5000 chars)<br>• `intent`: String | `60 per minute` | Validates WhatsApp, SMS, or copied billing messages using the Naive Bayes NLP classifier. |
 | `/analyze/qr` | `POST` | `application/json`<br>• `text`: String | `40 per minute` | Parses scanned UPI QR codes, checks VPA blacklists, and validates cryptographic signatures. |
-| `/api/report` | `POST` | `application/json`<br>• `upi`: String<br>• `description`: String | `15 per minute` | Saves a community scam report to SQLite and retrains text classification vectors. |
+| `/api/report` | `POST` | `application/json`<br>• `upi_id`: String<br>• `fraud_type`: String<br>• `description`: String | `15 per minute` | Saves a community scam report to SQLite and retrains text classification vectors. |
 | `/api/stats` | `GET` | *None* | *Default* | Returns platform stats (Total Scans, Threats Blocked, Unique Frauds, Total Reports). |
 | `/api/soc/threats` | `GET` | *None* | *Default* | Returns geolocated threat feeds mapping active incidents to regional coordinate hotspots. |
 | `/api/blacklist/sync` | `GET` | *None* | *Default* | Exports all flagged threat VPAs and risk scores for local/offline caching. |
@@ -198,19 +199,20 @@ SuRaksha/
 │   └── app.py                 # Flask server & JSON HTTP 429 error handlers
 │
 ├── frontend/
-│   ├── index.html             # Command Center Dashboard
+│   ├── index.html             # Command Center Dashboard (Features & How It Works integrated)
 │   ├── scan.html              # Camera QR Scanner, Cryptographic QR Generator & SOC Map
 │   ├── test.html              # Interactive Attack Vector Sandbox
-│   ├── features.html          # Bento-Grid Feature Matrix
-│   ├── how.html               # Step-by-step User Tutorials
 │   ├── about.html             # Team showcase & quick simulator
+│   ├── profile.html           # User profile and history metrics
 │   ├── result.html            # Detailed Threat Analysis HUD
 │   ├── css/
-│   │   └── index.css          # Core Styling Sheet
+│   │   ├── index.css          # Core Styling Sheet
+│   │   └── theme-style.css    # Advanced UI overrides & components
 │   └── js/
 │       ├── app.js             # API router, toast handler & dynamic translation
 │       ├── language.js        # Bilingual MutationObserver engine
-│       └── theme.js           # Glassmorphic Theme manager (Light / Dark)
+│       ├── theme.js           # Glassmorphic Theme manager (Light / Dark)
+│       └── upi_database.js    # Local offline threat registry intercepts
 │
 ├── verify_security.py         # Automated API, headers, and rate-limiting test suite
 └── README.md                  # System Documentation
