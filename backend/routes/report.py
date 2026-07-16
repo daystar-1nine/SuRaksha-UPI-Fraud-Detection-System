@@ -6,6 +6,9 @@ import uuid
 import time
 from concurrent.futures import ThreadPoolExecutor
 from utils.limiter import limiter
+from utils.errors import AppError
+from utils.schemas import ReportFraudRequest
+from utils.logger import logger
 
 report_bp = Blueprint("report", __name__)
 
@@ -34,22 +37,16 @@ def submit_report():
 
     try:
         data = request.get_json(silent=True)
-
         if not data:
-            return jsonify({"success": False, "error": "Invalid JSON body"}), 400
+            raise AppError("Invalid JSON body", 400)
 
-        upi = (data.get("upi") or "").strip().lower()
-        description = (data.get("description") or "").strip()
-
-        if not upi:
-            return jsonify({"success": False, "error": "'upi' field is required"}), 400
-
-        if len(upi) > 100:
-            return jsonify({"success": False, "error": "UPI ID too long"}), 400
-
-        # Truncate descriptions over 1000 characters to prevent buffer bloat
-        if len(description) > 1000:
-            description = description[:1000]
+        try:
+            req_data = ReportFraudRequest(**data)
+        except ValueError as ve:
+            raise AppError(str(ve), 400)
+            
+        upi = req_data.upi_id
+        description = req_data.description or ""
 
         reporter_ip = request.remote_addr or "unknown"
 
@@ -82,13 +79,11 @@ def submit_report():
             "message": f"Fraud report for '{upi}' recorded successfully. Thank you for helping the community.",
         }), 200
 
+    except AppError:
+        raise
     except Exception as e:
-        import traceback
-        traceback.print_exc()
-        return jsonify({
-            "success": False,
-            "error": f"Failed to save report: {str(e)}"
-        }), 500
+        logger.exception("Failed to save report")
+        raise AppError(f"Failed to save report: {str(e)}", 500)
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -111,10 +106,8 @@ def get_platform_stats():
         }), 200
 
     except Exception as e:
-        return jsonify({
-            "success": False,
-            "error": "Failed to fetch stats"
-        }), 500
+        logger.error(f"Failed to fetch stats: {e}")
+        raise AppError("Failed to fetch stats", 500)
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -185,9 +178,5 @@ def get_soc_threats():
         }), 200
 
     except Exception as e:
-        import traceback
-        traceback.print_exc()
-        return jsonify({
-            "success": False,
-            "error": f"Failed to fetch SOC telemetry: {str(e)}"
-        }), 500
+        logger.exception("Failed to fetch SOC telemetry")
+        raise AppError(f"Failed to fetch SOC telemetry: {str(e)}", 500)

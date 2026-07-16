@@ -10,8 +10,17 @@ from routes.report import report_bp
 # Initialize relational database and load persistent indices
 from services.history_store import init_db
 from utils.limiter import limiter
+from config import settings
+from utils.errors import register_error_handlers
+from utils.logger import logger
 
 app = Flask(__name__)
+app.config.from_mapping(
+    SECRET_KEY=settings.SECRET_KEY,
+    DEBUG=settings.DEBUG,
+    ENV=settings.ENV
+)
+register_error_handlers(app)
 
 # Enable Cross-Origin Resource Sharing (CORS) to allow the frontend client (running on port 8000)
 # to securely make AJAX/Fetch calls to this Flask server (running on port 5000).
@@ -85,5 +94,6 @@ app.register_blueprint(report_bp)
 # ----------------------------------------------------------------------
 if __name__ == "__main__":
     # Start the dev server. For production, run behind a WSGI container (e.g. Gunicorn).
-    app.run(debug=True)
+    logger.info(f"Starting SuRaksha Backend on {settings.HOST}:{settings.PORT} in {settings.ENV} mode")
+    app.run(host=settings.HOST, port=settings.PORT, debug=settings.DEBUG)
 

@@ -19,18 +19,7 @@ from utils.keyword_db import SCAM_KEYWORDS
 # ----------------------------------------------------------------------
 # HELPERS
 # ----------------------------------------------------------------------
-def normalize(text):
-    """
-    Normalizes unicode representations and converts text to lowercase.
-    
-    Why: Scammers use lookalike cyrillic or mathematical symbols (homoglyphs) to trick
-    regex patterns (e.g., replacing 'a' with cyrillic 'а'). Unicode NFKC normalization
-    collapses these lookalike glyphs back into standard ASCII characters.
-    """
-    if not text:
-        return ""
-    return unicodedata.normalize("NFKC", text).lower().strip()
-
+from utils.text_utils import normalize_text
 
 def similarity(a, b):
     """Calculates the similarity ratio (0.0 to 1.0) between two strings using Ratcliff-Obershelp."""
@@ -86,7 +75,7 @@ def detect_scam_keywords(text):
     Returns:
         Dict: Match details, aggregate risk scores, and warning signals.
     """
-    text = normalize(text)
+    text = normalize_text(text)
     words = text.split()
 
     detected_keywords = set()
@@ -97,7 +86,7 @@ def detect_scam_keywords(text):
     # DETECTION LOGIC
     # ----------------------------------------------------------------------
     for keyword, warning in SCAM_KEYWORDS.items():
-        keyword_norm = normalize(keyword)
+        keyword_norm = normalize_text(keyword)
 
         # 1. Exact match (highly performant check)
         if keyword_norm in text:

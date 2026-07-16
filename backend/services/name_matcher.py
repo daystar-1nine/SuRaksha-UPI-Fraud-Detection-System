@@ -22,17 +22,16 @@ COMMON_NOISE_WORDS = [
 ]
 
 
+from utils.text_utils import normalize_text
+from utils.signal_utils import empty_response
+
 # ----------------------------------------------------------------------
 # HELPERS
 # ----------------------------------------------------------------------
-def normalize(text):
-    """Lowers and strips text values to standardize string matching."""
-    return (text or "").lower().strip()
-
 
 def clean_text(text):
     """Removes all non-alphabetic characters and normalizes spaces."""
-    text = normalize(text)
+    text = normalize_text(text)
     text = re.sub(r'[^a-z\s]', ' ', text)
     return re.sub(r'\s+', ' ', text).strip()
 
@@ -112,7 +111,7 @@ def extract_possible_names(text):
     Scans screenshot OCR lines for patterns indicating sender or payee names.
     Filters lines containing label terms. Falls back to comparing the entire text.
     """
-    text = normalize(text)
+    text = normalize_text(text)
 
     lines = text.split("\n")
     candidates = []
@@ -169,7 +168,7 @@ def detect_name_mismatch(upi_ids, detected_text):
     signals = []
 
     if not upi_ids or not detected_text:
-        return _empty_response()
+        return empty_response("name_mismatch")
 
     possible_names = extract_possible_names(detected_text)
 
@@ -235,15 +234,4 @@ def detect_name_mismatch(upi_ids, detected_text):
         "reasons": [s["reason"] for s in signals]
     }
 
-
-# ----------------------------------------------------------------------
-# EMPTY RESPONSE DEFAULT
-# ----------------------------------------------------------------------
-def _empty_response():
-    return {
-        "risk_score": 0,
-        "risk_level": "LOW",
-        "confidence": 0.0,
-        "signals": [],
-        "reasons": []
-    }
+

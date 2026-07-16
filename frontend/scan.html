@@ -11,263 +11,19 @@
 <script src="js/theme.js" defer></script>
 <script src="js/language.js" defer></script>
 <meta charset="utf-8"/>
+<link rel="icon" type="image/png" href="assets/images/logo.png" />
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>SuRaksha | Scan &amp; Analyze</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<script id="tailwind-config">
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    "colors": {
-                        background: "var(--background)",
-                        "on-background": "var(--on-background)",
-                        surface: "var(--surface)",
-                        "on-surface": "var(--on-surface)",
-                        "surface-container": "var(--surface-container)",
-                        "surface-container-low": "var(--surface-container-low)",
-                        "surface-container-high": "var(--surface-container-high)",
-                        "surface-container-lowest": "var(--surface-container-lowest)",
-                        "surface-container-highest": "var(--surface-container-highest)",
-                        "surface-variant": "var(--surface-variant)",
-                        "outline-variant": "var(--outline-variant)",
-                        outline: "var(--outline)",
-                        "on-surface-variant": "var(--on-surface-variant)",
-                        "surface-dim": "var(--surface-dim)",
-                        
-                        primary: "rgb(var(--primary-rgb) / <alpha-value>)",
-                        secondary: "rgb(var(--secondary-rgb) / <alpha-value>)",
-                        error: "rgb(var(--error-rgb) / <alpha-value>)",
-                        success: "rgb(var(--success-rgb) / <alpha-value>)",
 
-                        "dark-background": "#070a13",
-                        "dark-on-surface": "#f1f5f9",
-                        
-                        "secondary-fixed": "#ffdf9e",
-                        "inverse-primary": "#0057cc",
-                        "on-secondary-fixed": "#261a00",
-                        "on-secondary": "#3f2e00",
-                        "on-tertiary-container": "#ffdccf",
-                        "on-secondary-fixed-variant": "#5b4300",
-                        "on-primary-fixed-variant": "#00419d",  
-                        "secondary-fixed-dim": "#fabd00",
-                        "tertiary-fixed-dim": "#ffb597",
-                        "inverse-on-surface": "#2e3038",
-                        "on-secondary-container": "var(--on-secondary-container)",
-                        "on-tertiary": "#591d00",
-                        "tertiary-fixed": "#ffdbcd",
-                        "inverse-surface": "#e1e2ec",
-                        "surface-bright": "#373941",
-                        "on-error": "#690005",
-                        "error-container": "var(--error-container)",
-                        "on-primary-container": "var(--on-primary-container)",
-                        "on-error-container": "#ffdad6",
-                        "primary-container": "var(--primary-container)",
-                        "tertiary-container": "#b04100",
-                        "primary-fixed": "#d9e2ff",
-                        "primary-fixed-dim": "#b0c6ff",
-                        "on-tertiary-fixed-variant": "#7e2c00",
-                        "on-primary-fixed": "#001945",
-                        "on-tertiary-fixed": "#360f00",
-                        "secondary-container": "var(--secondary-container)",
-                        "tertiary": "#ffb597",
-                        "surface-tint": "#b0c6ff",
-                    },
-                    "borderRadius": {
-                        "DEFAULT": "0.25rem",
-                        "lg": "0.5rem",
-                        "xl": "0.75rem",
-                        "full": "9999px"
-                    },
-                    "spacing": {
-                        "sm": "0.5rem",
-                        "xs": "0.25rem",
-                        "xl": "2.5rem",
-                        "lg": "1.5rem",
-                        "md": "1rem",
-                        "xxl": "4rem"
-                    },
-                    "fontFamily": {
-                        "label-sm": ["Inter"],
-                        "body-lg": ["Inter"],
-                        "headline-md": ["Plus Jakarta Sans"],
-                        "label-md": ["Inter"],
-                        "display-lg": ["Plus Jakarta Sans"],
-                        "body-md": ["Inter"],
-                        "headline-lg": ["Plus Jakarta Sans"]
-                    },
-                    "fontSize": {
-                        "label-sm": ["12px", {"lineHeight": "1.2", "fontWeight": "600"}],
-                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
-                        "headline-md": ["24px", {"lineHeight": "1.4", "fontWeight": "600"}],
-                        "label-md": ["14px", {"lineHeight": "1.2", "letterSpacing": "0.01em", "fontWeight": "500"}],
-                        "display-lg": ["48px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
-                        "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
-                        "headline-lg": ["32px", {"lineHeight": "1.3", "fontWeight": "600"}]
-                    }
-                },
-            },
-        }
-    </script>
-<style>
-        :root {
-            --background: #f8fafc;
-            --on-background: #0f172a;
-            --surface: #ffffff;
-            --on-surface: #0f172a;
-            --surface-container: #f1f5f9;
-            --surface-container-low: #f8fafc;
-            --surface-container-high: #e2e8f0;
-            --surface-container-lowest: #ffffff;
-            --surface-container-highest: #cbd5e1;
-            --surface-variant: #e2e8f0;
-            --outline-variant: #cbd5e1;
-            --outline: #64748b;
-            --on-surface-variant: #475569;
-            --surface-dim: #f1f5f9;
-            --header-bg: rgba(248, 250, 252, 0.8);
 
-            --primary-rgb: 11 94 215;
-            --secondary-rgb: 217 119 6;
-            --error-rgb: 220 53 69;
-            --success-rgb: 16 185 129;
-        }
 
-        .dark {
-            --background: #070a13;
-            --on-background: #f8fafc;
-            --surface: #0f172a;
-            --on-surface: #f1f5f9;
-            --surface-container: #1e293b;
-            --surface-container-low: #070a13;
-            --surface-container-high: #334155;
-            --surface-container-lowest: #020617;
-            --surface-container-highest: #475569;
-            --surface-variant: #334155;
-            --outline-variant: #475569;
-            --outline: #94a3b8;
-            --on-surface-variant: #cbd5e1;
-            --surface-dim: #070a13;
-            --header-bg: rgba(7, 10, 19, 0.8);
+<script src="js/tailwind-config.js"></script>
+<link rel="stylesheet" href="css/theme-style.css" />
 
-            --primary-rgb: 59 130 246;
-            --secondary-rgb: 251 191 36;
-            --error-rgb: 248 113 113;
-            --success-rgb: 52 211 153;
-        }
-
-        /* ── Text Glow & Animated Gradient ── */
-        @keyframes textGlow {
-            0%, 100% { text-shadow: 0 0 4px rgba(var(--primary-rgb), 0.1); }
-            50% { text-shadow: 0 0 10px rgba(var(--primary-rgb), 0.4); }
-        }
-        .animate-text-glow {
-            animation: textGlow 3s ease-in-out infinite;
-        }
-
-        @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-        .animate-gradient {
-            background-size: 200% auto;
-            animation: gradientShift 4s ease infinite;
-        }
-
-        html {
-            scroll-behavior: smooth;
-        }
-        .glass-header {
-            background: var(--header-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-        }
-        .scan-frame {
-            box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.5);
-        }
-        .scanner-line {
-            animation: scan 2.5s ease-in-out infinite alternate;
-        }
-        @keyframes scan {
-            0% { transform: translateY(0); }
-            100% { transform: translateY(192px); }
-        }
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: scale(0.95);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-        .animate-fadeIn {
-            animation: fadeIn 0.25s ease;
-        }
-
-        /* ── WhatsApp Typing Bouncing Dots ── */
-        @keyframes bounceDot {
-            0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
-            40% { transform: scale(1); opacity: 1; }
-        }
-        .typing-dot {
-            animation: bounceDot 1.4s infinite ease-in-out both;
-            display: inline-block;
-            width: 5px;
-            height: 5px;
-            border-radius: 50%;
-            background-color: currentColor;
-            margin: 0 1px;
-        }
-        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
-        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
-
-        /* ── circular ELA Zoom Lens Magnifier ── */
-        #elaZoomLens {
-            position: absolute;
-            border: 2.5px solid #3b82f6;
-            border-radius: 50%;
-            cursor: none;
-            width: 110px;
-            height: 110px;
-            display: none;
-            pointer-events: none;
-            box-shadow: 0 0 15px rgba(59, 130, 246, 0.6), inset 0 0 12px rgba(59, 130, 246, 0.6);
-            z-index: 40;
-            background-repeat: no-repeat;
-            background-color: #000;
-        }
-
-        /* ── Draggable Divider Neon Pulse ── */
-        @keyframes sliderGlow {
-            0%, 100% { box-shadow: 0 0 6px #3b82f6; }
-            50% { box-shadow: 0 0 16px #60a5fa, 0 0 26px #3b82f6; }
-        }
-        .slider-glow {
-            animation: sliderGlow 2s infinite;
-        }
-
-        /* ── SVG Radar growing scale animation ── */
-        @keyframes radarGrow {
-            from { transform: scale(0.1); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
-        .animate-radar-grow {
-            animation: radarGrow 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-        }
-
-        /* ── HTML5 QR Scanner Video Alignment Fix ── */
-        #reader video {
-            object-fit: cover !important;
-            width: 100% !important;
-            height: 100% !important;
-        }
-</style>
 </head>
 <body class="bg-background text-on-surface font-body-md selection:bg-primary-container selection:text-on-primary-container">
 <!-- TopAppBar -->
@@ -293,27 +49,10 @@
 
     <!-- Navigation -->
     <nav class="hidden md:flex items-center gap-lg">
-
-      <a href="index.html"
-         class="text-on-surface-variant hover:text-primary transition-colors duration-300">
-        Home
-      </a>
-
-      <a href="features.html"
-         class="text-on-surface-variant hover:text-primary transition-colors duration-300">
-        Features
-      </a>
-
-      <a href="how.html"
-         class="text-on-surface-variant hover:text-primary transition-colors duration-300">
-        How It Works
-      </a>
-
-      <a href="about.html"
-         class="text-on-surface-variant hover:text-primary transition-colors duration-300">
-        About
-      </a>
-
+      <a href="index.html" class="text-on-surface-variant hover:text-primary transition-colors duration-300">Home</a>
+      <a href="index.html#features" class="text-on-surface-variant hover:text-primary transition-colors duration-300">Features</a>
+      <a href="index.html#how-it-works" class="text-on-surface-variant hover:text-primary transition-colors duration-300">How It Works</a>
+      <a href="about.html" class="text-on-surface-variant hover:text-primary transition-colors duration-300">About</a>
     </nav>
 
     <!-- Right Actions -->
@@ -345,8 +84,9 @@
       <!-- User Profile Settings Button -->
       <button
         id="profile-settings-btn"
+        onclick="window.location.href='profile.html'"
         aria-label="Profile Settings"
-        class="p-2 rounded-xl hover:bg-surface-variant/20 active:scale-95 transition-all duration-300 flex items-center justify-center border border-primary/20 bg-surface">
+        class="p-2 rounded-xl hover:bg-surface-variant/20 active:scale-95 transition-all duration-300 flex items-center justify-center border border-primary/20 bg-surface cursor-pointer">
         <img id="navbar-profile-img" src="" class="h-6 w-6 rounded-full object-cover hidden" />
         <span id="navbar-profile-icon" class="material-symbols-outlined text-primary">account_circle</span>
       </button>
@@ -419,9 +159,6 @@
       🔒 Secure QR Gen
     </button>
 
-    <button onclick="document.getElementById('socSection').scrollIntoView({behavior: 'smooth'})" class="px-5 py-2 rounded-full bg-error/10 text-error/80 border border-error/20 text-sm hover:bg-error/20 transition cursor-pointer">
-      🗺️ Live SOC Map
-    </button>
 
   </div>
 
@@ -512,80 +249,61 @@
 <!-- Step 2: Dynamic QR Area -->
 <section id="qrSection"
          class="bg-surface rounded-xxl p-lg border border-outline-variant/20 shadow-xl overflow-hidden">
-<div class="flex flex-col items-center justify-center min-h-[400px] text-center space-y-lg">
-<div id="scannerWrapper" class="hidden relative w-64 h-64 rounded-3xl border-4 border-primary/30 overflow-hidden transition-all duration-300">
-  <div id="reader" class="w-full h-full"></div>
-  <canvas id="qrOverlayCanvas" class="absolute inset-0 pointer-events-none z-20" style="width: 100%; height: 100%;"></canvas>
-  <div id="scannerOverlay" class="absolute inset-0 pointer-events-none z-10 transition-opacity duration-300">
-    <div class="absolute inset-0 border-[30px] border-black/40"></div>
-    <div class="absolute inset-[30px] border border-primary/40 rounded-xl">
-      <div class="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-primary rounded-tl-md"></div>
-      <div class="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-primary rounded-tr-md"></div>
-      <div class="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-primary rounded-bl-md"></div>
-      <div class="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-primary rounded-br-md"></div>
-      <div class="scanner-line absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-primary to-transparent shadow-[0_0_12px_rgba(var(--primary-rgb),0.9)]"></div>
+  <div class="flex flex-col items-center justify-center min-h-[480px] text-center space-y-6">
+
+    <!-- Scanner Wrapper -->
+    <div id="scannerWrapper" class="hidden w-full flex flex-col items-center gap-4">
+
+      <!-- Camera Box -->
+      <div class="relative w-full max-w-sm mx-auto aspect-square rounded-2xl border-2 border-primary/30 overflow-hidden bg-black shadow-[0_0_40px_rgba(59,130,246,0.15)]">
+        <!-- Html5Qrcode mounts video here; CSS forces it to fill the box -->
+        <div id="reader" class="w-full h-full"></div>
+
+        <!-- Animated scan overlay (sits on top of video) -->
+        <div id="scannerOverlay" class="absolute inset-0 pointer-events-none z-10">
+          <!-- Corner brackets -->
+          <div class="absolute top-4 left-4 w-8 h-8 border-t-4 border-l-4 border-primary rounded-tl-lg"></div>
+          <div class="absolute top-4 right-4 w-8 h-8 border-t-4 border-r-4 border-primary rounded-tr-lg"></div>
+          <div class="absolute bottom-4 left-4 w-8 h-8 border-b-4 border-l-4 border-primary rounded-bl-lg"></div>
+          <div class="absolute bottom-4 right-4 w-8 h-8 border-b-4 border-r-4 border-primary rounded-br-lg"></div>
+          <!-- Scanning line animation -->
+          <div class="scanner-line absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-primary to-transparent shadow-[0_0_12px_rgba(99,102,241,0.9)]"></div>
+        </div>
+      </div>
+
+      <!-- Upload button -->
+      <div id="uploadQRSection" class="flex flex-col items-center gap-2">
+        <input type="file" id="qrImageInput" accept="image/*" class="hidden">
+        <button onclick="document.getElementById('qrImageInput').click()"
+                class="px-5 py-2 border border-primary/40 text-primary rounded-xl text-sm hover:bg-primary/10 transition-all flex items-center gap-2 cursor-pointer">
+          <span class="material-symbols-outlined text-[18px]">photo_library</span>
+          Upload QR from Gallery
+        </button>
+      </div>
+
     </div>
+
+    <!-- Receive QR Display (shown when intent = receive) -->
+    <div id="receiveQR" class="hidden flex flex-col items-center justify-center w-full gap-3">
+      <img id="receiveQRImg" src="" class="w-56 h-56 rounded-xl border shadow-lg bg-white p-2">
+      <p class="text-sm text-green-400 flex items-center gap-1 font-bold">
+        <span class="material-symbols-outlined text-[16px]">verified_user</span> SuRaksha Protected QR
+      </p>
+      <p id="receiveQRNameText" class="text-xs font-bold text-white">Name: Suraj Sawant</p>
+      <p id="receiveQRUpiText" class="text-xs text-gray-400">UPI: 9168772121@mbk</p>
+    </div>
+
+    <!-- Title & Status text (shown when scanner is idle or scanning) -->
+    <div class="space-y-2 text-center">
+      <h2 id="qrTitle" class="font-headline-lg text-headline-lg">Scan QR Code</h2>
+      <p id="qrSubtitle" class="text-on-surface-variant text-sm">Scan live QR or upload from gallery</p>
+      <p id="scanText" class="font-label-lg text-on-surface">Align QR code within the frame</p>
+      <p id="scanStatus" class="text-on-surface-variant font-label-md text-sm">Searching for secure payment identifiers...</p>
+    </div>
+
   </div>
-</div>
-<div id="uploadQRSection" class="mt-4 flex flex-col items-center gap-2">
-
-    <input type="file"
-           id="qrImageInput"
-           accept="image/*"
-           class="hidden">
-
-    <button onclick="document.getElementById('qrImageInput').click()"
-            class="px-4 py-2 border border-primary text-primary rounded-lg">
-
-        Upload QR from Gallery
-
-    </button>
-
-</div>
-<div class="space-y-sm text-center">
-
-  <h2 id="qrTitle" class="font-headline-lg text-headline-lg">
-    Scan QR Code
-  </h2>
-
-  <p id="qrSubtitle" class="text-on-surface-variant">
-    Scan live QR or upload from gallery
-  </p>
-
-</div>
-<!-- RECEIVE QR DISPLAY -->
-<div id="receiveQR"
-     class="hidden flex flex-col items-center justify-center w-full h-full transition-all duration-300">
-
-    <img id="receiveQRImg" src="assets/images/MyQR.jpeg"
-         class="w-56 h-56 rounded-xl border shadow-lg bg-white p-2">
-
-    <p class="mt-3 text-sm text-green-400 text-center flex items-center justify-center gap-1 font-bold">
-        <span class="material-symbols-outlined text-[16px] text-green-400">verified_user</span> SuRaksha Protected QR
-    </p>
-
-    <p id="receiveQRNameText" class="text-xs font-bold text-white mt-1">
-        Name: Suraj Sawant
-    </p>
-
-    <p id="receiveQRUpiText" class="text-xs text-gray-400">
-        UPI: 9168772121@mbk
-    </p>
-
-</div>          
-<p id="scanText"
-   class="font-headline-md text-on-surface">
-
-    Align QR code within the frame
-
-</p>
-<p id="scanStatus"
-   class="text-on-surface-variant font-label-md">
-    Searching for secure payment identifiers...
-</p>
-
-</div>
 </section>
+
 
 <!-- Section: Manual UPI ID Check -->
 <section id="upiSection" class="bg-surface rounded-xxl p-lg border border-success/20 shadow-xl shadow-success/5">
@@ -688,71 +406,82 @@
 <div class="bg-surface rounded-xxl p-lg border border-outline-variant/20 shadow-lg space-y-lg">
 
   <!-- Sample scam message chips -->
-  <div class="space-y-2">
-    <p class="text-xs text-on-surface-variant font-semibold uppercase tracking-wider">⚡ Try sample scam messages</p>
-    <div class="flex flex-wrap gap-2">
-      <button onclick="pasteChatScamSample(0)" class="text-xs px-3 py-1.5 rounded-full bg-error/10 text-error border border-error/20 hover:bg-error/20 transition flex items-center gap-1 cursor-pointer">
-        <span class="material-symbols-outlined text-[14px]">warning</span> Cashback Scam
+  <div class="space-y-3">
+    <p class="text-[10px] text-on-surface-variant font-bold uppercase tracking-widest flex items-center gap-1"><span class="material-symbols-outlined text-[14px] text-secondary">bolt</span> Try sample messages</p>
+    <div class="flex flex-wrap gap-2.5">
+      <button onclick="pasteChatScamSample(0)" class="text-xs font-semibold px-4 py-2 rounded-full bg-error/10 text-error border border-error/20 hover:bg-error/20 hover:border-error/40 hover:shadow-lg hover:shadow-error/10 active:scale-95 transition-all duration-300 flex items-center gap-1.5 cursor-pointer">
+        <span class="material-symbols-outlined text-[16px]">warning</span> Cashback Scam
       </button>
-      <button onclick="pasteChatScamSample(1)" class="text-xs px-3 py-1.5 rounded-full bg-error/10 text-error border border-error/20 hover:bg-error/20 transition flex items-center gap-1 cursor-pointer">
-        <span class="material-symbols-outlined text-[14px]">warning</span> KYC Fraud
+      <button onclick="pasteChatScamSample(1)" class="text-xs font-semibold px-4 py-2 rounded-full bg-error/10 text-error border border-error/20 hover:bg-error/20 hover:border-error/40 hover:shadow-lg hover:shadow-error/10 active:scale-95 transition-all duration-300 flex items-center gap-1.5 cursor-pointer">
+        <span class="material-symbols-outlined text-[16px]">warning</span> KYC Fraud
       </button>
-      <button onclick="pasteChatScamSample(2)" class="text-xs px-3 py-1.5 rounded-full bg-error/10 text-error border border-error/20 hover:bg-error/20 transition flex items-center gap-1 cursor-pointer">
-        <span class="material-symbols-outlined text-[14px]">warning</span> Prize Winner
+      <button onclick="pasteChatScamSample(2)" class="text-xs font-semibold px-4 py-2 rounded-full bg-error/10 text-error border border-error/20 hover:bg-error/20 hover:border-error/40 hover:shadow-lg hover:shadow-error/10 active:scale-95 transition-all duration-300 flex items-center gap-1.5 cursor-pointer">
+        <span class="material-symbols-outlined text-[16px]">warning</span> Prize Winner
       </button>
-      <button onclick="pasteChatScamSample(3)" class="text-xs px-3 py-1.5 rounded-full bg-secondary/10 text-secondary border border-secondary/20 hover:bg-secondary/20 transition flex items-center gap-1 cursor-pointer">
-        <span class="material-symbols-outlined text-[14px]">check_circle</span> Legitimate
+      <button onclick="pasteChatScamSample(3)" class="text-xs font-semibold px-4 py-2 rounded-full bg-secondary/10 text-secondary border border-secondary/20 hover:bg-secondary/20 hover:border-secondary/40 hover:shadow-lg hover:shadow-secondary/10 active:scale-95 transition-all duration-300 flex items-center gap-1.5 cursor-pointer">
+        <span class="material-symbols-outlined text-[16px]">check_circle</span> Legitimate
       </button>
     </div>
   </div>
 
   <!-- WhatsApp-style Mobile Chat Simulator Chassis -->
-  <div class="bg-slate-900 border-4 border-slate-700/80 rounded-[32px] p-2 max-w-lg mx-auto shadow-2xl overflow-hidden relative">
+  <div class="bg-slate-900 border-[6px] border-slate-800 rounded-[36px] max-w-md mx-auto shadow-2xl overflow-hidden relative shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
     
     <!-- Phone Top Camera Bar Notch -->
-    <div class="w-28 h-4 bg-slate-950 absolute top-0 left-1/2 transform -translate-x-1/2 rounded-b-xl z-20 flex items-center justify-center">
-      <div class="w-1.5 h-1.5 rounded-full bg-slate-800"></div>
+    <div class="w-32 h-6 bg-slate-800 absolute top-0 left-1/2 transform -translate-x-1/2 rounded-b-[18px] z-30 flex items-center justify-center gap-2 shadow-inner">
+      <div class="w-2 h-2 rounded-full bg-slate-950/80 shadow-[inset_0_1px_2px_rgba(0,0,0,1)]"></div>
+      <div class="w-1.5 h-1.5 rounded-full bg-blue-900/40"></div>
     </div>
     
     <!-- WhatsApp Mobile App Header -->
-    <div class="bg-[#075e54] p-3 pt-6 rounded-t-[24px] flex items-center justify-between text-white border-b border-white/5 relative z-10">
-      <div class="flex items-center gap-2">
-        <div class="w-9 h-9 rounded-full bg-white/10 text-white flex items-center justify-center font-bold relative border border-white/20">
-          <span class="material-symbols-outlined text-[20px]">shield</span>
-          <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border border-[#075e54]"></span>
+    <div class="bg-gradient-to-r from-[#075e54] to-[#0a7e70] p-4 pt-8 flex items-center justify-between text-white shadow-md relative z-10">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-white/10 text-white flex items-center justify-center font-bold relative border-2 border-white/20 shadow-sm">
+          <span class="material-symbols-outlined text-[22px]">shield_lock</span>
+          <span class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-[#075e54]"></span>
         </div>
         <div>
-          <div class="text-xs font-bold leading-normal tracking-wide">SuRaksha AI Scanner</div>
-          <div class="text-[9px] text-white/70">Online Threat Analyzer</div>
+          <div class="text-sm font-bold leading-normal tracking-wide">SuRaksha AI Scanner</div>
+          <div class="text-[10px] text-white/80 font-medium">Online Threat Analyzer</div>
         </div>
       </div>
-      <div class="flex items-center gap-3">
-        <span class="material-symbols-outlined text-[18px] opacity-80 cursor-pointer hover:opacity-100">call</span>
-        <span class="material-symbols-outlined text-[18px] opacity-80 cursor-pointer hover:opacity-100">videocam</span>
-        <span class="material-symbols-outlined text-[18px] opacity-80 cursor-pointer hover:opacity-100">more_vert</span>
+      <div class="flex items-center gap-4">
+        <span class="material-symbols-outlined text-[20px] opacity-80 cursor-pointer hover:opacity-100 transition-opacity">videocam</span>
+        <span class="material-symbols-outlined text-[20px] opacity-80 cursor-pointer hover:opacity-100 transition-opacity">call</span>
+        <span class="material-symbols-outlined text-[20px] opacity-80 cursor-pointer hover:opacity-100 transition-opacity">more_vert</span>
       </div>
     </div>
 
     <!-- Scrolling Conversation Thread Window -->
-    <div id="chatSimulatorWindow" class="bg-[#0b0f19] h-80 overflow-y-auto p-4 space-y-3 custom-scrollbar flex flex-col select-text relative">
+    <div id="chatSimulatorWindow" class="bg-[#efeae2] dark:bg-[#0b141a] h-96 overflow-y-auto p-5 space-y-4 custom-scrollbar flex flex-col select-text relative opacity-95">
+      
+      <!-- Date Badge -->
+      <div class="text-center my-2">
+        <span class="bg-[#e1f2fb] dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[10px] font-bold px-3 py-1.5 rounded-lg shadow-sm">Today</span>
+      </div>
+      
       <div class="text-center my-1">
-        <span class="bg-slate-800/80 border border-white/5 text-white/50 text-[9px] font-mono px-2 py-0.5 rounded-md uppercase tracking-wider">Zero-Trust Inspect Active</span>
+        <span class="bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-200 text-[10px] font-medium px-3 py-2 rounded-lg shadow-sm max-w-[90%] inline-block leading-relaxed flex items-center justify-center gap-1.5">
+          <span class="material-symbols-outlined text-[14px]">lock</span>
+          Zero-Trust Inspect Active. Messages are securely analyzed.
+        </span>
       </div>
       
       <!-- System Message -->
-      <div class="self-start max-w-[85%] bg-slate-800 text-white/80 p-3 rounded-2xl rounded-tl-none text-xs leading-normal border border-white/5">
+      <div class="self-start max-w-[85%] bg-white dark:bg-slate-800 text-slate-800 dark:text-white p-3.5 rounded-2xl rounded-tl-sm text-sm leading-relaxed shadow-sm relative">
         👋 Welcome to the SuRaksha Chat Scanner! Paste or click a sample scam chip above to test our NLP message validator.
       </div>
     </div>
 
     <!-- Message input toolbar bar -->
-    <div class="bg-slate-950 p-2.5 rounded-b-[24px] flex items-center gap-2 border-t border-white/5">
+    <div class="bg-[#f0f2f5] dark:bg-[#202c33] p-3 flex items-center gap-2 relative z-10">
+      <span class="material-symbols-outlined text-[24px] text-slate-500 cursor-pointer hover:text-primary transition-colors">add</span>
       <input type="text" id="chatMessageInput" 
-             class="flex-1 bg-white/5 border border-white/5 hover:border-white/10 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 rounded-full px-4 py-2 text-xs text-white placeholder:text-white/30 focus:outline-none transition-all" 
+             class="flex-1 bg-white dark:bg-[#2a3942] border border-transparent focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/20 rounded-full px-5 py-2.5 text-sm text-slate-800 dark:text-white placeholder:text-slate-400 focus:outline-none transition-all shadow-sm" 
              placeholder="Type or paste suspicious message...">
       <button onclick="sendChatMessage()" 
-              class="w-9 h-9 bg-emerald-600 hover:bg-emerald-500 rounded-full flex items-center justify-center text-white transition active:scale-95 shadow-lg shadow-emerald-600/20 cursor-pointer border border-white/10">
-        <span class="material-symbols-outlined text-[16px] text-white">send</span>
+              class="w-10 h-10 bg-emerald-600 hover:bg-emerald-500 rounded-full flex items-center justify-center text-white transition-all duration-300 active:scale-90 shadow-md hover:shadow-lg cursor-pointer shrink-0 group">
+        <span class="material-symbols-outlined text-[20px] text-white group-hover:translate-x-0.5 transition-transform">send</span>
       </button>
     </div>
     
@@ -783,7 +512,7 @@
         </div>
         
         <div>
-          <label class="block text-xs font-semibold text-on-surface-variant mb-1 uppercase tracking-wider">Merchant UPI VPA</label>
+          <label class="block text-xs font-semibold text-on-surface-variant mb-1 uppercase tracking-wider">Receive UPI VPA</label>
           <input type="text" id="secMerchantVpa" placeholder="e.g. sharmakirana@upi" 
                  class="w-full bg-surface-container border border-outline-variant/30 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-primary/50 transition">
         </div>
@@ -935,112 +664,7 @@
   </div>
 </section>
 
-<!-- Section: Cyber Security Operations Center (SOC) -->
-<section id="socSection" class="space-y-lg">
-  <div class="flex items-center gap-3">
-    <span class="material-symbols-outlined text-error text-3xl">hub</span>
-    <h2 class="font-headline-lg text-headline-lg">Cyber Security Operations Center (SOC)</h2>
-  </div>
 
-  <div class="bg-surface rounded-xxl p-lg border border-outline-variant/20 shadow-xl grid md:grid-cols-5 gap-lg relative overflow-hidden">
-    <!-- Map Side (Col-span 3) -->
-    <div class="md:col-span-3 flex flex-col justify-between items-center bg-[#090b14]/50 border border-white/5 rounded-2xl p-lg relative min-h-[350px]">
-      <div class="absolute top-2 left-4 text-[9px] font-mono text-white/30 uppercase tracking-widest">Live Geolocation Threat Ticker (India)</div>
-      
-      <!-- India SVG outline Map -->
-      <div class="w-full max-w-[280px] h-[300px] flex items-center justify-center relative mt-4">
-        <!-- SVG for India outline path (simplified/stylized for clean neon aesthetic) -->
-        <svg viewBox="0 0 400 480" class="w-full h-full opacity-60 hover:opacity-80 transition-opacity" style="filter: drop-shadow(0 0 15px rgba(59, 130, 246, 0.05));">
-          <!-- Simplified India Outline path -->
-          <path d="M152,47 L163,38 L180,48 L191,32 L206,37 L216,21 L226,38 L225,58 L238,62 L242,75 L229,86 L233,101 L252,102 L260,86 L278,92 L276,108 L293,110 L301,96 L318,103 L325,124 L340,119 L351,135 L346,152 L368,162 L373,178 L356,182 L347,199 L329,198 L320,183 L302,185 L300,202 L283,205 L269,195 L252,201 L243,190 L242,171 L223,170 L212,183 L194,180 L188,198 L170,195 L160,211 L168,227 L185,229 L192,246 L211,249 L217,267 L236,270 L240,288 L257,294 L265,311 L282,316 L286,334 L271,343 L273,361 L259,372 L254,390 L239,397 L235,415 L220,422 L215,440 L202,447 L190,465 L180,447 L174,429 L171,411 L165,393 L162,375 L156,357 L153,339 L147,321 L144,303 L138,285 L135,267 L129,249 L126,231 L120,213 L117,195 L111,177 L108,159 L102,141 L99,123 L93,105 L90,87 L96,69 L111,72 L120,54 Z" 
-                fill="#1e293b" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="transition-colors duration-300"/>
-          <!-- Minor border lines for aesthetic -->
-          <path d="M192,246 L170,240 L160,250 L145,245 L130,255 L115,250" fill="none" stroke="#3b82f6" stroke-dasharray="3,3" opacity="0.3"/>
-          <path d="M220,422 L200,410 L185,415 L170,405" fill="none" stroke="#3b82f6" stroke-dasharray="3,3" opacity="0.3"/>
-        </svg>
-        
-        <!-- Hotspots superimposed with absolute positions -->
-        <!-- Mumbai -->
-        <div id="node-mumbai" class="absolute top-[165px] left-[80px] -translate-x-1/2 -translate-y-1/2 group">
-          <span class="absolute inline-flex h-4 w-4 rounded-full bg-error opacity-75 animate-ping"></span>
-          <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-error border border-white/20"></span>
-          <span class="absolute hidden group-hover:block bg-[#0f172a] border border-white/10 text-[8px] text-white px-1.5 py-0.5 rounded -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap font-mono z-10 shadow-md">Mumbai (Active)</span>
-        </div>
-        
-        <!-- Delhi -->
-        <div id="node-delhi" class="absolute top-[85px] left-[105px] -translate-x-1/2 -translate-y-1/2 group">
-          <span class="absolute inline-flex h-4 w-4 rounded-full bg-error opacity-75 animate-ping"></span>
-          <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-error border border-white/20"></span>
-          <span class="absolute hidden group-hover:block bg-[#0f172a] border border-white/10 text-[8px] text-white px-1.5 py-0.5 rounded -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap font-mono z-10 shadow-md">Delhi NCR (Active)</span>
-        </div>
-        
-        <!-- Bengaluru -->
-        <div id="node-bengaluru" class="absolute top-[230px] left-[110px] -translate-x-1/2 -translate-y-1/2 group">
-          <span class="absolute inline-flex h-4 w-4 rounded-full bg-error opacity-75 animate-ping"></span>
-          <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-error border border-white/20"></span>
-          <span class="absolute hidden group-hover:block bg-[#0f172a] border border-white/10 text-[8px] text-white px-1.5 py-0.5 rounded -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap font-mono z-10 shadow-md">Bengaluru (Active)</span>
-        </div>
-
-        <!-- Hyderabad -->
-        <div id="node-hyderabad" class="absolute top-[195px] left-[125px] -translate-x-1/2 -translate-y-1/2 group">
-          <span class="absolute inline-flex h-4 w-4 rounded-full bg-error opacity-75 animate-ping"></span>
-          <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-error border border-white/20"></span>
-          <span class="absolute hidden group-hover:block bg-[#0f172a] border border-white/10 text-[8px] text-white px-1.5 py-0.5 rounded -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap font-mono z-10 shadow-md">Hyderabad (Active)</span>
-        </div>
-
-        <!-- Kolkata -->
-        <div id="node-kolkata" class="absolute top-[145px] left-[185px] -translate-x-1/2 -translate-y-1/2 group">
-          <span class="absolute inline-flex h-4 w-4 rounded-full bg-error opacity-75 animate-ping"></span>
-          <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-error border border-white/20"></span>
-          <span class="absolute hidden group-hover:block bg-[#0f172a] border border-white/10 text-[8px] text-white px-1.5 py-0.5 rounded -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap font-mono z-10 shadow-md">Kolkata (Active)</span>
-        </div>
-
-        <!-- Jamtara -->
-        <div id="node-jamtara" class="absolute top-[135px] left-[175px] -translate-x-1/2 -translate-y-1/2 group">
-          <span class="absolute inline-flex h-4 w-4 rounded-full bg-error opacity-75 animate-ping"></span>
-          <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-error border border-white/20"></span>
-          <span class="absolute hidden group-hover:block bg-[#0f172a] border border-white/10 text-[8px] text-white px-1.5 py-0.5 rounded -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap font-mono z-10 shadow-md">Jamtara (Active Scams Hub)</span>
-        </div>
-
-        <!-- Nuh / Mewat -->
-        <div id="node-nuh" class="absolute top-[95px] left-[102px] -translate-x-1/2 -translate-y-1/2 group">
-          <span class="absolute inline-flex h-4 w-4 rounded-full bg-error opacity-75 animate-ping"></span>
-          <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-error border border-white/20"></span>
-          <span class="absolute hidden group-hover:block bg-[#0f172a] border border-white/10 text-[8px] text-white px-1.5 py-0.5 rounded -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap font-mono z-10 shadow-md">Nuh / Mewat (Active Scams Hub)</span>
-        </div>
-
-        <!-- Bharatpur -->
-        <div id="node-bharatpur" class="absolute top-[105px] left-[98px] -translate-x-1/2 -translate-y-1/2 group">
-          <span class="absolute inline-flex h-4 w-4 rounded-full bg-error opacity-75 animate-ping"></span>
-          <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-error border border-white/20"></span>
-          <span class="absolute hidden group-hover:block bg-[#0f172a] border border-white/10 text-[8px] text-white px-1.5 py-0.5 rounded -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap font-mono z-10 shadow-md">Bharatpur (Active Scams Hub)</span>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Logs Side (Col-span 2) -->
-    <div class="md:col-span-2 bg-[#090b14] rounded-2xl border border-white/5 p-lg flex flex-col justify-between min-h-[350px] relative text-white">
-      <div class="absolute top-2 right-4 text-[9px] font-mono text-white/20 uppercase tracking-widest">Live Incident Feed</div>
-      
-      <div class="flex-1 font-mono text-xs space-y-4">
-        <div class="flex items-center gap-2 border-b border-white/5 pb-2">
-          <span class="relative flex h-2 w-2">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-error opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-2 w-2 bg-error"></span>
-          </span>
-          <span class="text-white/30 text-[9px] tracking-wider uppercase">Telemetry Stream: Incoming Alerts</span>
-        </div>
-        
-        <!-- Live Ticker view -->
-        <div id="socTickerFeed" class="h-64 overflow-y-auto space-y-2 pr-2 custom-scrollbar text-[11px]">
-          <div class="p-2 bg-white/5 border border-white/5 rounded-lg flex flex-col gap-1 text-white/40">
-            <span class="text-[9px] text-white/30">System startup. Telemetry synchronized.</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
 
 <!-- Section: Learn & Stay Safe -->
 <section class="space-y-lg">
@@ -1124,11 +748,11 @@
         About Us
       </a>
 
-      <a href="features.html" class="text-white/70 hover:text-primary transition">
+      <a href="index.html#features" class="text-white/70 hover:text-primary transition">
         Core Features
       </a>
 
-      <a href="how.html" class="text-white/70 hover:text-primary transition">
+      <a href="index.html#how-it-works" class="text-white/70 hover:text-primary transition">
         Security Protocol
       </a>
 
@@ -1155,138 +779,154 @@
 
 </footer>
 <div id="resultPopup"
-     class="hidden fixed inset-0 bg-black/85 backdrop-blur-sm items-center justify-center z-50">
+     class="hidden fixed inset-0 bg-black/85 backdrop-blur-sm items-center justify-center z-50 p-4 overflow-y-auto">
 
-    <div class="bg-[#111827]/90 backdrop-blur-xl border border-white/10 p-6 rounded-2xl w-full max-w-md text-white shadow-2xl shadow-black/80 space-y-4 animate-fadeIn">
+    <div class="bg-[#111827]/90 backdrop-blur-xl border border-white/10 p-6 rounded-2xl w-full max-w-md md:max-w-3xl text-white shadow-2xl shadow-black/80 animate-fadeIn my-auto max-h-[90vh] overflow-y-auto custom-scrollbar">
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+            <!-- Left Column -->
+            <div class="space-y-4">
+                <!-- Top Header & Icon -->
+                <div class="text-center space-y-2">
+                    <div class="inline-flex p-3 bg-red-500/10 rounded-full text-red-500 mb-2">
+                        <span class="material-symbols-outlined text-4xl" data-icon="security">security</span>
+                    </div>
+                    <h2 id="popupAlert" class="text-2xl font-bold tracking-tight text-center"></h2>
+                    <div id="popupSafe" class="text-sm font-semibold tracking-wide uppercase"></div>
+                </div>
 
-        <!-- Top Header & Icon -->
-        <div class="text-center space-y-2">
-            <div class="inline-flex p-3 bg-red-500/10 rounded-full text-red-500 mb-2">
-                <span class="material-symbols-outlined text-4xl" data-icon="security">security</span>
+                <hr class="border-white/10" />
+
+                <!-- Metrics Grid -->
+                <div class="grid grid-cols-2 gap-3 text-sm">
+                    <div class="bg-white/5 p-3 rounded-xl border border-white/5 space-y-1">
+                        <span class="text-gray-400 block text-xs font-medium">Risk Score</span>
+                        <span id="popupScore" class="text-lg font-bold text-primary"></span>
+                    </div>
+                    <div class="bg-white/5 p-3 rounded-xl border border-white/5 space-y-1">
+                        <span class="text-gray-400 block text-xs font-medium">Confidence</span>
+                        <span id="popupConfidence" class="text-lg font-bold"></span>
+                    </div>
+                </div>
+
+                <!-- Risk Bar -->
+                <div class="space-y-1">
+                    <div class="flex justify-between text-xs text-gray-400">
+                        <span>Threat Intensity</span>
+                        <span id="popupLevel" class="font-bold"></span>
+                    </div>
+                    <div class="w-full bg-white/5 h-3 rounded-full overflow-hidden border border-white/5">
+                        <div id="riskBar" class="h-full rounded-full transition-all duration-700 bg-primary" style="width: 0%;"></div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div id="popupActions" class="space-y-2 pt-2">
+                    <!-- Proceed to Pay (Triggers Drawer) -->
+                    <button id="btnProceedPay" onclick="togglePaymentDrawer(true)"
+                            class="w-full bg-gradient-to-r from-primary to-blue-600 hover:from-blue-600 hover:to-primary active:scale-[0.99] text-white py-3.5 rounded-xl font-bold tracking-wide transition-all shadow-lg shadow-primary/20 cursor-pointer text-center text-sm uppercase">
+                        Proceed to Pay
+                    </button>
+                    
+                    <!-- Report Fraud (shown only for HIGH/CRITICAL) -->
+                    <button id="btnReportFraud"
+                            class="hidden w-full bg-red-500/10 hover:bg-red-500/20 active:scale-[0.99] text-red-400 py-3 rounded-xl font-semibold tracking-wide transition-all border border-red-500/20 cursor-pointer text-center text-sm flex items-center justify-center gap-2">
+                        <span class="material-symbols-outlined text-[16px]">flag</span>
+                        Report Fraud
+                    </button>
+
+                    <!-- Close Button -->
+                    <button id="btnCancelPay" onclick="closePopup()"
+                            class="w-full bg-white/5 hover:bg-white/10 active:scale-[0.99] text-white/80 py-3 rounded-xl font-medium tracking-wide transition-all border border-white/5 cursor-pointer text-center text-xs">
+                        Acknowledge & Close
+                    </button>
+                </div>
+
+                <!-- Payment App Selector Drawer (Hidden by default) -->
+                <div id="paymentDrawer" class="hidden bg-[#1f2937]/50 border border-white/10 rounded-xl p-4 space-y-3 animate-fadeIn">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Select Payment App</span>
+                        <button onclick="togglePaymentDrawer(false)" class="text-xs text-primary hover:underline cursor-pointer">Go Back</button>
+                    </div>
+                    
+                    <!-- Amount Input (Optional, capped to 100) -->
+                    <div class="bg-white/5 p-3 rounded-xl border border-white/5 space-y-1.5 text-left">
+                        <label class="block text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Payment Amount (₹)</label>
+                        <input type="number" id="payAmountInput" placeholder="Enter amount to pay" 
+                               class="w-full bg-[#111827] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-primary/50 transition">
+                        <span class="text-[9px] text-gray-500 block">Enter amount. Payments above ₹100 will be blocked by SuRaksha rules.</span>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-2">
+                        <!-- Google Pay -->
+                        <a id="payGPay" href="#" onclick="simulatePaymentLaunch('Google Pay')"
+                           class="flex items-center gap-2.5 p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-primary/10 hover:border-primary/30 transition-all cursor-pointer">
+                            <span class="w-6 h-6 rounded-full bg-blue-500/10 text-blue-400 flex items-center justify-center font-bold text-[10px]">G</span>
+                            <span class="text-xs font-semibold text-white/90">Google Pay</span>
+                        </a>
+                        
+                        <!-- PhonePe -->
+                        <a id="payPhonePe" href="#" onclick="simulatePaymentLaunch('PhonePe')"
+                           class="flex items-center gap-2.5 p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-purple-500/10 hover:border-purple-500/30 transition-all cursor-pointer">
+                            <span class="w-6 h-6 rounded-full bg-purple-500/10 text-purple-400 flex items-center justify-center font-bold text-[10px]">P</span>
+                            <span class="text-xs font-semibold text-white/90">PhonePe</span>
+                        </a>
+                        
+                        <!-- Paytm -->
+                        <a id="payPaytm" href="#" onclick="simulatePaymentLaunch('Paytm')"
+                           class="flex items-center gap-2.5 p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-sky-500/10 hover:border-sky-500/30 transition-all cursor-pointer">
+                            <span class="w-6 h-6 rounded-full bg-sky-500/10 text-sky-400 flex items-center justify-center font-bold text-[10px]">Py</span>
+                            <span class="text-xs font-semibold text-white/90">Paytm</span>
+                        </a>
+                        
+                        <!-- BHIM UPI -->
+                        <a id="payBHIM" href="#" onclick="simulatePaymentLaunch('BHIM UPI')"
+                           class="flex items-center gap-2.5 p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-orange-500/10 hover:border-orange-500/30 transition-all cursor-pointer">
+                            <span class="w-6 h-6 rounded-full bg-orange-500/10 text-orange-400 flex items-center justify-center font-bold text-[10px]">B</span>
+                            <span class="text-xs font-semibold text-white/90">BHIM UPI</span>
+                        </a>
+                    </div>
+                    
+                    <p class="text-[9px] text-gray-500 text-center leading-normal pt-1">
+                        UPI deep links standard protocol initiates secure local payment gateway launcher.
+                    </p>
+                </div>
             </div>
-            <h2 id="popupAlert" class="text-2xl font-bold tracking-tight text-center"></h2>
-            <div id="popupSafe" class="text-sm font-semibold tracking-wide uppercase"></div>
-        </div>
 
-        <hr class="border-white/10" />
+            <!-- Right Column -->
+            <div class="space-y-4">
+                <!-- Dynamic SVG Radar Chart -->
+                <div class="flex justify-center py-2 bg-white/5 rounded-xl border border-white/5 select-none relative" id="qrRadarBlock">
+                    <span class="absolute top-2 right-2 text-[8px] text-white/20 font-mono">RISK VECTOR</span>
+                    <div id="qrRadarChart" class="w-40 h-40"></div>
+                </div>
 
-        <!-- Metrics Grid -->
-        <div class="grid grid-cols-2 gap-3 text-sm">
-            <div class="bg-white/5 p-3 rounded-xl border border-white/5 space-y-1">
-                <span class="text-gray-400 block text-xs font-medium">Risk Score</span>
-                <span id="popupScore" class="text-lg font-bold text-primary"></span>
+                <!-- Fraud Types & Actions -->
+                <div class="bg-white/5 p-4 rounded-xl border border-white/5 space-y-3 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Fraud Type:</span>
+                        <span id="popupType" class="font-semibold text-secondary"></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Recommendation:</span>
+                        <span id="popupAction" class="font-semibold text-red-400"></span>
+                    </div>
+                </div>
+
+                <!-- ML Categorization Probabilities -->
+                <div id="mlBlock" class="hidden bg-white/5 p-4 rounded-xl border border-white/5 space-y-2 text-xs">
+                    <span class="text-[10px] text-gray-400 font-semibold tracking-wider uppercase block text-left">AI ML Classification Distribution</span>
+                    <div id="mlProbsContainer" class="space-y-1.5 font-mono text-[10px] text-white/80">
+                        <!-- Injected via app.js -->
+                    </div>
+                </div>
+
+                <!-- Suspicious Signals / Reasons -->
+                <div class="space-y-2">
+                    <span class="text-xs text-gray-400 font-semibold tracking-wider uppercase block">Threat Indicators & Signals</span>
+                    <ul id="popupReasons" class="max-h-28 overflow-y-auto space-y-1.5 pr-2 custom-scrollbar"></ul>
+                </div>
             </div>
-            <div class="bg-white/5 p-3 rounded-xl border border-white/5 space-y-1">
-                <span class="text-gray-400 block text-xs font-medium">Confidence</span>
-                <span id="popupConfidence" class="text-lg font-bold"></span>
-            </div>
-        </div>
-
-        <!-- Risk Bar -->
-        <div class="space-y-1">
-            <div class="flex justify-between text-xs text-gray-400">
-                <span>Threat Intensity</span>
-                <span id="popupLevel" class="font-bold"></span>
-            </div>
-            <div class="w-full bg-white/5 h-3 rounded-full overflow-hidden border border-white/5">
-                <div id="riskBar" class="h-full rounded-full transition-all duration-700 bg-primary" style="width: 0%;"></div>
-            </div>
-        </div>
-
-        <!-- Dynamic SVG Radar Chart -->
-        <div class="flex justify-center py-2 bg-white/5 rounded-xl border border-white/5 select-none relative" id="qrRadarBlock">
-            <span class="absolute top-2 right-2 text-[8px] text-white/20 font-mono">RISK VECTOR</span>
-            <div id="qrRadarChart" class="w-40 h-40"></div>
-        </div>
-
-        <!-- Fraud Types & Actions -->
-        <div class="bg-white/5 p-4 rounded-xl border border-white/5 space-y-3 text-sm">
-            <div class="flex justify-between">
-                <span class="text-gray-400">Fraud Type:</span>
-                <span id="popupType" class="font-semibold text-secondary"></span>
-            </div>
-            <div class="flex justify-between">
-                <span class="text-gray-400">Recommendation:</span>
-                <span id="popupAction" class="font-semibold text-red-400"></span>
-            </div>
-        </div>
-
-        <!-- ML Categorization Probabilities -->
-        <div id="mlBlock" class="hidden bg-white/5 p-4 rounded-xl border border-white/5 space-y-2 text-xs">
-            <span class="text-[10px] text-gray-400 font-semibold tracking-wider uppercase block text-left">AI ML Classification Distribution</span>
-            <div id="mlProbsContainer" class="space-y-1.5 font-mono text-[10px] text-white/80">
-                <!-- Injected via app.js -->
-            </div>
-        </div>
-
-        <!-- Suspicious Signals / Reasons -->
-        <div class="space-y-2">
-            <span class="text-xs text-gray-400 font-semibold tracking-wider uppercase block">Threat Indicators & Signals</span>
-            <ul id="popupReasons" class="max-h-28 overflow-y-auto space-y-1.5 pr-2 custom-scrollbar"></ul>
-        </div>
-
-        <!-- Action Buttons -->
-        <div id="popupActions" class="space-y-2 pt-2">
-            <!-- Proceed to Pay (Triggers Drawer) -->
-            <button id="btnProceedPay" onclick="togglePaymentDrawer(true)"
-                    class="w-full bg-gradient-to-r from-primary to-blue-600 hover:from-blue-600 hover:to-primary active:scale-[0.99] text-white py-3.5 rounded-xl font-bold tracking-wide transition-all shadow-lg shadow-primary/20 cursor-pointer text-center text-sm uppercase">
-                Proceed to Pay
-            </button>
-            
-            <!-- Report Fraud (shown only for HIGH/CRITICAL) -->
-            <button id="btnReportFraud"
-                    class="hidden w-full bg-red-500/10 hover:bg-red-500/20 active:scale-[0.99] text-red-400 py-3 rounded-xl font-semibold tracking-wide transition-all border border-red-500/20 cursor-pointer text-center text-sm flex items-center justify-center gap-2">
-                <span class="material-symbols-outlined text-[16px]">flag</span>
-                Report Fraud
-            </button>
-
-            <!-- Close Button -->
-            <button id="btnCancelPay" onclick="closePopup()"
-                    class="w-full bg-white/5 hover:bg-white/10 active:scale-[0.99] text-white/80 py-3 rounded-xl font-medium tracking-wide transition-all border border-white/5 cursor-pointer text-center text-xs">
-                Acknowledge & Close
-            </button>
-        </div>
-
-        <!-- Payment App Selector Drawer (Hidden by default) -->
-        <div id="paymentDrawer" class="hidden bg-white/[0.03] border border-white/5 rounded-xl p-4 space-y-3 animate-fadeIn">
-            <div class="flex justify-between items-center mb-1">
-                <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Select Payment App</span>
-                <button onclick="togglePaymentDrawer(false)" class="text-xs text-primary hover:underline cursor-pointer">Go Back</button>
-            </div>
-            
-            <div class="grid grid-cols-2 gap-2">
-                <!-- Google Pay -->
-                <a id="payGPay" href="#" onclick="simulatePaymentLaunch('Google Pay')"
-                   class="flex items-center gap-2.5 p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-primary/10 hover:border-primary/30 transition-all cursor-pointer">
-                    <span class="w-6 h-6 rounded-full bg-blue-500/10 text-blue-400 flex items-center justify-center font-bold text-[10px]">G</span>
-                    <span class="text-xs font-semibold text-white/90">Google Pay</span>
-                </a>
-                
-                <!-- PhonePe -->
-                <a id="payPhonePe" href="#" onclick="simulatePaymentLaunch('PhonePe')"
-                   class="flex items-center gap-2.5 p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-purple-500/10 hover:border-purple-500/30 transition-all cursor-pointer">
-                    <span class="w-6 h-6 rounded-full bg-purple-500/10 text-purple-400 flex items-center justify-center font-bold text-[10px]">P</span>
-                    <span class="text-xs font-semibold text-white/90">PhonePe</span>
-                </a>
-                
-                <!-- Paytm -->
-                <a id="payPaytm" href="#" onclick="simulatePaymentLaunch('Paytm')"
-                   class="flex items-center gap-2.5 p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-sky-500/10 hover:border-sky-500/30 transition-all cursor-pointer">
-                    <span class="w-6 h-6 rounded-full bg-sky-500/10 text-sky-400 flex items-center justify-center font-bold text-[10px]">Py</span>
-                    <span class="text-xs font-semibold text-white/90">Paytm</span>
-                </a>
-                
-                <!-- BHIM UPI -->
-                <a id="payBHIM" href="#" onclick="simulatePaymentLaunch('BHIM UPI')"
-                   class="flex items-center gap-2.5 p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-orange-500/10 hover:border-orange-500/30 transition-all cursor-pointer">
-                    <span class="w-6 h-6 rounded-full bg-orange-500/10 text-orange-400 flex items-center justify-center font-bold text-[10px]">B</span>
-                    <span class="text-xs font-semibold text-white/90">BHIM UPI</span>
-                </a>
-            </div>
-            
-            <p class="text-[9px] text-gray-500 text-center leading-normal pt-1">
-                UPI deep links standard protocol initiates secure local payment gateway launcher.
-            </p>
         </div>
     </div>
 </div>
@@ -1469,55 +1109,6 @@
 <div id="profileSettingsModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
   <div class="bg-surface border border-outline-variant/30 rounded-3xl w-full max-w-md p-lg shadow-2xl relative overflow-hidden text-center animate-fadeIn">
     <!-- Top Close Button -->
-    <button onclick="closeProfileModal()" class="absolute top-4 right-4 text-on-surface-variant hover:text-white transition">
-      <span class="material-symbols-outlined text-xl">close</span>
-    </button>
-
-    <h2 class="font-headline-md text-headline-md text-white mb-1">User Profile Settings</h2>
-    <p class="text-xs text-on-surface-variant mb-6">Set your avatar, custom receive VPA, and generate your secure QR code.</p>
-
-    <!-- Avatar Upload Section -->
-    <div class="flex flex-col items-center justify-center gap-3 mb-6">
-      <div class="relative group">
-        <div class="h-24 w-24 rounded-full border-4 border-primary/30 overflow-hidden bg-slate-800 flex items-center justify-center">
-          <img id="profile-modal-preview-img" src="" class="h-full w-full object-cover hidden" />
-          <span id="profile-modal-preview-icon" class="material-symbols-outlined text-primary text-5xl">account_circle</span>
-        </div>
-        <label for="profilePhotoInput" class="absolute bottom-0 right-0 p-1.5 bg-primary text-white rounded-full cursor-pointer hover:scale-105 active:scale-95 transition shadow-lg border border-white/20">
-          <span class="material-symbols-outlined text-xs">edit</span>
-        </label>
-        <input type="file" id="profilePhotoInput" accept="image/*" class="hidden" onchange="handleProfilePhotoUpload(event)">
-      </div>
-      <span class="text-[10px] text-on-surface-variant">Recommended size: Square PNG or JPG</span>
-    </div>
-
-    <!-- Details Section -->
-    <div class="space-y-4 text-left">
-      <div>
-        <label class="block text-xs font-semibold text-on-surface-variant mb-1 uppercase tracking-wider">Display Name</label>
-        <input type="text" id="profileDisplayName" placeholder="e.g. Suraj Sawant" 
-               class="w-full bg-surface-container border border-outline-variant/30 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-primary/50 transition">
-      </div>
-      <div>
-        <label class="block text-xs font-semibold text-on-surface-variant mb-1 uppercase tracking-wider">Receive UPI VPA</label>
-        <input type="text" id="profileUpiId" placeholder="e.g. surajsawant@okaxis" 
-               class="w-full bg-surface-container border border-outline-variant/30 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-primary/50 transition">
-        <span class="text-[9px] text-on-surface-variant block mt-1">This VPA will be encoded in your secure QR code to receive payments.</span>
-      </div>
-    </div>
-
-    <!-- Action Buttons -->
-    <div class="flex gap-3 mt-6 pt-2">
-      <button onclick="saveUserProfile()" class="flex-1 bg-gradient-to-r from-primary to-blue-600 hover:from-blue-600 hover:to-primary active:scale-95 text-white font-bold py-3 rounded-xl text-xs transition cursor-pointer shadow-lg shadow-primary/20">
-        Save Changes
-      </button>
-      <button onclick="closeProfileModal()" class="flex-1 bg-surface-container border border-outline-variant/30 hover:bg-surface-variant/20 text-on-surface font-bold py-3 rounded-xl text-xs transition cursor-pointer">
-        Cancel
-      </button>
-    </div>
-  </div>
-</div>
-
 <div id="loader"
      class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50">
 
@@ -1531,5 +1122,36 @@
 <script src="https://unpkg.com/html5-qrcode"></script>
 
 <!-- APP JS -->
+<script src="js/upi_database.js"></script>
 <script src="js/app.js"></script>
-</body></html>
+
+<script>
+  // Save & restore scroll position on reload
+  (function () {
+    const SCROLL_KEY = 'scan_scroll_y';
+
+    // Restore scroll as early as possible (before paint)
+    const savedY = sessionStorage.getItem(SCROLL_KEY);
+    if (savedY !== null) {
+      // Use requestAnimationFrame to wait until layout is ready
+      window.addEventListener('load', function () {
+        window.scrollTo({ top: parseInt(savedY, 10), behavior: 'instant' });
+      });
+    }
+
+    // Save scroll position before the page unloads (refresh/close)
+    window.addEventListener('beforeunload', function () {
+      sessionStorage.setItem(SCROLL_KEY, window.scrollY);
+    });
+
+    // Also save periodically while scrolling (fallback for some browsers)
+    let scrollTimer;
+    window.addEventListener('scroll', function () {
+      clearTimeout(scrollTimer);
+      scrollTimer = setTimeout(function () {
+        sessionStorage.setItem(SCROLL_KEY, window.scrollY);
+      }, 150);
+    }, { passive: true });
+  })();
+</script>
+</body></html>

@@ -1,7 +1,7 @@
 // frontend/js/theme.js
 // Universal Dark/Light Theme Synchronizer & Persister
 
-document.addEventListener("DOMContentLoaded", () => {
+function initThemeAndProfile() {
     const toggleBtn = document.getElementById("theme-toggle");
     const icon = document.getElementById("theme-icon");
 
@@ -41,4 +41,52 @@ document.addEventListener("DOMContentLoaded", () => {
     if (yearEl) {
         yearEl.textContent = new Date().getFullYear();
     }
-});
+
+    // 👤 Universal Navbar Profile Sync & Navigation
+    const profileBtn = document.getElementById("profile-settings-btn");
+    const navbarImg = document.getElementById("navbar-profile-img");
+    const navbarIcon = document.getElementById("navbar-profile-icon");
+
+    function syncNavbarProfile() {
+        const photo = localStorage.getItem("profile_photo");
+        if (photo) {
+            if (navbarImg) {
+                navbarImg.src = photo;
+                navbarImg.classList.remove("hidden");
+            }
+            if (navbarIcon) {
+                navbarIcon.classList.add("hidden");
+            }
+        } else {
+            if (navbarImg) {
+                navbarImg.src = "";
+                navbarImg.classList.add("hidden");
+            }
+            if (navbarIcon) {
+                navbarIcon.classList.remove("hidden");
+            }
+        }
+    }
+
+    syncNavbarProfile();
+
+    // Listen for custom profile changes (storage sync)
+    window.addEventListener("storage", (e) => {
+        if (e.key === "profile_photo") {
+            syncNavbarProfile();
+        }
+    });
+}
+
+// 🌐 Global Profile Redirect
+// Placed entirely outside init block to ensure it's available immediately to inline onclick handlers
+window.openProfileRedirect = function(e) {
+    if (e) e.preventDefault();
+    window.location.href = "profile.html";
+};
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initThemeAndProfile);
+} else {
+    initThemeAndProfile();
+}

@@ -11,6 +11,7 @@
 <script src="js/theme.js" defer></script>
 <script src="js/language.js" defer></script>
 <meta charset="utf-8"/>
+<link rel="icon" type="image/png" href="assets/images/logo.png" />
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>SuRaksha | Real-Time UPI Fraud Detection</title>
 <meta name="description"
@@ -18,200 +19,12 @@
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-<script id="tailwind-config">
-tailwind.config = {
-  darkMode: "class",
-  theme: {
-    extend: {
-      colors: {
-        background: "var(--background)",
-        "on-background": "var(--on-background)",
-        surface: "var(--surface)",
-        "on-surface": "var(--on-surface)",
-        "surface-container": "var(--surface-container)",
-        "surface-container-low": "var(--surface-container-low)",
-        "surface-container-high": "var(--surface-container-high)",
-        "surface-container-lowest": "var(--surface-container-lowest)",
-        "surface-container-highest": "var(--surface-container-highest)",
-        "surface-variant": "var(--surface-variant)",
-        "outline-variant": "var(--outline-variant)",
-        outline: "var(--outline)",
-        "on-surface-variant": "var(--on-surface-variant)",
-        "surface-dim": "var(--surface-dim)",
-        
-        primary: "rgb(var(--primary-rgb) / <alpha-value>)",
-        secondary: "rgb(var(--secondary-rgb) / <alpha-value>)",
-        error: "rgb(var(--error-rgb) / <alpha-value>)",
-        success: "rgb(var(--success-rgb) / <alpha-value>)",
 
-        "dark-background": "#070a13",
-        "dark-on-surface": "#f1f5f9",
-      },
-      borderRadius: {
-        DEFAULT: "0.25rem", lg: "0.5rem", xl: "0.75rem", full: "9999px"
-      },
-      spacing: {
-        xs: "0.25rem", sm: "0.5rem", md: "1rem", lg: "1.5rem", xl: "2.5rem", xxl: "4rem"
-      },
-      fontFamily: {
-        "body-md": ["Inter"], "label-sm": ["Inter"], "headline-md": ["Plus Jakarta Sans"],
-        "body-lg": ["Inter"], "display-lg": ["Plus Jakarta Sans"],
-        "headline-lg": ["Plus Jakarta Sans"], "label-md": ["Inter"]
-      },
-      fontSize: {
-        "body-md": ["16px", { lineHeight: "1.6", fontWeight: "400" }],
-        "label-sm": ["12px", { lineHeight: "1.2", fontWeight: "600" }],
-        "headline-md": ["24px", { lineHeight: "1.4", fontWeight: "600" }],
-        "body-lg": ["18px", { lineHeight: "1.6", fontWeight: "400" }],
-        "display-lg": ["48px", { lineHeight: "1.2", letterSpacing: "-0.02em", fontWeight: "700" }],
-        "headline-lg": ["32px", { lineHeight: "1.3", fontWeight: "600" }],
-        "label-md": ["14px", { lineHeight: "1.2", letterSpacing: "0.01em", fontWeight: "500" }]
-      }
-    }
-  }
-}
-</script>
-<style>
-  :root {
-    --background: #f8fafc;
-    --on-background: #0f172a;
-    --surface: #ffffff;
-    --on-surface: #0f172a;
-    --surface-container: #f1f5f9;
-    --surface-container-low: #f8fafc;
-    --surface-container-high: #e2e8f0;
-    --surface-container-lowest: #ffffff;
-    --surface-container-highest: #cbd5e1;
-    --surface-variant: #e2e8f0;
-    --outline-variant: #cbd5e1;
-    --outline: #64748b;
-    --on-surface-variant: #475569;
-    --surface-dim: #f1f5f9;
-    --header-bg: rgba(248, 250, 252, 0.8);
 
-    --primary-rgb: 11 94 215;
-    --secondary-rgb: 217 119 6;
-    --error-rgb: 220 53 69;
-    --success-rgb: 16 185 129;
-  }
 
-  .dark {
-    --background: #070a13;
-    --on-background: #f8fafc;
-    --surface: #0f172a;
-    --on-surface: #f1f5f9;
-    --surface-container: #1e293b;
-    --surface-container-low: #070a13;
-    --surface-container-high: #334155;
-    --surface-container-lowest: #020617;
-    --surface-container-highest: #475569;
-    --surface-variant: #334155;
-    --outline-variant: #475569;
-    --outline: #94a3b8;
-    --on-surface-variant: #cbd5e1;
-    --surface-dim: #070a13;
-    --header-bg: rgba(7, 10, 19, 0.8);
+<script src="js/tailwind-config.js"></script>
+<link rel="stylesheet" href="css/theme-style.css" />
 
-    --primary-rgb: 59 130 246;
-    --secondary-rgb: 251 191 36;
-    --error-rgb: 248 113 113;
-    --success-rgb: 52 211 153;
-  }
-
-  /* ── Text Glow & Animated Gradient ── */
-  @keyframes textGlow {
-    0%, 100% { text-shadow: 0 0 4px rgba(var(--primary-rgb), 0.1); }
-    50% { text-shadow: 0 0 10px rgba(var(--primary-rgb), 0.4); }
-  }
-  .animate-text-glow {
-    animation: textGlow 3s ease-in-out infinite;
-  }
-
-  @keyframes gradientShift {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-  }
-  .animate-gradient {
-    background-size: 200% auto;
-    animation: gradientShift 4s ease infinite;
-  }
-
-  /* ── Material Symbols ── */
-  .material-symbols-outlined {
-    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-  }
-
-  /* ── Glass Header ── */
-  .glass-header {
-    background: var(--header-bg);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-  }
-
-  /* ── Glass Card ── */
-  .glass-card {
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(0, 0, 0, 0.05);
-  }
-  .dark .glass-card {
-    background: rgba(15, 23, 42, 0.7);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-  }
-
-  /* ── Hero Glow ── */
-  .hero-glow {
-    background: radial-gradient(circle at center, rgba(var(--primary-rgb), 0.15) 0%, transparent 70%);
-  }
-
-  /* ── Float Animation ── */
-  @keyframes float {
-    0%   { transform: translateY(0px); }
-    50%  { transform: translateY(-20px); }
-    100% { transform: translateY(0px); }
-  }
-  .animate-float { animation: float 4s ease-in-out infinite; }
-
-  /* ── Smooth Micro-Interactions ── */
-  .card-hover { transition: all 0.3s ease; }
-  .card-hover:hover {
-    transform: translateY(-5px) scale(1.02);
-    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-  }
-
-  /* ── Fade-in on page load ── */
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  .fade-up {
-    opacity: 0;
-    animation: fadeUp 0.6s ease forwards;
-  }
-  .fade-up-1 { animation-delay: 0.1s; }
-  .fade-up-2 { animation-delay: 0.25s; }
-  .fade-up-3 { animation-delay: 0.4s; }
-  .fade-up-4 { animation-delay: 0.55s; }
-  html {
-    scroll-behavior: smooth;
-  }
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-
-  .animate-spin {
-    animation: spin 1s linear infinite;
-  }
-  button:active,
-  a:active {
-    transform: scale(0.97);
-  }
-  button,
-  a {
-    cursor: pointer;
-  }
-</style>
 </head>
 
 <body
@@ -243,27 +56,10 @@ tailwind.config = {
 
     <!-- Navigation -->
     <nav class="hidden md:flex items-center gap-lg">
-
-      <a href="index.html"
-         class="text-primary border-b-2 border-primary pb-1 font-medium">
-        Home
-      </a>
-
-      <a href="features.html"
-         class="text-on-surface-variant hover:text-primary transition-colors duration-300">
-        Features
-      </a>
-
-      <a href="how.html"
-         class="text-on-surface-variant hover:text-primary transition-colors duration-300">
-        How It Works
-      </a>
-
-      <a href="about.html"
-         class="text-on-surface-variant hover:text-primary transition-colors duration-300">
-        About
-      </a>
-
+      <a href="index.html" class="text-on-surface-variant hover:text-primary transition-colors duration-300">Home</a>
+      <a href="index.html#features" class="text-on-surface-variant hover:text-primary transition-colors duration-300">Features</a>
+      <a href="index.html#how-it-works" class="text-on-surface-variant hover:text-primary transition-colors duration-300">How It Works</a>
+      <a href="about.html" class="text-on-surface-variant hover:text-primary transition-colors duration-300">About</a>
     </nav>
 
     <!-- Right Actions -->
@@ -290,6 +86,16 @@ tailwind.config = {
           dark_mode
         </span>
 
+      </button>
+
+      <!-- User Profile Settings Button -->
+      <button
+        id="profile-settings-btn"
+        onclick="window.location.href='profile.html'"
+        aria-label="Profile Settings"
+        class="p-2 rounded-xl hover:bg-surface-variant/20 active:scale-95 transition-all duration-300 flex items-center justify-center border border-primary/20 bg-surface cursor-pointer">
+        <img id="navbar-profile-img" src="" class="h-6 w-6 rounded-full object-cover hidden" />
+        <span id="navbar-profile-icon" class="material-symbols-outlined text-primary">account_circle</span>
       </button>
 
       <!-- CTA -->
@@ -394,213 +200,342 @@ tailwind.config = {
   </section>
 
   <!-- ════════ HOW IT WORKS ════════ -->
-  <section class="px-lg max-w-7xl mx-auto py-xxl bg-surface-container dark:bg-dark-surface-container rounded-3xl" id="how-it-works">
-    <div class="text-center mb-xl">
-      <h2 class="font-headline-lg text-headline-lg mb-sm">How SuRaksha Protects You</h2>
-      <p class="text-on-surface-variant dark:text-dark-on-surface">Three simple steps to secure your digital payments</p>
+<section id="how-it-works" class="px-lg max-w-7xl mx-auto space-y-xxl pt-xxl"><section class="text-center mb-xxl">
+<h1 class="font-display-lg text-display-lg text-on-background mb-md">How SuRaksha Works</h1>
+<p class="text-on-surface-variant font-body-lg max-w-2xl mx-auto">
+                Protect yourself from UPI fraud in just 3 simple steps. Our advanced AI engine analyzes threats in real-time to keep your money safe.
+            </p>
+</section>
+<!-- STEP-BY-STEP SECTION -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-xl mb-xxl relative">
+<!-- Decorative line for desktop -->
+<div class="hidden md:block absolute top-1/2 left-0 w-full h-px bg-outline-variant/20 -z-10"></div>
+<!-- Step 1 -->
+<div class="bg-surface-container rounded-3xl p-xl border border-white/5 relative flex flex-col items-center text-center group hover:border-primary/30 transition-colors">
+<span class="absolute top-4 right-6 font-display-lg text-surface-variant/30 select-none">01</span>
+<div class="w-16 h-16 bg-primary-container/10 rounded-2xl flex items-center justify-center mb-lg ring-1 ring-primary/20 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="upload">upload</span>
+</div>
+<h3 class="font-headline-md text-headline-md mb-sm">Upload Input</h3>
+<p class="text-on-surface-variant">Upload a payment screenshot or paste a suspicious message from WhatsApp or SMS.</p>
+</div>
+<!-- Step 2 -->
+<div class="bg-surface-container rounded-3xl p-xl border border-white/5 relative flex flex-col items-center text-center group hover:border-primary/30 transition-colors">
+<span class="absolute top-4 right-6 font-display-lg text-surface-variant/30 select-none">02</span>
+<div class="w-16 h-16 bg-primary-container/10 rounded-2xl flex items-center justify-center mb-lg ring-1 ring-primary/20 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="radar">radar</span>
+</div>
+<h3 class="font-headline-md text-headline-md mb-sm">Scan &amp; Analyze</h3>
+<p class="text-on-surface-variant">AI scans QR codes and images for risk patterns, checking against millions of reported fraudulent links.</p>
+</div>
+<!-- Step 3 -->
+<div class="bg-surface-container rounded-3xl p-xl border border-white/5 relative flex flex-col items-center text-center group hover:border-primary/30 transition-colors">
+<span class="absolute top-4 right-6 font-display-lg text-surface-variant/30 select-none">03</span>
+<div class="w-16 h-16 bg-primary-container/10 rounded-2xl flex items-center justify-center mb-lg ring-1 ring-primary/20 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="notification_important">notification_important</span>
+</div>
+<h3 class="font-headline-md text-headline-md mb-sm">Receive Risk Alert</h3>
+<p class="text-on-surface-variant mb-lg">Get an instant Low, Medium, or High risk rating before you authorize any payment.</p>
+<!-- Visual Risk Bar -->
+<div class="w-full space-y-2">
+<div class="w-full h-2 rounded-full risk-bar-gradient"></div>
+<div class="flex justify-between text-xs font-label-sm text-on-surface-variant uppercase tracking-wider">
+<span>Low</span>
+<span>Medium</span>
+<span class="text-error">High</span>
+</div>
+</div>
+</div>
+</section>
+<!-- EXAMPLE SCENARIO: Real-Life Use Case -->
+<section class="mb-xxl bg-surface-container-low rounded-[2rem] p-lg md:p-xl border border-outline-variant/10">
+<h2 class="font-headline-lg text-headline-lg text-center mb-xl">Real-Life Use Case</h2>
+<div class="flex flex-col lg:flex-row items-center justify-between gap-xl">
+<!-- Phone Frame 1 -->
+<div class="w-full max-w-[290px] aspect-[9/19] rounded-[3rem] bg-gradient-to-b from-[#3a3f4a] via-[#1e2025] to-[#0c0d10] p-[8px] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.6)] ring-1 ring-white/10 hover:shadow-primary/20 transition-all duration-500">
+  <div class="w-full h-full rounded-[2.5rem] bg-black p-[6px] relative flex flex-col justify-between overflow-hidden select-none">
+    
+    <!-- Outer screen container -->
+    <div class="w-full h-full rounded-[2.2rem] bg-surface-container relative overflow-hidden flex flex-col pt-[36px] pb-4 px-3">
+      
+      <!-- Futuristic Dynamic Island -->
+      <div class="absolute top-[12px] left-1/2 -translate-x-1/2 z-45 bg-black w-[95px] h-[26px] rounded-full flex items-center justify-between px-3 border border-white/5">
+        <!-- Pulse Green camera dot for Safe Scan -->
+        <span class="w-[6px] h-[6px] rounded-full bg-[#10b981] shadow-[0_0_8px_#10b981] animate-pulse"></span>
+        <span class="w-[8px] h-[8px] bg-[#111] rounded-full border border-gray-800"></span>
+      </div>
+
+      <!-- iOS Status Bar -->
+      <div class="absolute top-[14px] left-0 right-0 px-6 flex justify-between items-center text-[10px] font-bold text-on-surface select-none z-30 opacity-80">
+        <div>9:41</div>
+        <div class="flex items-center gap-1.5">
+          <!-- Cellular Signal Bars -->
+          <svg class="w-3.5 h-3.5 fill-current text-on-surface" viewBox="0 0 24 24">
+            <path d="M2 22h20V2z" />
+          </svg>
+          <!-- Wifi -->
+          <svg class="w-3.5 h-3.5 fill-current text-on-surface" viewBox="0 0 24 24">
+            <path d="M12 21l-12-12a17 17 0 0 1 24 0z" />
+          </svg>
+          <!-- Battery -->
+          <div class="w-5 h-2.5 border border-on-surface rounded-sm p-[1px] flex items-center">
+            <div class="w-full h-full bg-on-surface rounded-xs"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Phone Screen Content (WhatsApp / Chat Simulation) -->
+      <div class="flex-1 flex flex-col">
+        <!-- Chat Header -->
+        <div class="flex items-center justify-between pb-2 mb-3 border-b border-outline-variant/10">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-sm text-on-surface-variant cursor-pointer select-none">arrow_back_ios</span>
+            <div class="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold text-[8px] ring-1 ring-primary/20">
+              🎁
+            </div>
+            <div>
+              <h4 class="text-[9px] font-bold text-on-surface leading-none">Cashback Reward</h4>
+              <span class="text-[7px] text-[#10b981] font-medium">Active now</span>
+            </div>
+          </div>
+          <span class="material-symbols-outlined text-sm text-on-surface-variant cursor-pointer select-none">more_vert</span>
+        </div>
+
+        <!-- Chat message bubble -->
+        <div class="bg-surface-container-high/60 border border-outline-variant/10 p-2.5 rounded-2xl rounded-tl-sm text-[9px] text-on-surface-variant leading-relaxed relative shadow-sm max-w-[90%]">
+          "Hey, you won 5000 cashback! Scan this QR code to claim it now!"
+          <div class="text-right text-[6px] text-on-surface-variant/40 mt-1">10:14 AM</div>
+        </div>
+
+        <!-- QR Code Card -->
+        <div class="bg-surface border border-outline-variant/10 p-3 rounded-2xl shadow-sm mt-3 flex flex-col items-center gap-2 group-hover:scale-[1.02] transition-transform duration-300">
+          <div class="relative bg-white p-2 rounded-lg border border-gray-100 flex items-center justify-center">
+            <img alt="QR Code Example" class="w-20 h-20 opacity-90 transition-opacity hover:opacity-100" data-alt="A detailed digital illustration of a smartphone screen displaying a fraudulent WhatsApp message with a generic QR code. The interface is clean and dark-themed, following a modern mobile OS aesthetic with soft blue and deep navy tones. The lighting highlights the phone's glass edge, suggesting a high-end device." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBtB1BVbsZbFRAsE7TFtA2ggRmnEHXRIBdvMSfDoWGehd7GQXXWtzNK_sZPHQ6OKzJdR_bnlVJvkqp6u6ADNEBpMl2xgAWwmYVRz5Mqd2sboS2iiupy7Do_ucvaJnkYkiRWJR78_w0zZ4F3-1iAOXCTWA2y-yztyQBTOQSgwrhPsnITfk1lsUTqb26iUUNxqIp-2LNM-8NmTyKxi6IIT-qi4xmen1WwcsYsx-0k9PYCFKZUXm7uv1g_9OE8YOwFBIMOn7vx_sGXYkjl"/>
+          </div>
+        </div>
+
+        <!-- Scanning CTA Button at bottom of screen -->
+        <div class="mt-auto pt-3">
+          <div class="w-full py-2 bg-primary/10 border border-primary/30 rounded-xl text-center text-[8px] font-bold text-primary tracking-wider uppercase animate-pulse select-none">
+            SCAN WITH SURAKSHA
+          </div>
+        </div>
+      </div>
+
+      <!-- Home Indicator -->
+      <div class="absolute bottom-[6px] left-1/2 -translate-x-1/2 w-[90px] h-[3px] bg-on-surface/30 rounded-full z-40"></div>
     </div>
-    <div class="grid md:grid-cols-3 gap-lg">
-      <div class="glass-card card-hover p-xl rounded-3xl group hover:border-primary/40 transition-all duration-300">
-        <div class="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-lg group-hover:scale-110 transition-transform">
-          <span class="material-symbols-outlined text-primary text-[32px]">screenshot</span>
-        </div>
-        <h3 class="font-headline-md text-headline-md mb-md">Upload Screenshot</h3>
-        <p class="text-on-surface-variant dark:text-dark-on-surface">Take a screenshot of any suspicious payment request or chat and upload it for instant analysis.</p>
+  </div>
+  <p class="text-center mt-4 font-label-sm text-on-surface-variant uppercase tracking-widest">Receive QR Code</p>
+</div>
+<div class="hidden lg:block">
+<span class="material-symbols-outlined text-surface-variant text-4xl" data-icon="arrow_forward">arrow_forward</span>
+</div>
+<!-- Phone Frame 2 (The Risk Result) -->
+<div class="w-full max-w-[290px] aspect-[9/19] rounded-[3rem] bg-gradient-to-b from-[#3a3f4a] via-[#1e2025] to-[#0c0d10] p-[8px] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.6)] ring-1 ring-white/10 hover:shadow-error/20 transition-all duration-500 relative">
+  <!-- Absolute high risk badge at top of chassis -->
+  <div class="absolute -top-3 -right-3 bg-error text-white px-3 py-1 rounded-full text-[9px] font-bold shadow-lg tracking-wider animate-bounce z-50">HIGH RISK</div>
+  
+  <div class="w-full h-full rounded-[2.5rem] bg-black p-[6px] relative flex flex-col justify-between overflow-hidden select-none">
+    <!-- Outer screen container -->
+    <div class="w-full h-full rounded-[2.2rem] bg-surface-container relative overflow-hidden flex flex-col pt-[36px] pb-4 px-3">
+      
+      <!-- Futuristic Dynamic Island -->
+      <div class="absolute top-[12px] left-1/2 -translate-x-1/2 z-45 bg-black w-[110px] h-[26px] rounded-full flex items-center justify-between px-3 border border-white/5">
+        <!-- Pulse Red camera dot for Warning -->
+        <span class="w-[6px] h-[6px] rounded-full bg-[#ef4444] shadow-[0_0_8px_#ef4444] animate-pulse"></span>
+        <span class="text-[8px] font-bold text-error tracking-wider uppercase">ALERT</span>
+        <span class="w-[8px] h-[8px] bg-[#111] rounded-full border border-gray-800"></span>
       </div>
-      <div class="glass-card card-hover p-xl rounded-3xl group hover:border-primary/40 transition-all duration-300">
-        <div class="w-16 h-16 bg-secondary/10 rounded-2xl flex items-center justify-center mb-lg group-hover:scale-110 transition-transform">
-          <span class="material-symbols-outlined text-secondary text-[32px]">qr_code_2</span>
-        </div>
-        <h3 class="font-headline-md text-headline-md mb-md">Scan QR/Message</h3>
-        <p class="text-on-surface-variant dark:text-dark-on-surface">Scan physical QR codes at shops or paste SMS alerts to identify malicious links hidden behind payment icons.</p>
-      </div>
-      <div class="glass-card card-hover p-xl rounded-3xl group hover:border-primary/40 transition-all duration-300">
-        <div class="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-lg group-hover:scale-110 transition-transform">
-          <span class="material-symbols-outlined text-primary text-[32px]">security</span>
-        </div>
-        <h3 class="font-headline-md text-headline-md mb-md">Get Risk Alert</h3>
-        <p class="text-on-surface-variant dark:text-dark-on-surface">Our AI evaluates the risk level and gives you a clear Go/No-Go signal with detailed reasoning.</p>
-      </div>
-    </div>
-  </section>
 
-  <!-- ════════ CORE FEATURES ════════ -->
-  <section class="px-lg max-w-7xl mx-auto py-xxl" id="features">
-    <div class="flex flex-col md:flex-row justify-between items-end mb-xl gap-md">
-      <div>
-        <h2 class="font-headline-lg text-headline-lg">Advanced Detection Suite</h2>
-        <p class="text-on-surface-variant dark:text-dark-on-surface"> on next-gen security protocols</p>
-      </div>
-      <div class="flex gap-sm">
-        <span class="px-md py-sm bg-primary/15 text-primary dark:bg-primary/25 dark:text-white rounded-full text-label-sm border border-primary/40 font-semibold">
-          ⚡ Real-time Analysis
-        </span>
-
-        <span class="px-md py-sm bg-secondary/15 text-secondary dark:bg-secondary/25 dark:text-white rounded-full text-label-sm border border-secondary/40 font-semibold">
-          🤖 AI-Powered
-        </span>
-      </div>
-    </div>
-    <div class="grid grid-cols-1 md:grid-cols-6 gap-md">
-      <div class="md:col-span-3 glass-card card-hover p-lg rounded-3xl border-t-4 border-primary">
-        <h4 class="font-label-md text-primary mb-sm">Visual Intelligence</h4>
-        <h3 class="font-headline-md text-headline-md mb-md">Screenshot Fraud Detection</h3>
-        <p class="text-on-surface-variant mb-lg">Identifies deceptive UI patterns in spoofed banking apps that trick you into entering your UPI PIN.</p>
-        <img loading="lazy" class="rounded-xl w-full h-48 object-cover"
-          alt="Smartphone with fraud detection overlay"
-          src="https://lh3.googleusercontent.com/aida-public/AB6AXuCANwDxg9wUd6u0h_lWEizZq0PSRpFOwgd7AuPUFgHs5DshR05i6cd22GsZ-YO0lDYvMQzywmhbCbbp2-ADl1SLF8EpZqKVJXpFmninNdW7C5FMCFWu1S-Tj2wV4B1ZShOgtRt6DEdTpcXVUF1n4IKg0HnEJ5pyrIr9d17CTeo2Q9uw6jXsX6y8EJgL3X64VLUThWfbXOpMbbwJ7eJyhVDWiCebHZRpDPvzoEJtaOcCePbJtEhoej0oIgpJGUwPUq4jVobBe5rM9RAV"/>
-      </div>
-      <div class="md:col-span-3 glass-card card-hover p-lg rounded-3xl border-t-4 border-secondary">
-        <h4 class="font-label-md text-secondary mb-sm">Text Analysis</h4>
-        <h3 class="font-headline-md text-headline-md mb-md">Suspicious Message Analyzer</h3>
-        <p class="text-on-surface-variant mb-lg">Detects urgency-based phishing messages and 'Lucky Draw' scams common on WhatsApp and SMS.</p>
-        <div class="bg-white/10 backdrop-blur-md border border-white/10 p-md rounded-xl space-y-sm">
-          <div class="flex gap-sm items-start bg-error/10 dark:bg-error/20/20 p-sm rounded-lg border border-error/20">
-            <span class="material-symbols-outlined text-error">warning</span>
-            <p class="text-label-sm text-error">Warning: Message contains high-pressure language typical of financial scams.</p>
-          </div>
-          <div class="h-2 w-full bg-surface-variant rounded-full overflow-hidden">
-            <div class="h-full bg-error w-[85%]"></div>
+      <!-- iOS Status Bar -->
+      <div class="absolute top-[14px] left-0 right-0 px-6 flex justify-between items-center text-[10px] font-bold text-on-surface select-none z-30 opacity-80">
+        <div>9:41</div>
+        <div class="flex items-center gap-1.5">
+          <!-- Cellular Signal Bars -->
+          <svg class="w-3.5 h-3.5 fill-current text-on-surface" viewBox="0 0 24 24">
+            <path d="M2 22h20V2z" />
+          </svg>
+          <!-- Wifi -->
+          <svg class="w-3.5 h-3.5 fill-current text-on-surface" viewBox="0 0 24 24">
+            <path d="M12 21l-12-12a17 17 0 0 1 24 0z" />
+          </svg>
+          <!-- Battery -->
+          <div class="w-5 h-2.5 border border-on-surface rounded-sm p-[1px] flex items-center">
+            <div class="w-full h-full bg-on-surface rounded-xs"></div>
           </div>
         </div>
       </div>
-      <div class="md:col-span-2 glass-card card-hover p-lg rounded-3xl">
-        <div class="mb-md"><span class="material-symbols-outlined text-primary text-[32px]">qr_code_scanner</span></div>
-        <h3 class="font-headline-md text-headline-md mb-sm">Safe QR Scanner</h3>
-        <p class="text-label-md text-on-surface-variant">Prevents 'Collect Request' frauds by verifying QR destination before you tap pay.</p>
-      </div>
-      <div class="md:col-span-2 glass-card card-hover p-lg rounded-3xl bg-primary/5">
-        <div class="mb-md"><span class="material-symbols-outlined text-primary text-[32px]">trending_up</span></div>
-        <h3 class="font-headline-md text-headline-md mb-sm">Real-time Risk Score</h3>
-        <p class="text-label-md text-on-surface-variant">Instant 0-100 score based on global fraud databases and behavioral patterns.</p>
-      </div>
-      <div class="md:col-span-2 glass-card card-hover p-lg rounded-3xl">
-        <div class="mb-md"><span class="material-symbols-outlined text-secondary text-[32px]">psychology</span></div>
-        <h3 class="font-headline-md text-headline-md mb-sm">AI Recommendation</h3>
-        <p class="text-label-md text-on-surface-variant">Context-aware advice on whether to proceed, block, or report the transaction.</p>
-      </div>
-    </div>
-  </section>
 
-  <!-- ════════ LIVE DEMO ════════ -->
-  <section class="px-lg max-w-7xl mx-auto py-xxl overflow-hidden">
-    <div class="grid md:grid-cols-2 gap-xl items-center">
-      <div>
-        <h2 class="font-headline-lg text-headline-lg mb-md">See It in Action</h2>
-        <p class="text-body-lg text-on-surface-variant dark:text-dark-on-surface mb-xl">Our scanning engine works in milliseconds. Whether it's a fake reward or a masked payment link, we catch it before your money leaves your account.</p>
-        <div class="space-y-md">
-          <div class="flex items-center gap-md">
-            <div class="w-10 h-10 rounded-full bg-error/20 flex items-center justify-center"><span class="material-symbols-outlined text-error">priority_high</span></div>
-            <p class="font-label-md">High Risk: Spoofed Payment Gateway</p>
-          </div>
-          <div class="flex items-center gap-md">
-            <div class="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center"><span class="material-symbols-outlined text-secondary">question_mark</span></div>
-            <p class="font-label-md">Medium Risk: Unverified Merchant Account</p>
-          </div>
-          <div class="flex items-center gap-md">
-            <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center"><span class="material-symbols-outlined text-primary">check_circle</span></div>
-            <p class="font-label-md">Low Risk: Verified Institutional Vendor</p>
-          </div>
+      <!-- Phone Screen Content (SuRaksha Threat Warning HUD) -->
+      <div class="flex-1 flex flex-col">
+        <!-- Real-Time Analysis header -->
+        <div class="bg-error/10 border border-error/20 rounded-lg py-1 px-2 text-center text-[8px] font-bold text-error tracking-wider uppercase animate-pulse flex items-center justify-center gap-1 mb-3">
+          <span class="material-symbols-outlined text-[10px]">gpp_maybe</span> REAL-TIME THREAT DETECTED
         </div>
-      </div>
-      <div class="relative flex justify-center">
-        <!-- iPhone 17 Chassis Frame -->
-        <div class="w-full max-w-[290px] aspect-[9/19] rounded-[3rem] bg-gradient-to-b from-[#3a3f4a] via-[#1e2025] to-[#0c0d10] p-[8px] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.6)] ring-1 ring-white/10 hover:shadow-primary/20 transition-all duration-500">
-          <div class="w-full h-full rounded-[2.5rem] bg-black p-[6px] relative flex flex-col justify-between overflow-hidden select-none">
-            
-            <!-- Outer screen container -->
-            <div class="w-full h-full rounded-[2.2rem] bg-surface-container relative overflow-hidden flex flex-col pt-[36px] pb-4 px-3">
-              
-              <!-- Futuristic Dynamic Island -->
-              <div class="absolute top-[12px] left-1/2 -translate-x-1/2 z-45 bg-black w-[110px] h-[26px] rounded-full flex items-center justify-between px-3 border border-white/5">
-                <!-- Pulse Red camera dot for Alert -->
-                <span class="w-[6px] h-[6px] rounded-full bg-[#ef4444] shadow-[0_0_8px_#ef4444] animate-pulse"></span>
-                <span class="text-[8px] font-bold text-error tracking-wider uppercase">ALERT</span>
-                <span class="w-[8px] h-[8px] bg-[#111] rounded-full border border-gray-800"></span>
-              </div>
 
-              <!-- iOS Status Bar -->
-              <div class="absolute top-[14px] left-0 right-0 px-6 flex justify-between items-center text-[10px] font-bold text-on-surface select-none z-30 opacity-80">
-                <div>9:41</div>
-                <div class="flex items-center gap-1.5">
-                  <!-- Cellular Signal Bars -->
-                  <svg class="w-3.5 h-3.5 fill-current text-on-surface" viewBox="0 0 24 24">
-                    <path d="M2 22h20V2z" />
-                  </svg>
-                  <!-- Wifi -->
-                  <svg class="w-3.5 h-3.5 fill-current text-on-surface" viewBox="0 0 24 24">
-                    <path d="M12 21l-12-12a17 17 0 0 1 24 0z" />
-                  </svg>
-                  <!-- Battery -->
-                  <div class="w-5 h-2.5 border border-on-surface rounded-sm p-[1px] flex items-center">
-                    <div class="w-full h-full bg-on-surface rounded-xs"></div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Phone Screen Content (SuRaksha Scan Result HUD) -->
-              <div class="flex-1 flex flex-col">
-                <!-- Screen Header -->
-                <div class="flex items-center justify-between pb-2 mb-3 border-b border-outline-variant/10">
-                  <div class="flex items-center gap-2">
-                    <span class="material-symbols-outlined text-sm text-on-surface-variant cursor-pointer select-none">arrow_back_ios</span>
-                    <span class="text-[9px] font-bold text-on-surface">Scanning Result</span>
-                  </div>
-                  <span class="material-symbols-outlined text-sm text-on-surface-variant cursor-pointer select-none">more_vert</span>
-                </div>
-
-                <!-- Threat Warning Card -->
-                <div class="bg-error/10 dark:bg-error/20 border border-error/30 p-3 rounded-2xl mb-3 flex flex-col shadow-sm">
-                  <div class="flex items-center gap-1.5 mb-2">
-                    <span class="material-symbols-outlined text-error text-lg animate-pulse">warning</span>
-                    <span class="text-error font-bold text-xs">High Risk</span>
-                  </div>
-                  <p class="text-[9px] text-error font-semibold mb-2 flex items-center gap-1">
-                    <span>⚠️</span> Suspicious UPI Request
-                  </p>
-                  <!-- Risk Bar -->
-                  <div class="h-1.5 w-full bg-on-error-container/20 rounded-full mb-2 overflow-hidden">
-                    <div class="h-full bg-error w-[92%] rounded-full animate-pulse"></div>
-                  </div>
-                  <p class="text-[8px] text-on-surface-variant leading-relaxed">This payment link points to a blacklisted account reported for 'Lottery Scam' multiple times.</p>
-                </div>
-
-                <!-- Recommendation Card -->
-                <div class="bg-surface-container-high/60 border border-outline-variant/10 p-2.5 rounded-2xl text-[9px] text-on-surface-variant leading-relaxed shadow-sm mb-auto">
-                  <p class="font-bold text-on-surface mb-1">Recommendation:</p>
-                  <p class="text-primary font-semibold leading-normal">Do not enter your PIN. Report this number immediately.</p>
-                </div>
-
-                <!-- Action Buttons at bottom of screen -->
-                <div class="space-y-1.5 pt-3">
-                  <button class="w-full py-2 bg-gradient-to-r from-error to-[#dc3545] hover:from-[#dc3545] hover:to-error text-white rounded-xl text-[9px] font-bold shadow-md shadow-error/15 hover:scale-[1.02] active:scale-95 transition-all uppercase tracking-wider select-none">
-                    Report Fraud
-                  </button>
-                  <button class="w-full py-2 bg-surface-variant/40 hover:bg-surface-variant/60 text-on-surface-variant rounded-xl text-[9px] font-bold transition-all uppercase tracking-wider select-none">
-                    Close Scanner
-                  </button>
-                </div>
-              </div>
-
-              <!-- Home Indicator -->
-              <div class="absolute bottom-[6px] left-1/2 -translate-x-1/2 w-[90px] h-[3px] bg-on-surface/30 rounded-full z-40"></div>
+        <!-- Threat Detail Card -->
+        <div class="bg-gradient-to-b from-error/10 to-error/5 border border-error/30 rounded-2xl p-3 text-center shadow-[0_10px_20px_-5px_rgba(239,68,68,0.15)] flex-1 flex flex-col justify-center">
+          <div class="w-10 h-10 rounded-full bg-error/15 flex items-center justify-center mb-1.5 mx-auto ring-4 ring-error/5">
+            <span class="material-symbols-outlined text-error text-2xl animate-bounce">warning</span>
+          </div>
+          <h4 class="text-error font-bold text-xs mb-0.5 tracking-wide">Threat Detected</h4>
+          <p class="text-on-surface-variant text-[8px] leading-relaxed mb-2">This QR code is linked to a known UPI fraud signature reported in your area.</p>
+          
+          <!-- Mini Checklist of factors -->
+          <div class="w-full bg-surface-container-low/60 border border-outline-variant/10 rounded-xl p-2 text-left space-y-1">
+            <div class="flex items-center gap-1.5 text-[7px] text-on-surface-variant font-medium">
+              <span class="material-symbols-outlined text-error text-[10px] font-bold">cancel</span>
+              <span>Blacklisted UPI Address</span>
+            </div>
+            <div class="flex items-center gap-1.5 text-[7px] text-on-surface-variant font-medium">
+              <span class="material-symbols-outlined text-error text-[10px] font-bold">cancel</span>
+              <span>Unverified Merchant ID</span>
+            </div>
+            <div class="flex items-center gap-1.5 text-[7px] text-on-surface-variant font-medium">
+              <span class="material-symbols-outlined text-error text-[10px] font-bold">cancel</span>
+              <span>Spoofed Request Signature</span>
             </div>
           </div>
         </div>
-        <!-- Floating details badges -->
-        <div class="absolute -right-8 top-20 bg-white/10 backdrop-blur-md border border-white/10 p-md rounded-xl border border-primary/20 shadow-xl hidden lg:block z-50">
-          <p class="text-label-sm text-primary">
-              AI Confidence (Demo)
-          </p>
-        </div>
-        <div class="absolute -left-12 bottom-32 bg-white/10 backdrop-blur-md border border-white/10 p-md rounded-xl border border-secondary/20 shadow-xl hidden lg:block z-50">
-          <p class="text-label-sm text-secondary">Database Match Found</p>
+
+        <!-- Responsive Action Buttons at base of screen -->
+        <div class="mt-auto space-y-1.5 pt-3">
+          <button class="w-full py-2 bg-gradient-to-r from-error to-[#dc3545] hover:from-[#dc3545] hover:to-error text-white rounded-xl text-[9px] font-bold shadow-md shadow-error/15 hover:scale-[1.02] active:scale-95 transition-all uppercase tracking-wider select-none">
+            REPORT &amp; BLOCK
+          </button>
+          <button class="w-full py-2 bg-surface-variant/40 hover:bg-surface-variant/60 text-on-surface-variant rounded-xl text-[9px] font-bold transition-all uppercase tracking-wider select-none">
+            CLOSE
+          </button>
         </div>
       </div>
-    </div>
-  </section>
 
-    <!-- ════════ MULTI-INPUT CARDS ════════ -->
+      <!-- Home Indicator -->
+      <div class="absolute bottom-[6px] left-1/2 -translate-x-1/2 w-[90px] h-[3px] bg-on-surface/30 rounded-full z-40"></div>
+    </div>
+  </div>
+  <p class="text-center mt-4 font-label-sm text-error uppercase tracking-widest">Instant Risk Warning</p>
+</div>
+</div>
+</section></section>
+
+<!-- ════════ CORE FEATURES ════════ -->
+<section id="features" class="px-lg max-w-7xl mx-auto space-y-xl pt-xxl"><section class="text-center mb-xxl space-y-md">
+
+  <span class="inline-block px-md py-sm rounded-full bg-primary/10 text-primary text-sm">
+    Advanced Protection Suite
+  </span>
+
+<h1 class="font-display-lg text-display-lg 
+           text-on-surface dark:text-dark-on-surface 
+           leading-tight tracking-tight
+           text-glow">
+
+  Powerful Fraud Detection Features
+
+</h1>
+
+  <p class="max-w-2xl mx-auto text-gray-600 dark:text-on-surface-variant">
+    Advanced AI tools to protect your UPI transactions in real time with the industry's most sophisticated security layer.
+  </p>
+
+</section>
+<!-- Feature Bento Grid -->
+<section class="grid md:grid-cols-3 gap-lg">
+<!-- Card 1: Screenshot Fraud Detection -->
+<div class="bento-card fade-in-on-scroll bg-surface-container-low p-lg rounded-[24px] border border-outline-variant/10 flex flex-col gap-md relative overflow-hidden group">
+<div class="absolute top-0 left-0 w-full h-1 bg-primary-container"></div>
+<div class="bg-secondary-container/10 w-fit p-sm rounded-lg">
+<span class="material-symbols-outlined text-secondary-fixed-dim text-headline-md" data-icon="screenshot">screenshot</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Screenshot Fraud Detection</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Identify doctored transaction images and fake payment confirmations using our proprietary pixel-analysis engine.</p>
+<button onclick="openDemoModal()" class="mt-4 bg-primary/10 hover:bg-primary/20 text-primary font-semibold py-2.5 px-4 rounded-xl hover:scale-[1.02] transition-all duration-300 text-sm flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[18px]">play_circle</span> Try Interactive Demo
+</button>
+</div>
+<!-- Card 2: QR Code Scanner -->
+<div class="bento-card fade-in-on-scroll bg-surface-container-low p-lg rounded-[24px] border border-outline-variant/10 flex flex-col gap-md relative overflow-hidden">
+<div class="absolute top-0 left-0 w-full h-1 bg-primary-container"></div>
+<div class="bg-secondary-container/10 w-fit p-sm rounded-lg">
+<span class="material-symbols-outlined text-secondary-fixed-dim text-headline-md" data-icon="qr_code_scanner">qr_code_scanner</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface">QR Code Scanner</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Deep-scan UPI QR codes for malicious redirects or non-standard protocols before you hit pay.</p>
+</div>
+<!-- Card 3: Suspicious Message Analyzer -->
+<div class="bento-card fade-in-on-scroll bg-surface-container-low p-lg rounded-[24px] border border-outline-variant/10 flex flex-col gap-md relative overflow-hidden">
+<div class="absolute top-0 left-0 w-full h-1 bg-primary-container"></div>
+<div class="bg-secondary-container/10 w-fit p-sm rounded-lg">
+<span class="material-symbols-outlined text-secondary-fixed-dim text-headline-md" data-icon="sms">sms</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Message Analyzer</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Scan SMS and WhatsApp requests for phishing links or high-pressure social engineering tactics.</p>
+</div>
+<!-- Card 4: Real-Time Risk Score (with Progress Bar) -->
+<div class="bento-card fade-in-on-scroll bg-surface-container-low p-lg rounded-[24px] border border-outline-variant/10 flex flex-col gap-md relative overflow-hidden lg:col-span-1">
+<div class="absolute top-0 left-0 w-full h-1 bg-primary-container"></div>
+<div class="bg-secondary-container/10 w-fit p-sm rounded-lg">
+<span class="material-symbols-outlined text-secondary-fixed-dim text-headline-md" data-icon="speed">speed</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Real-Time Risk Score</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mb-auto">Instant safety analysis of any UPI ID or merchant account.</p>
+<div class="space-y-sm mt-md">
+<div class="flex justify-between font-label-sm text-label-sm text-primary">
+<span>Trust Score</span>
+<span>98%</span>
+</div>
+<div class="w-full bg-surface-variant rounded-full h-2">
+<div class="bg-primary h-2 rounded-full w-[98%] shadow-[0_0_8px_rgba(176,198,255,0.4)]"></div>
+</div>
+</div>
+</div>
+<!-- Card 5: AI Recommendation System -->
+<div class="bento-card fade-in-on-scroll bg-surface-container-low p-lg rounded-[24px] border border-outline-variant/10 flex flex-col gap-md relative overflow-hidden">
+<div class="absolute top-0 left-0 w-full h-1 bg-primary-container"></div>
+<div class="bg-secondary-container/10 w-fit p-sm rounded-lg">
+<span class="material-symbols-outlined text-secondary-fixed-dim text-headline-md" data-icon="psychology">psychology</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Smart Suggestions</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Context-aware advice on whether to proceed, report, or block a specific transaction request.</p>
+<div class="flex gap-sm mt-sm">
+<span class="bg-error-container/20 text-error text-[10px] uppercase tracking-wider font-bold px-2 py-1 rounded">Caution Advised</span>
+</div>
+</div>
+<!-- Card 6: Multi-Input Support -->
+<div class="bento-card fade-in-on-scroll bg-surface-container-low p-lg rounded-[24px] border border-outline-variant/10 flex flex-col gap-md relative overflow-hidden">
+<div class="absolute top-0 left-0 w-full h-1 bg-primary-container"></div>
+<div class="bg-secondary-container/10 w-fit p-sm rounded-lg">
+<span class="material-symbols-outlined text-secondary-fixed-dim text-headline-md" data-icon="input">input</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Multi-Input Support</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Seamlessly analyze links, VPA strings, QR codes, and phone numbers in a single interface.</p>
+</div>
+</section>
+<!-- Feature Highlight: AI Powered Engine -->
+<section class="bg-surface-container-high rounded-[32px] overflow-hidden border border-outline-variant/20 flex flex-col lg:flex-row items-center">
+<div class="p-xl lg:p-xxl flex-1 space-y-lg">
+<span class="bg-primary-container/20 text-primary font-label-sm text-label-sm px-md py-sm rounded-full inline-block uppercase tracking-widest">Next-Gen Security</span>
+<h2 class="font-headline-lg text-headline-lg text-on-surface leading-tight">AI-Powered Detection Engine</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant">Our engine learns from millions of transaction patterns every second. It doesn't just look for known threats; it identifies emerging fraud behaviors before they're reported, giving you a proactive shield against modern cybercriminals.</p>
+<div class="grid grid-cols-2 gap-md pt-md">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary" data-icon="verified_user">verified_user</span>
+<span class="font-label-md text-on-surface">99.9% Accuracy</span>
+</div>
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary" data-icon="bolt">bolt</span>
+<span class="font-label-md text-on-surface">0.2s Analysis</span>
+</div>
+</div>
+</div>
+<div class="flex-1 w-full lg:h-full min-h-[300px] relative">
+<img alt="Cybersecurity monitoring dashboard" class="absolute inset-0 w-full h-full object-cover grayscale brightness-50 contrast-125" data-alt="A high-tech digital security interface displaying complex data visualizations, network nodes, and scanning pulses in deep blue and glowing amber tones. The aesthetic is clean and modern-corporate, reflecting a sense of advanced artificial intelligence and cyber-protection. The lighting is dark with vibrant neon accents that represent active data flow and security monitoring." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCfQ0crAx9OChtxr0AEAlisPWtVVB9-3_NJvMF2f27fD_0A8NySfzg84iwG86MOun5Ls0tgabsiDTbTBZ8Gbn6cicQ0Pqrh7BKtVl_G1z5LEOp5ILZrAbZOZuz1S5L9TooGmykTsh1OPTZmmkX2Q--Yt1iUyOF2LWaGGkrfLej23ZerPd79vMP7YCBTdwpcMiAcJQBrLM4CLasyBLbW0lWLubcMJ_5ZeCDGPGW0yS8u2cuKrLMFtgGmVMJiyn166LuI7Y1FDs1oZMrM"/>
+<div class="absolute inset-0 bg-gradient-to-r from-surface-container-high via-transparent to-transparent"></div>
+</div>
+</section></section>
+
+<!-- ════════ MULTI-INPUT CARDS ════════ -->
   <section class="px-lg max-w-7xl mx-auto py-xxl">
 
     <div class="text-center mb-xl">
@@ -875,11 +810,11 @@ tailwind.config = {
         About Us
       </a>
 
-      <a href="features.html" class="text-white/70 hover:text-primary transition">
+      <a href="#features" class="text-white/70 hover:text-primary transition">
         Core Features
       </a>
 
-      <a href="how.html" class="text-white/70 hover:text-primary transition">
+      <a href="#how-it-works" class="text-white/70 hover:text-primary transition">
         Security Protocol
       </a>
 

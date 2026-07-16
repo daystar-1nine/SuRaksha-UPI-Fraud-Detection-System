@@ -258,34 +258,40 @@ async function startScanner() {
     AppState.scanner = new Html5Qrcode("reader");
     AppState.scanning = true;
     try {
-        // Query available cameras to explicitly request the rear/back-facing lens
         let cameraConstraint = { facingMode: "environment" };
         try {
             const devices = await Html5Qrcode.getCameras();
             if (devices && devices.length > 0) {
-                // Find primary back-facing lens matching labels
                 const backCamera = devices.find(device => 
                     device.label.toLowerCase().includes("back") || 
                     device.label.toLowerCase().includes("rear") || 
-                    device.label.toLowerCase().includes("environment") ||
-                    device.label.toLowerCase().includes("camera 0")
+                    device.label.toLowerCase().includes("environment")
                 );
                 if (backCamera) {
                     cameraConstraint = backCamera.id;
-                    console.log("Using back camera:", backCamera.label);
-                } else {
-                    // Default to the last listed camera (often rear camera on multi-cam units)
+                } else if (devices.length > 1) {
                     cameraConstraint = devices[devices.length - 1].id;
-                    console.log("No back camera label match. Defaulting to last camera:", devices[devices.length - 1].label);
+                } else {
+                    cameraConstraint = devices[0].id;
                 }
             }
         } catch (e) {
-            console.warn("Unable to query camera list, falling back to facingMode constraint:", e);
+            console.warn("Could not query cameras, using environment facingMode", e);
         }
 
         await AppState.scanner.start(
             cameraConstraint,
-            { fps: 10, qrbox: 250 },
+            {
+                fps: 10,
+                aspectRatio: 1.0,
+                qrbox: function(viewfinderWidth, viewfinderHeight) {
+                    // Use 85% of the smaller dimension as the scan area
+                    const minDim = Math.min(viewfinderWidth, viewfinderHeight);
+                    const size = Math.floor(minDim * 0.85);
+                    return { width: size, height: size };
+                },
+                disableFlip: false,
+            },
             async (text) => {
                 stopScanner();
                 await sendQR(text);
@@ -541,7 +547,7 @@ async function submitFraudReport(upiId) {
         const res = await fetch(`${API_BASE}/api/report`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ upi: upiId, description: desc })
+            body: JSON.stringify({ upi_id: upiId, fraud_type: "User Reported", description: desc })
         });
         const data = await res.json();
 
@@ -597,8 +603,7 @@ async function loadStats() {
 // -----------------------------
 // 🖼 IMAGE PREVIEW
 // -----------------------------
-document.addEventListener("DOMContentLoaded", () => {
-
+function initApp() {
     $("imageInput")?.addEventListener("change", (e) => {
 
         const file = e.target.files[0];
@@ -620,9 +625,21 @@ document.addEventListener("DOMContentLoaded", () => {
         reader.readAsDataURL(file);
     });
 
-    $("profile-settings-btn")?.addEventListener("click", openProfileModal);
+    // Profile settings btn handled via global onclick="openProfileRedirect(event)"
     initProfile();
-});
+
+    // Check if redirected from other page to open profile modal immediately
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("openProfile") === "true") {
+        setTimeout(openProfileModal, 300);
+    }
+}
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initApp);
+} else {
+    initApp();
+}
 
 
 // -----------------------------
@@ -873,6 +890,12 @@ function showResultPopup(apiResponse) {
     const am = (parsed.am && parsed.am[0]) || "";
     const tn = (parsed.tn && parsed.tn[0]) || "SuRaksha Verified";
 
+    // Pre-populate scanned transaction amount input if exists
+    const payAmountInput = $("payAmountInput");
+    if (payAmountInput) {
+        payAmountInput.value = am || "";
+    }
+
     let upiLink = "upi://pay?pa=" + encodeURIComponent(pa);
     if (pn) upiLink += "&pn=" + encodeURIComponent(pn);
     if (am) upiLink += "&am=" + encodeURIComponent(am);
@@ -923,6 +946,9 @@ function togglePaymentDrawer(show) {
 }
 
 function simulatePaymentLaunch(appName) {
+    const amountVal = parseFloat($("payAmountInput")?.value);
+    // Any amount is allowed when scanning, as requested by the user.
+
     const loader = $("loader");
     if (loader) {
         const p = loader.querySelector("p");
@@ -1122,22 +1148,21 @@ $("qrImageInput")?.addEventListener("change", async (e) => {
         await new Promise(resolve => setTimeout(resolve, 300));
     }
 
-    let fileScanner;
-
     try {
-        fileScanner = new Html5Qrcode("reader");
-        const text = await fileScanner.scanFile(file, true);
-        await sendQR(text);
+        const formData = new FormData();
+        formData.append("image", file);
+        formData.append("intent", AppState.intent);
+        
+        // Send directly to the robust backend QR parser
+        const data = await apiRequest("/analyze/qr-image", formData, true);
+        
+        // Ensure successful scan closes the UI overlay
+        showResultPopup(data);
 
     } catch (err) {
         console.error("Gallery scan error:", err);
         showToast("QR image scan failed or could not find QR code ❌", "error");
     } finally {
-        if (fileScanner) {
-            try {
-                await fileScanner.clear();
-            } catch (e) {}
-        }
         toggle($("loader"), false);
 
         // Reset input value so same file can be selected again
@@ -1405,13 +1430,13 @@ function sendChatMessage() {
                                 `;
                             } else {
                                 upiHtml += `
-                                <div class="bg-emerald-950/10 border border-emerald-900/20 rounded-lg p-2 flex flex-col gap-0.5">
+                                <div class="bg-emerald-100/50 dark:bg-emerald-950/10 border border-emerald-200 dark:border-emerald-900/20 rounded-lg p-2.5 flex flex-col gap-1 shadow-sm">
                                     <div class="flex justify-between items-center">
-                                        <span class="font-mono text-[9px] font-semibold text-emerald-400 break-all select-all">${upi}</span>
-                                        <span class="text-[8px] bg-emerald-500/20 text-emerald-400 px-1 py-0.5 rounded border border-emerald-500/30 font-bold uppercase tracking-wider flex items-center gap-0.5"><span class="material-symbols-outlined text-[8px]">verified</span>Verified</span>
+                                        <span class="font-mono text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 break-all select-all">${upi}</span>
+                                        <span class="text-[8px] bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 rounded border border-emerald-500/20 dark:border-emerald-500/30 font-bold uppercase tracking-wider flex items-center gap-0.5"><span class="material-symbols-outlined text-[10px]">verified</span>Verified</span>
                                     </div>
-                                    <span class="text-[9px] text-white/80 font-bold mt-0.5">${dir.name} (${dir.subtype})</span>
-                                    <span class="text-[8px] text-white/50 leading-tight">${dir.description}</span>
+                                    <span class="text-[11px] text-slate-800 dark:text-white/90 font-bold mt-0.5">${dir.name} <span class="opacity-60 font-normal">(${dir.subtype})</span></span>
+                                    <span class="text-[9px] text-slate-600 dark:text-white/60 leading-tight">${dir.description}</span>
                                 </div>
                                 `;
                             }
@@ -1438,9 +1463,9 @@ function sendChatMessage() {
                 const reasonsList = analysis.analysis.reasons || [];
                 if (reasonsList.length > 0) {
                     reasonsHtml = `
-                    <div class="mt-3 border-t border-white/5 pt-2 text-left">
-                        <span class="text-[9px] font-bold text-white/40 block mb-1 uppercase tracking-wider">Risk Indicators</span>
-                        <ul class="space-y-1 text-[9px] text-white/70">
+                    <div class="mt-3 border-t border-slate-200 dark:border-white/5 pt-2 text-left">
+                        <span class="text-[9px] font-bold text-slate-500 dark:text-white/40 block mb-1 uppercase tracking-wider">Risk Indicators</span>
+                        <ul class="space-y-1 text-[11px] text-slate-700 dark:text-white/80">
                             ${reasonsList.map(r => `<li class="flex items-start gap-1"><span class="text-primary mt-0.5">•</span><span>${r}</span></li>`).join("")}
                         </ul>
                     </div>
@@ -1451,29 +1476,29 @@ function sendChatMessage() {
                 const reportCardHtml = `
                 <div class="flex flex-col gap-2 p-1.5 w-full text-left">
                     <!-- Header -->
-                    <div class="flex items-center justify-between pb-2 border-b border-white/5">
+                    <div class="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-white/5">
                         <div class="flex items-center gap-1.5">
-                            <span class="material-symbols-outlined text-sm ${risk.risk_level === 'SAFE' ? 'text-emerald-400' : 'text-red-400'}">${statusIcon}</span>
-                            <span class="font-bold text-[10px] tracking-wide text-white">${statusText}</span>
+                            <span class="material-symbols-outlined text-sm ${risk.risk_level === 'SAFE' ? 'text-emerald-500 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'}">${statusIcon}</span>
+                            <span class="font-bold text-[11px] tracking-wide text-slate-800 dark:text-white">${statusText}</span>
                         </div>
-                        <span class="text-[8px] px-1.5 py-0.5 border rounded-md uppercase font-bold tracking-wider ${badgeColor}">${risk.risk_level}</span>
+                        <span class="text-[9px] px-2 py-0.5 border rounded-md uppercase font-bold tracking-wider ${badgeColor}">${risk.risk_level}</span>
                     </div>
 
                     <!-- Risk Gauge -->
-                    <div class="space-y-1">
-                        <div class="flex justify-between text-[9px]">
-                            <span class="text-white/40">Aggregated Threat Rating</span>
-                            <span class="font-bold text-white">${risk.risk_score}/100</span>
+                    <div class="space-y-1.5 mt-1">
+                        <div class="flex justify-between text-[10px]">
+                            <span class="text-slate-500 dark:text-white/50">Aggregated Threat Rating</span>
+                            <span class="font-bold text-slate-800 dark:text-white">${risk.risk_score}/100</span>
                         </div>
-                        <div class="w-full bg-white/5 rounded-full h-1.5 overflow-hidden">
-                            <div class="${progressColor} h-full transition-all duration-500" style="width: ${risk.risk_score}%"></div>
+                        <div class="w-full bg-slate-200 dark:bg-white/5 rounded-full h-1.5 overflow-hidden">
+                            <div class="${progressColor} h-full transition-all duration-1000 ease-out" style="width: ${risk.risk_score}%"></div>
                         </div>
                     </div>
 
                     <!-- ML Probability -->
-                    <div class="flex justify-between text-[9px] py-1 border-b border-white/5">
-                        <span class="text-white/40">Classifier Category</span>
-                        <span class="font-mono text-white/80 font-bold">${analysis.ml_analysis?.top_category?.toUpperCase() || 'UNKNOWN'}</span>
+                    <div class="flex justify-between text-[10px] py-2 border-b border-slate-200 dark:border-white/5">
+                        <span class="text-slate-500 dark:text-white/50">Classifier Category</span>
+                        <span class="font-mono text-slate-700 dark:text-white/80 font-bold tracking-wide">${analysis.ml_analysis?.top_category?.toUpperCase() || 'UNKNOWN'}</span>
                     </div>
 
                     <!-- Reasons -->
@@ -1483,10 +1508,10 @@ function sendChatMessage() {
                     ${upiHtml}
 
                     <!-- Verdict Block -->
-                    <div class="mt-2 p-2.5 rounded-xl text-[9px] font-semibold leading-relaxed border ${risk.risk_score >= 50 ? 'bg-red-950/20 border-red-500/20 text-red-300' : 'bg-emerald-950/10 border-emerald-500/20 text-emerald-300'}">
+                    <div class="mt-2.5 p-3 rounded-xl text-[10px] font-semibold leading-relaxed border ${risk.risk_score >= 50 ? 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-500/20 text-red-700 dark:text-red-300' : 'bg-emerald-50 dark:bg-emerald-950/10 border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-300'}">
                         ${risk.risk_score >= 50 
-                            ? '🚫 <strong>Block Transfer</strong>: SuRaksha analysis recommends blocking this receiver. Proceeding may result in loss.' 
-                            : '✅ <strong>Verified Safe</strong>: No anomalies detected. Trust certificate validated.'
+                            ? '🚫 <strong class="text-red-800 dark:text-red-400">Block Transfer</strong>: SuRaksha analysis recommends blocking this receiver. Proceeding may result in loss.' 
+                            : '✅ <strong class="text-emerald-800 dark:text-emerald-400">Verified Safe</strong>: No anomalies detected. Trust certificate validated.'
                         }
                     </div>
                 </div>
@@ -1518,12 +1543,12 @@ function appendChatBubble(text, sender, id = null, extraClass = "") {
     const bubble = document.createElement("div");
     if (id) bubble.id = id;
 
-    const baseStyle = "p-3 rounded-2xl text-xs leading-relaxed max-w-[85%] border select-text ";
+    const baseStyle = "p-3.5 rounded-2xl text-[13px] leading-relaxed max-w-[85%] border select-text shadow-sm relative ";
     let senderStyle = "";
     if (sender === "user") {
-        senderStyle = "self-end bg-[#128c7e] text-white rounded-tr-none border-[#075e54]/30 shadow-inner";
+        senderStyle = "self-end bg-[#d9fdd3] dark:bg-[#005c4b] text-slate-800 dark:text-[#e9edef] rounded-tr-sm border-transparent ";
     } else if (sender === "system") {
-        senderStyle = "self-start bg-slate-800 text-white rounded-tl-none border-white/5 " + extraClass;
+        senderStyle = "self-start bg-white dark:bg-[#202c33] text-slate-800 dark:text-[#e9edef] rounded-tl-sm border-transparent " + extraClass;
     }
 
     bubble.className = baseStyle + senderStyle;
@@ -2278,19 +2303,43 @@ function initProfile() {
             $("profile-modal-preview-img").classList.remove("hidden");
         }
         if ($("profile-modal-preview-icon")) $("profile-modal-preview-icon").classList.add("hidden");
+        if ($("removeProfileBtn")) $("removeProfileBtn").classList.remove("hidden");
     } else {
         if ($("navbar-profile-img")) $("navbar-profile-img").classList.add("hidden");
         if ($("navbar-profile-icon")) $("navbar-profile-icon").classList.remove("hidden");
         if ($("profile-modal-preview-img")) $("profile-modal-preview-img").classList.add("hidden");
         if ($("profile-modal-preview-icon")) $("profile-modal-preview-icon").classList.remove("hidden");
+        if ($("removeProfileBtn")) $("removeProfileBtn").classList.add("hidden");
     }
 
     // Update Receive QR UI
-    if ($("receiveQRNameText")) $("receiveQRNameText").innerText = "Name: " + name;
-    if ($("receiveQRUpiText")) $("receiveQRUpiText").innerText = "UPI: " + vpa;
+    const customQr = localStorage.getItem("profile_custom_qr");
+    if ($("profile-modal-preview-qr")) {
+        if (customQr) {
+            $("profile-modal-preview-qr").src = customQr;
+            $("profile-modal-preview-qr").classList.remove("hidden");
+            if ($("profile-modal-preview-qr-placeholder")) $("profile-modal-preview-qr-placeholder").classList.add("hidden");
+            if ($("removeQrBtn")) $("removeQrBtn").classList.remove("hidden");
+        } else {
+            $("profile-modal-preview-qr").classList.add("hidden");
+            if ($("profile-modal-preview-qr-placeholder")) $("profile-modal-preview-qr-placeholder").classList.remove("hidden");
+            if ($("removeQrBtn")) $("removeQrBtn").classList.add("hidden");
+        }
+    }
+
+    if ($("receiveQRNameText")) {
+        $("receiveQRNameText").innerText = "Name: " + name;
+    }
+    if ($("receiveQRUpiText")) {
+        $("receiveQRUpiText").innerText = "UPI: " + vpa;
+    }
     if ($("receiveQRImg")) {
-        const payload = `upi://pay?pa=${encodeURIComponent(vpa)}&pn=${encodeURIComponent(name)}&cu=INR&tn=SuRaksha%20Verified`;
-        $("receiveQRImg").src = `https://api.qrserver.com/v1/create-qr-code/?size=256x256&data=${encodeURIComponent(payload)}`;
+        if (customQr) {
+            $("receiveQRImg").src = customQr;
+        } else {
+            const payload = `upi://pay?pa=${encodeURIComponent(vpa)}&pn=${encodeURIComponent(name)}&cu=INR&tn=SuRaksha%20Verified`;
+            $("receiveQRImg").src = `https://api.qrserver.com/v1/create-qr-code/?size=256x256&data=${encodeURIComponent(payload)}`;
+        }
     }
 }
 
@@ -2303,29 +2352,124 @@ function closeProfileModal() {
     toggle($("profileSettingsModal"), false);
 }
 
-function handleProfilePhotoUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
+// Image compression utility to prevent localStorage QuotaExceeded errors
+function compressImage(file, maxSize, callback) {
     const reader = new FileReader();
     reader.onload = function(e) {
-        const photoData = e.target.result;
-        // Update modal preview immediately
-        if ($("profile-modal-preview-img")) {
-            $("profile-modal-preview-img").src = photoData;
-            $("profile-modal-preview-img").classList.remove("hidden");
-        }
-        if ($("profile-modal-preview-icon")) $("profile-modal-preview-icon").classList.add("hidden");
-        // Store temporarily in memory or dataset
-        $("profileSettingsModal").dataset.uploadedPhoto = photoData;
+        const img = new Image();
+        img.onload = function() {
+            let width = img.width;
+            let height = img.height;
+            if (width > height) {
+                if (width > maxSize) {
+                    height = Math.round(height *= maxSize / width);
+                    width = maxSize;
+                }
+            } else {
+                if (height > maxSize) {
+                    width = Math.round(width *= maxSize / height);
+                    height = maxSize;
+                }
+            }
+            const canvas = document.createElement("canvas");
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, width, height);
+            callback(canvas.toDataURL("image/jpeg", 0.7)); // 0.7 quality
+        };
+        img.src = e.target.result;
     };
     reader.readAsDataURL(file);
 }
 
+function handleProfilePhotoUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if ($("profileUploadProgressContainer")) $("profileUploadProgressContainer").classList.remove("hidden");
+    if ($("profileUploadProgressBar")) $("profileUploadProgressBar").style.width = "0%";
+    
+    // Simulate upload progress
+    let progress = 0;
+    const interval = setInterval(() => {
+        progress += Math.random() * 30;
+        if (progress > 90) progress = 90;
+        if ($("profileUploadProgressBar")) $("profileUploadProgressBar").style.width = progress + "%";
+    }, 200);
+
+    compressImage(file, 256, function(photoData) {
+        clearInterval(interval);
+        if ($("profileUploadProgressBar")) $("profileUploadProgressBar").style.width = "100%";
+        
+        setTimeout(() => {
+            if ($("profile-modal-preview-img")) {
+                $("profile-modal-preview-img").src = photoData;
+                $("profile-modal-preview-img").classList.remove("hidden");
+            }
+            if ($("profile-modal-preview-icon")) $("profile-modal-preview-icon").classList.add("hidden");
+            if ($("removeProfileBtn")) $("removeProfileBtn").classList.remove("hidden");
+            
+            window.pendingProfilePhoto = photoData;
+            window.removeProfilePhotoFlag = false;
+            showToast("Profile photo ready to save!", "success", 2000);
+            
+            setTimeout(() => {
+                if ($("profileUploadProgressContainer")) $("profileUploadProgressContainer").classList.add("hidden");
+                if ($("profileUploadProgressBar")) $("profileUploadProgressBar").style.width = "0%";
+            }, 500);
+        }, 300);
+    });
+}
+
+function removeProfilePhoto(event) {
+    if (event) event.preventDefault();
+    if ($("profile-modal-preview-img")) {
+        $("profile-modal-preview-img").src = "";
+        $("profile-modal-preview-img").classList.add("hidden");
+    }
+    if ($("profile-modal-preview-icon")) $("profile-modal-preview-icon").classList.remove("hidden");
+    if ($("removeProfileBtn")) $("removeProfileBtn").classList.add("hidden");
+    window.pendingProfilePhoto = null;
+    window.removeProfilePhotoFlag = true;
+}
+
+function handleCustomQrUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    showToast("Processing custom QR code...", "info", 1500);
+
+    compressImage(file, 512, function(qrData) {
+        if ($("profile-modal-preview-qr")) {
+            $("profile-modal-preview-qr").src = qrData;
+            $("profile-modal-preview-qr").classList.remove("hidden");
+            if ($("profile-modal-preview-qr-placeholder")) $("profile-modal-preview-qr-placeholder").classList.add("hidden");
+        }
+        if ($("removeQrBtn")) $("removeQrBtn").classList.remove("hidden");
+        window.pendingCustomQr = qrData;
+        window.removeCustomQrFlag = false;
+        showToast("Custom QR code ready to save!", "success", 2000);
+    });
+}
+
+function removeCustomQr(event) {
+    if (event) event.preventDefault();
+    if ($("profile-modal-preview-qr")) {
+        $("profile-modal-preview-qr").src = "";
+        $("profile-modal-preview-qr").classList.add("hidden");
+        if ($("profile-modal-preview-qr-placeholder")) $("profile-modal-preview-qr-placeholder").classList.remove("hidden");
+    }
+    if ($("removeQrBtn")) $("removeQrBtn").classList.add("hidden");
+    window.pendingCustomQr = null;
+    window.removeCustomQrFlag = true;
+}
+
 function saveUserProfile() {
-    const name = $("profileDisplayName").value.trim();
-    const vpa = $("profileUpiId").value.trim();
-    const photo = $("profileSettingsModal").dataset.uploadedPhoto;
+    const name = $("profileDisplayName") ? $("profileDisplayName").value.trim() : "";
+    const vpa = $("profileUpiId") ? $("profileUpiId").value.trim() : "";
+    const photo = window.pendingProfilePhoto || null;
+    const qr = window.pendingCustomQr || null;
 
     if (!name || !vpa) {
         showToast("Please enter both display name and UPI VPA", "warning");
@@ -2334,11 +2478,27 @@ function saveUserProfile() {
 
     localStorage.setItem("profile_name", name);
     localStorage.setItem("profile_vpa", vpa);
-    if (photo) {
-        localStorage.setItem("profile_photo", photo);
+    
+    if (window.removeProfilePhotoFlag) {
+        localStorage.removeItem("profile_photo");
+    } else if (photo) {
+        try {
+            localStorage.setItem("profile_photo", photo);
+        } catch(e) { showToast("Failed to save profile photo: too large", "error"); }
+    }
+    
+    if (window.removeCustomQrFlag) {
+        localStorage.removeItem("profile_custom_qr");
+    } else if (qr) {
+        try {
+            localStorage.setItem("profile_custom_qr", qr);
+        } catch(e) { showToast("Failed to save QR code: too large", "error"); }
     }
 
-    closeProfileModal();
+    if (typeof closeProfileModal === "function") {
+        try { closeProfileModal(); } catch (e) {}
+    }
+    
     initProfile();
     showToast("👤 Profile settings saved successfully!", "success", 3000);
 }

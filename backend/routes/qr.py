@@ -13,6 +13,9 @@ qr_bp = Blueprint("qr", __name__)
 
 from services.qr_risk_analyzer import analyze_qr_risk
 from utils.limiter import limiter
+from utils.errors import AppError
+from utils.schemas import AnalyzeQRRequest
+from utils.logger import logger
 
 
 def parse_upi_qr(qr_text: str) -> Dict[str, List[str]]:
@@ -45,16 +48,7 @@ def parse_upi_qr(qr_text: str) -> Dict[str, List[str]]:
         return {}
 
 
-def error_response(message: str, status_code: int, request_id: str) -> Tuple[Response, int]:
-    """Generates standardized JSON error payloads for consistent API error parsing."""
-    return jsonify({
-        "success": False,
-        "request_id": request_id,
-        "error": {
-            "message": message,
-            "code": status_code
-        }
-    }), status_code
+
 
 
 # ----------------------------------------------------------------------
@@ -82,35 +76,27 @@ def analyze_qr() -> Tuple[Response, int]:
         # 1. Parse & Validate Input
         # ----------------------------------------------------------------------
         data = request.get_json(silent=True)
-
         if not data:
-            return error_response("Invalid JSON body", 400, request_id)
+            raise AppError("Invalid JSON body", 400, {"request_id": request_id})
 
-        qr_text = data.get("text")
-
-        if qr_text is None:
-            return error_response("'text' field is required", 400, request_id)
-
-        if not isinstance(qr_text, str):
-            return error_response("'text' must be a string", 400, request_id)
-
-        qr_text = qr_text.strip()
-
-        if not qr_text:
-            return error_response("QR text is empty", 400, request_id)
-
-        if len(qr_text) > 2000:
-            return error_response("QR text too large", 413, request_id)
+        # Notice that in original qr.py it checks for "text", but schemas.py has `qr_data: str`.
+        # I'll accommodate both 'text' and 'qr_data' for backward compatibility.
+        qr_text = data.get("text") or data.get("qr_data")
+        
+        try:
+            req_data = AnalyzeQRRequest(qr_data=qr_text or "")
+        except ValueError as ve:
+            raise AppError(str(ve), 400, {"request_id": request_id})
 
         # ----------------------------------------------------------------------
         # 2. Parse UPI parameters
         # ----------------------------------------------------------------------
-        parsed_data = parse_upi_qr(qr_text)
-
+        parsed_data = parse_upi_qr(req_data.qr_data)
+        
         # ----------------------------------------------------------------------
         # 3. Execute Core Risk Heuristics
         # ----------------------------------------------------------------------
-        risk_data = analyze_qr_risk(parsed_data, raw_text=qr_text)
+        risk_data = analyze_qr_risk(parsed_data, raw_text=req_data.qr_data)
 
         # ----------------------------------------------------------------------
         # 4. Log Operations Telemetry
@@ -143,9 +129,11 @@ def analyze_qr() -> Tuple[Response, int]:
             }
         }), 200
 
-    except Exception:
-        current_app.logger.exception(f"[{request_id}] QR analysis failed")
-        return error_response("Internal server error", 500, request_id)
+    except AppError:
+        raise
+    except Exception as e:
+        logger.exception(f"[{request_id}] QR analysis failed")
+        raise AppError("Internal server error", 500, {"request_id": request_id})
 
 
 # ----------------------------------------------------------------------
@@ -188,8 +176,65 @@ def get_blacklist_sync() -> Tuple[Response, int]:
             }), 200
             
     except Exception as e:
-        current_app.logger.error(f"Blacklist sync compilation query failed: {str(e)}")
+        logger.error(f"Blacklist sync compilation query failed: {str(e)}")
+        raise AppError("Failed to query blacklist database", 500)
+import os
+import uuid
+from werkzeug.utils import secure_filename
+from services.qr_parser import parse_upi_qr as extract_qr_from_image
+
+@qr_bp.route('/analyze/qr-image', methods=['POST'])
+@limiter.limit('20 per minute')
+def analyze_qr_image():
+    request_id = str(uuid.uuid4())
+    start_time = time.time()
+    
+    try:
+        file = request.files.get('image')
+        if not file or file.filename == '':
+            raise AppError('No image uploaded', 400, {'request_id': request_id})
+            
+        filename = secure_filename(file.filename)
+        temp_path = os.path.join(current_app.root_path, 'uploads', f'{request_id}_{filename}')
+        os.makedirs(os.path.dirname(temp_path), exist_ok=True)
+        
+        file.save(temp_path)
+        
+        try:
+            extraction = extract_qr_from_image(temp_path)
+        finally:
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+                
+        if not extraction.get('success') or not extraction.get('data'):
+            raise AppError('No valid QR code found in image', 400, {'request_id': request_id})
+            
+        # Get the first decoded QR string
+        qr_text = extraction['data'][0]['raw']
+        
+        # Now run standard risk analysis pipeline
+        parsed_data = parse_upi_qr(qr_text)
+        risk_data = analyze_qr_risk(parsed_data, raw_text=qr_text)
+        
+        duration = round((time.time() - start_time) * 1000, 2)
+        
         return jsonify({
-            "success": False,
-            "error": "Failed to query blacklist database"
-        }), 500
+            'success': True,
+            'request_id': request_id,
+            'data': {
+                'qr': {
+                    'raw': qr_text,
+                    'parsed': parsed_data
+                },
+                'analysis': risk_data
+            },
+            'meta': {
+                'duration_ms': duration
+            }
+        }), 200
+        
+    except AppError:
+        raise
+    except Exception as e:
+        logger.exception(f'[{request_id}] QR image analysis failed')
+        raise AppError('Failed to process QR image', 500, {'request_id': request_id})

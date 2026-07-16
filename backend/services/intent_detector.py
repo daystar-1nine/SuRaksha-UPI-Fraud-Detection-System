@@ -27,12 +27,7 @@ COLLECT_KEYWORDS_MULTI = [
 ]
 
 
-# -------------------------------
-# NORMALIZE
-# -------------------------------
-def normalize(text):
-    return (text or "").lower().strip()
-
+from utils.text_utils import normalize_text
 
 # -------------------------------
 # MATCH HELPER
@@ -49,7 +44,7 @@ def match_keywords(text, keywords):
 # MAIN DETECTOR
 # -------------------------------
 def detect_action(text):
-    text = normalize(text)
+    text = normalize_text(text)
 
     if not text:
         return {

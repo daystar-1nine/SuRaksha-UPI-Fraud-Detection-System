@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<script>
+  if (localStorage.getItem("theme") === "light") {
+    document.documentElement.classList.remove("dark");
+  } else {
+    document.documentElement.classList.add("dark");
+  }
+</script>
+<script src="js/theme.js" defer></script>
+<script src="js/language.js" defer></script>
+<meta charset="utf-8"/>
+<link rel="icon" type="image/png" href="assets/images/logo.png" />
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SuRaksha | Real-Time UPI Fraud Detection</title>
+<meta name="description"
+      content="SuRaksha detects UPI fraud using AI. Scan QR codes, suspicious messages, and screenshots instantly to prevent digital payment scams.">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+
+
+
+<script src="js/tailwind-config.js"></script>
+<link rel="stylesheet" href="css/theme-style.css" />
+
+</head>
+
+<body class="bg-background text-on-surface font-body-md overflow-x-hidden transition-colors duration-300">
+
+<!-- ════════════════════════════════════════════
+     NAVIGATION
+════════════════════════════════════════════ -->
+<header class="fixed top-0 inset-x-0 z-50 glass-header border-b border-outline-variant/10 shadow-sm">
+
+  <div class="max-w-7xl mx-auto px-lg py-md flex items-center justify-between">
+
+    <!-- Logo -->
+    <a href="index.html"
+       class="flex items-center gap-sm group">
+
+      <img
+        class="h-10 w-10 rounded-xl object-cover group-hover:rotate-6 transition-transform duration-300"
+        src="assets/images/logo.png"
+        alt="SuRaksha logo"
+      />
+
+      <span class="font-headline-lg font-bold text-primary tracking-tight">
+        SuRaksha
+      </span>
+
+    </a>
+
+    <!-- Navigation -->
+    <nav class="hidden md:flex items-center gap-lg">
+      <a href="index.html" class="text-on-surface-variant hover:text-primary transition-colors duration-300">Home</a>
+      <a href="index.html#features" class="text-on-surface-variant hover:text-primary transition-colors duration-300">Features</a>
+      <a href="index.html#how-it-works" class="text-on-surface-variant hover:text-primary transition-colors duration-300">How It Works</a>
+      <a href="about.html" class="text-on-surface-variant hover:text-primary transition-colors duration-300">About</a>
+    </nav>
+
+    <!-- Right Actions -->
+    <div class="flex items-center gap-md">
+
+      <!-- Language Toggle -->
+      <button
+        id="language-toggle"
+        aria-label="Toggle Language"
+        class="p-2 rounded-xl hover:bg-surface-variant/20 active:scale-95 transition-all duration-300 font-bold text-xs text-primary flex items-center gap-1 cursor-pointer border border-transparent">
+        <span class="material-symbols-outlined text-[18px] text-primary">language</span>
+        <span id="lang-label" class="text-primary">EN</span>
+      </button>
+
+      <!-- Theme Toggle -->
+      <button
+        id="theme-toggle"
+        aria-label="Toggle dark mode"
+        class="p-2 rounded-xl hover:bg-surface-variant/20 active:scale-95 transition-all duration-300">
+
+        <span
+          id="theme-icon"
+          class="material-symbols-outlined text-primary">
+          dark_mode
+        </span>
+
+      </button>
+
+      <!-- User Profile Settings Button -->
+      <button
+        id="profile-settings-btn"
+        onclick="window.location.href='profile.html'"
+        aria-label="Profile Settings"
+        class="p-2 rounded-xl hover:bg-surface-variant/20 active:scale-95 transition-all duration-300 flex items-center justify-center border border-primary/20 bg-surface cursor-pointer">
+        <img id="navbar-profile-img" src="" class="h-6 w-6 rounded-full object-cover hidden" />
+        <span id="navbar-profile-icon" class="material-symbols-outlined text-primary">account_circle</span>
+      </button>
+
+      <!-- CTA -->
+      <a href="scan.html"
+         class="bg-primary-container text-on-primary-container px-lg py-sm rounded-xl font-label-md flex items-center gap-sm hover:scale-105 hover:shadow-xl active:scale-95 transition-all duration-300">
+
+        <span class="material-symbols-outlined text-[20px]">
+          qr_code_scanner
+        </span>
+
+        Open Scanner
+
+      </a>
+
+    </div>
+
+  </div>
+
+</header>
+
+<main class="pt-32 pb-12 px-6 max-w-4xl mx-auto min-h-screen">
+    
+    <div class="bg-surface border border-outline-variant/30 rounded-3xl w-full p-8 md:p-12 shadow-2xl relative overflow-hidden text-center animate-fadeIn">
+        <h2 class="font-headline-lg text-3xl font-bold mb-2">User Profile</h2>
+        <p class="text-sm text-on-surface/70 mb-10">Manage your avatar and custom receive VPA for secure QR code generation.</p>
+
+        <!-- Avatar Upload Section -->
+        <div class="flex flex-col items-center justify-center gap-3 mb-10">
+            <div class="relative group cursor-pointer">
+                <label for="profilePhotoInput" class="block w-full h-full cursor-pointer">
+                    <div class="h-32 w-32 rounded-full border-4 border-primary/30 overflow-hidden bg-slate-800 flex items-center justify-center shadow-lg transition duration-300 group-hover:border-primary/60 group-hover:shadow-primary/20">
+                        <img id="profile-modal-preview-img" src="" class="h-full w-full object-cover hidden" />
+                        <span id="profile-modal-preview-icon" class="material-symbols-outlined text-primary text-6xl">account_circle</span>
+                    </div>
+                    <div class="absolute bottom-0 right-0 p-2 bg-primary text-white rounded-full transition duration-300 shadow-xl border-2 border-surface group-hover:scale-110 group-hover:-rotate-12">
+                        <span class="material-symbols-outlined text-sm">photo_camera</span>
+                    </div>
+                </label>
+                <input type="file" id="profilePhotoInput" accept="image/*" class="hidden" onchange="handleProfilePhotoUpload(event)">
+                
+                <!-- Upload Progress Bar -->
+                <div id="profileUploadProgressContainer" class="w-full h-1.5 bg-surface-variant rounded-full mt-4 hidden overflow-hidden shadow-inner">
+                    <div id="profileUploadProgressBar" class="h-full bg-primary w-0 rounded-full transition-all duration-300"></div>
+                </div>
+            </div>
+            <div class="flex flex-col items-center gap-2 mt-1">
+                <span class="text-xs text-on-surface/50 font-medium">Recommended: Square PNG or JPG</span>
+                <button id="removeProfileBtn" onclick="removeProfilePhoto(event)" class="hidden text-[11px] font-bold text-error hover:text-red-400 bg-error/10 hover:bg-error/20 px-3 py-1.5 rounded-full transition duration-300 cursor-pointer">
+                    <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">delete</span> Remove Photo</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Details Section -->
+        <div class="space-y-6 text-left max-w-md mx-auto">
+            <div>
+                <label class="block text-xs font-bold text-on-surface/70 mb-2 uppercase tracking-wider">Display Name</label>
+                <input type="text" id="profileDisplayName" placeholder="e.g. Suraj Sawant" 
+                       class="w-full bg-surface-container border border-outline-variant/30 rounded-xl px-4 py-3 text-sm text-on-surface focus:outline-none focus:border-primary/60 focus:ring-1 focus:ring-primary/60 transition shadow-inner">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-on-surface/70 mb-2 uppercase tracking-wider">Receive UPI VPA</label>
+                <input type="text" id="profileUpiId" placeholder="e.g. surajsawant@okaxis" 
+                       class="w-full bg-surface-container border border-outline-variant/30 rounded-xl px-4 py-3 text-sm text-on-surface focus:outline-none focus:border-primary/60 focus:ring-1 focus:ring-primary/60 transition shadow-inner">
+                <span class="text-[10px] text-on-surface/60 block mt-2">This VPA will be encoded in your secure QR code to receive payments.</span>
+            </div>
+
+            
+            <div class="mt-8 border-t border-outline-variant/30 pt-8">
+                <label class="block text-xs font-bold text-on-surface/70 mb-3 uppercase tracking-wider">Primary Receive QR Code</label>
+                <div class="flex flex-col items-center justify-center gap-4">
+                    <div class="relative group cursor-pointer w-full">
+                        <label for="customQrInput" class="block w-full cursor-pointer bg-surface-container border-2 border-dashed border-outline-variant/50 hover:border-primary/50 rounded-2xl p-8 text-center transition duration-300 shadow-sm hover:shadow-md hover:bg-primary/5">
+                            <img id="profile-modal-preview-qr" src="" class="mx-auto h-40 w-40 object-contain hidden mb-4 rounded-xl shadow-md border border-outline-variant/20" />
+                            <div id="profile-modal-preview-qr-placeholder" class="flex flex-col items-center justify-center">
+                                <div class="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition duration-300">
+                                    <span class="material-symbols-outlined text-primary text-3xl">qr_code_scanner</span>
+                                </div>
+                                <h3 class="font-bold text-sm text-on-surface mb-1">Upload Official QR Code</h3>
+                                <p class="text-xs text-on-surface/60 max-w-[200px]">Upload your official merchant or personal QR (PhonePe, GPay, MobiKwik) to receive payments.</p>
+                            </div>
+                        </label>
+                        <input type="file" id="customQrInput" accept="image/*" class="hidden" onchange="handleCustomQrUpload(event)">
+                    </div>
+                    <button id="removeQrBtn" onclick="removeCustomQr(event)" class="hidden text-[11px] font-bold text-error hover:text-red-400 bg-error/10 hover:bg-error/20 px-4 py-2 rounded-full transition duration-300 cursor-pointer mt-1">
+                        <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">delete</span> Remove Custom QR</span>
+                    </button>
+                </div>
+            </div>
+
+<!-- Action Buttons -->
+            <div class="pt-6">
+                <button onclick="saveUserProfile()" class="w-full bg-gradient-to-r from-primary to-blue-600 hover:from-blue-600 hover:to-primary active:scale-95 text-white font-bold py-4 rounded-xl text-sm transition cursor-pointer shadow-lg shadow-primary/20">
+                    Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Toasts Container -->
+<div id="toast-container" class="fixed top-4 right-4 z-[9999] flex flex-col gap-2"></div>
+
+<script src="js/upi_database.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

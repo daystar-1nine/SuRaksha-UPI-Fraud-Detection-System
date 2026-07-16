@@ -1,0 +1,180 @@
+﻿:root {
+    --background: #f8fafc;
+    --on-background: #0f172a;
+    --surface: #ffffff;
+    --on-surface: #0f172a;
+    --surface-container: #f1f5f9;
+    --surface-container-low: #f8fafc;
+    --surface-container-high: #e2e8f0;
+    --surface-container-lowest: #ffffff;
+    --surface-container-highest: #cbd5e1;
+    --surface-variant: #e2e8f0;
+    --outline-variant: #cbd5e1;
+    --outline: #64748b;
+    --on-surface-variant: #475569;
+    --surface-dim: #f1f5f9;
+    --header-bg: rgba(248, 250, 252, 0.8);
+
+    --primary-rgb: 11 94 215;
+    --secondary-rgb: 217 119 6;
+    --error-rgb: 220 53 69;
+    --success-rgb: 16 185 129;
+  }
+
+  .dark {
+    --background: #070a13;
+    --on-background: #f8fafc;
+    --surface: #0f172a;
+    --on-surface: #f1f5f9;
+    --surface-container: #1e293b;
+    --surface-container-low: #070a13;
+    --surface-container-high: #334155;
+    --surface-container-lowest: #020617;
+    --surface-container-highest: #475569;
+    --surface-variant: #334155;
+    --outline-variant: #475569;
+    --outline: #94a3b8;
+    --on-surface-variant: #cbd5e1;
+    --surface-dim: #070a13;
+    --header-bg: rgba(7, 10, 19, 0.8);
+
+    --primary-rgb: 59 130 246;
+    --secondary-rgb: 251 191 36;
+    --error-rgb: 248 113 113;
+    --success-rgb: 52 211 153;
+  }
+
+  /* ── Text Glow & Animated Gradient ── */
+  @keyframes textGlow {
+    0%, 100% { text-shadow: 0 0 4px rgba(var(--primary-rgb), 0.1); }
+    50% { text-shadow: 0 0 10px rgba(var(--primary-rgb), 0.4); }
+  }
+  .animate-text-glow {
+    animation: textGlow 3s ease-in-out infinite;
+  }
+
+  @keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  .animate-gradient {
+    background-size: 200% auto;
+    animation: gradientShift 4s ease infinite;
+  }
+
+  /* ── Material Symbols ── */
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  }
+
+  /* ── Glass Header ── */
+  .glass-header {
+    background: var(--header-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  /* ── Glass Card ── */
+  .glass-card {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+  }
+  .dark .glass-card {
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  /* ── Hero Glow ── */
+  .hero-glow {
+    background: radial-gradient(circle at center, rgba(var(--primary-rgb), 0.15) 0%, transparent 70%);
+  }
+
+  /* ── Float Animation ── */
+  @keyframes float {
+    0%   { transform: translateY(0px); }
+    50%  { transform: translateY(-20px); }
+    100% { transform: translateY(0px); }
+  }
+  .animate-float { animation: float 4s ease-in-out infinite; }
+
+  /* ── Smooth Micro-Interactions ── */
+  .card-hover { transition: all 0.3s ease; }
+  .card-hover:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+  }
+
+  /* ── Fade-in on page load ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .fade-up {
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards;
+  }
+  .fade-up-1 { animation-delay: 0.1s; }
+  .fade-up-2 { animation-delay: 0.25s; }
+  .fade-up-3 { animation-delay: 0.4s; }
+  .fade-up-4 { animation-delay: 0.55s; }
+  html {
+    scroll-behavior: smooth;
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+/* ═══════════════════════════════════════════════════
+   QR SCANNER – complete visual fix
+   ═══════════════════════════════════════════════════ */
+
+/* Make the video fill the square container exactly */
+#reader {
+    position: relative;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+#reader video {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    border-radius: inherit;
+}
+
+/* Hide ALL of Html5Qrcode's default UI chrome */
+#reader__scan_region,
+#reader__dashboard,
+#reader__dashboard_section,
+#reader__dashboard_section_swaplink,
+#reader__dashboard_section_csr,
+#reader__dashboard_section_fsr,
+#reader__header_message,
+#reader__status_span,
+#reader__camera_selection,
+#reader img[alt="Info icon"],
+#reader__filescan_input,
+#reader__filescan_btn {
+    display: none !important;
+}
+
+/* Hide the shaded box / qrbox that html5-qrcode draws */
+#reader__scan_region > img,
+#reader__scan_region > div {
+    display: none !important;
+}
+
+/* Ensure the inner scan region element doesn't block our overlay */
+#reader__scan_region {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}

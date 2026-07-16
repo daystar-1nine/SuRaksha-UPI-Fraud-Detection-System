@@ -5,8 +5,10 @@ import sqlite3
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from typing import Any, Dict, Generator, List, Tuple
+from functools import lru_cache
+from config import settings
 
-DB_PATH = "fraud_history.db"
+DB_PATH = settings.DATABASE_PATH
 
 
 # -------------------------------
@@ -15,7 +17,7 @@ DB_PATH = "fraud_history.db"
 @contextmanager
 def get_connection() -> Generator[sqlite3.Connection, None, None]:
     """Provides a thread-safe context managed SQLite connection with automatic rollback."""
-    conn = sqlite3.connect(DB_PATH, timeout=20.0)
+    conn = sqlite3.connect(DB_PATH, timeout=20.0, check_same_thread=False)
     try:
         yield conn
         conn.commit()
@@ -33,6 +35,7 @@ def init_db() -> None:
     """Initializes schema tables and indexes in the SQLite history database."""
     with get_connection() as conn:
         cursor = conn.cursor()
+        cursor.execute("PRAGMA journal_mode=WAL;")  # Enable concurrent reads/writes
 
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS history (
@@ -150,11 +153,14 @@ def save_case(upi_ids: List[str], fraud_type: str | None, risk_level: str | None
         INSERT INTO history (upi, fraud_type, risk_level, created_at)
         VALUES (?, ?, ?, ?)
         """, records)
+        
+    get_upi_count.cache_clear()
 
 
 # -------------------------------
 # GET UPI COUNT
 # -------------------------------
+@lru_cache(maxsize=1024)
 def get_upi_count(upi: str) -> int:
     """Returns the total number of times a UPI address was flagged in the history."""
     with get_connection() as conn:
@@ -298,6 +304,7 @@ def get_reported_scams() -> List[Tuple[str, str]]:
 # -------------------------------
 # LOOKUP UPI IN DIRECTORY
 # -------------------------------
+@lru_cache(maxsize=256)
 def lookup_upi_in_directory(upi_id: str) -> dict | None:
     """Queries the custom upi_directory table for verified safe/unsafe statuses."""
     if not upi_id:

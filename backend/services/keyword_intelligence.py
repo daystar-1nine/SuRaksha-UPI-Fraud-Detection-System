@@ -21,11 +21,8 @@ EMOTIONAL_WORDS = [
 REPEAT_PATTERN = re.compile(r"(.)\1{3,}")
 
 
-# -------------------------------
-# HELPERS
-# -------------------------------
-def normalize(text: str):
-    return unicodedata.normalize("NFKC", (text or "")).lower().strip()
+from utils.text_utils import normalize_text
+from utils.signal_utils import make_signal, deduplicate_signals, empty_response
 
 
 def match_terms(text, terms):
@@ -38,38 +35,19 @@ def match_terms(text, terms):
     return matches
 
 
-def make_signal(signal_type, score, confidence, reason):
-    return {
-        "type": signal_type,
-        "score": score,
-        "confidence": confidence,
-        "reason": reason
-    }
 
-
-def deduplicate(signals):
-    seen = set()
-    unique = []
-
-    for s in signals:
-        key = (s["type"], s["reason"])
-        if key not in seen:
-            seen.add(key)
-            unique.append(s)
-
-    return unique
 
 
 # -------------------------------
 # MAIN ENGINE
 # -------------------------------
 def analyze_text_patterns(text):
-    text = normalize(text)
+    text = normalize_text(text)
     words = text.split()
     signals = []
 
     if not text:
-        return _empty_response()
+        return empty_response("keyword_intelligence")
 
     # -------------------------------
     # 1. KEYWORD DETECTION
@@ -148,7 +126,7 @@ def analyze_text_patterns(text):
     # -------------------------------
     # 9. CLEAN SIGNALS
     # -------------------------------
-    signals = deduplicate(signals)
+    signals = deduplicate_signals(signals)
 
     # -------------------------------
     # 10. FINAL SCORING
@@ -184,15 +162,4 @@ def analyze_text_patterns(text):
         "reasons": [s["reason"] for s in signals]
     }
 
-
-# -------------------------------
-# EMPTY RESPONSE
-# -------------------------------
-def _empty_response():
-    return {
-        "risk_score": 0,
-        "risk_level": "LOW",
-        "confidence": 0.0,
-        "signals": [],
-        "reasons": []
-    }
+

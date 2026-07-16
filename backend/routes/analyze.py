@@ -14,6 +14,9 @@ from services.tamper_detector import detect_image_tampering
 from services.master_engine import run_fraud_analysis
 from services.history_store import save_case, get_upi_count
 from utils.limiter import limiter
+from utils.errors import AppError
+from utils.schemas import AnalyzeTextRequest
+from utils.logger import logger
 
 # ----------------------------------------------------------------------
 # BLUEPRINT INITIALIZATION
@@ -62,16 +65,7 @@ def verify_image_signature(file_stream):
         return False
 
 
-def error_response(message, status_code, request_id):
-    """Generates standardized JSON error payloads for consistent API error parsing."""
-    return jsonify({
-        "success": False,
-        "request_id": request_id,
-        "error": {
-            "message": message,
-            "code": status_code
-        }
-    }), status_code
+
 
 
 def process_result(result):
@@ -123,18 +117,18 @@ def analyze_image():
         # payload VALIDATION
         # ----------------------------------------------------------------------
         if not file:
-            return error_response("No image uploaded", 400, request_id)
+            raise AppError("No image uploaded", 400, {"request_id": request_id})
 
         if not is_allowed_file(file.filename):
-            return error_response("Invalid file type", 400, request_id)
+            raise AppError("Invalid file type", 400, {"request_id": request_id})
 
         # Confirm file signature bytes to verify the upload is indeed an image format
         if not verify_image_signature(file.stream):
-            return error_response("File signature check failed. Spoofed image format detected.", 400, request_id)
+            raise AppError("File signature check failed. Spoofed image format detected.", 400, {"request_id": request_id})
 
         filename = secure_filename(file.filename)
         if filename == "":
-            return error_response("Invalid filename", 400, request_id)
+            raise AppError("Invalid filename", 400, {"request_id": request_id})
 
         # Enforce file size check in memory using byte offsets to protect against OOM overflows
         file.seek(0, os.SEEK_END)
@@ -142,7 +136,7 @@ def analyze_image():
         file.seek(0)
 
         if file_size > 5 * 1024 * 1024:
-            return error_response("File too large (max 5MB)", 413, request_id)
+            raise AppError("File too large (max 5MB)", 413, {"request_id": request_id})
 
         # ----------------------------------------------------------------------
         # IN-MEMORY PROCESSING (ZERO-DISK 🔥)
@@ -165,14 +159,14 @@ def analyze_image():
             clean_canvas.save(clean_io, format="JPEG", quality=95)
             sanitized_bytes = clean_io.getvalue()
         except Exception as e:
-            return error_response(f"Image sanitization failed: {str(e)}", 400, request_id)
+            raise AppError(f"Image sanitization failed: {str(e)}", 400, {"request_id": request_id})
 
         # 2. Decode the sanitized bytes directly into an OpenCV numpy array
         nparr = np.frombuffer(sanitized_bytes, np.uint8)
         opencv_img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
         if opencv_img is None:
-            return error_response("Failed to decode sanitized image", 400, request_id)
+            raise AppError("Failed to decode sanitized image", 400, {"request_id": request_id})
 
         # 3. For metadata check, keep the original bytes stream in memory to extract EXIF headers
         original_io = io.BytesIO(image_bytes)
@@ -220,9 +214,11 @@ def analyze_image():
             }
         }), 200
 
-    except Exception:
-        current_app.logger.exception(f"[{request_id}] Image analysis failed")
-        return error_response("Internal server error", 500, request_id)
+    except AppError:
+        raise
+    except Exception as e:
+        logger.exception(f"[{request_id}] Image analysis failed")
+        raise AppError("Internal server error", 500, {"request_id": request_id})
 
 
 # ----------------------------------------------------------------------
@@ -245,24 +241,18 @@ def analyze_message():
 
     try:
         data = request.get_json(silent=True)
-
         if not data:
-            return error_response("Invalid JSON body", 400, request_id)
+            raise AppError("Invalid JSON body", 400, {"request_id": request_id})
 
-        text = data.get("text", "").strip()
-        user_intent = data.get("intent")
-
-        if not text:
-            return error_response("Text is required", 400, request_id)
-
-        # Limit string length to 5000 chars to avoid memory-bloat attacks
-        if len(text) > 5000:
-            return error_response("Text too large", 413, request_id)
+        try:
+            req_data = AnalyzeTextRequest(**data)
+        except ValueError as ve:
+            raise AppError(str(ve), 400, {"request_id": request_id})
 
         # ----------------------------------------------------------------------
         # RUN ANALYSIS
         # ----------------------------------------------------------------------
-        result = run_fraud_analysis(text, user_intent)
+        result = run_fraud_analysis(req_data.text, req_data.intent)
 
         repeat_counts = process_result(result)
 
@@ -290,6 +280,8 @@ def analyze_message():
             }
         }), 200
 
-    except Exception:
-        current_app.logger.exception(f"[{request_id}] Message analysis failed")
-        return error_response("Internal server error", 500, request_id)
+    except AppError:
+        raise
+    except Exception as e:
+        logger.exception(f"[{request_id}] Message analysis failed")
+        raise AppError("Internal server error", 500, {"request_id": request_id})
