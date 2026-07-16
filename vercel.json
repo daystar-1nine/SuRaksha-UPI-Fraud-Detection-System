@@ -1,12 +1,9 @@
 ﻿{
-  "rewrites": [
+  "redirects": [
     {
       "source": "/",
-      "destination": "/frontend/index.html"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/frontend/$1"
+      "destination": "/frontend/index.html",
+      "permanent": false
     }
   ]
 }
