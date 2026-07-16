@@ -1,9 +1,13 @@
 ﻿{
-  "redirects": [
+  "cleanUrls": true,
+  "rewrites": [
     {
       "source": "/",
-      "destination": "/frontend/index.html",
-      "permanent": false
+      "destination": "/frontend/index.html"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/frontend/$1"
     }
   ]
 }
