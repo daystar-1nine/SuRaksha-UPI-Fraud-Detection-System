@@ -294,7 +294,7 @@ Deploy the `backend/` folder to a service that supports Docker or full Linux con
 2. Set the Root Directory to `backend/`.
 3. Set the Build Command to: `apt-get update && apt-get install -y tesseract-ocr libzbar0 && pip install -r requirements.txt`
 4. Set the Start Command to: `gunicorn app:app`
-5. Once deployed, copy your Render URL and update the `API_BASE` variable at the top of `frontend/js/app.js` to point to it.
+5. Once deployed, copy your Render URL and update the `API_BASE` variable at the top of `js/app.js` to point to it.
 
 ---
 
