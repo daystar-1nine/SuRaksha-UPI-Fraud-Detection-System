@@ -22,7 +22,25 @@ REPEAT_PATTERN = re.compile(r"(.)\1{3,}")
 
 
 from utils.text_utils import normalize_text
-from utils.signal_utils import make_signal, deduplicate_signals, empty_response
+from utils.signal_utils import empty_response
+
+def make_signal(type_, score, confidence, reason):
+    return {
+        "type": type_,
+        "score": score,
+        "confidence": confidence,
+        "reason": reason
+    }
+
+def deduplicate_signals(signals):
+    seen = set()
+    unique = []
+    for sig in signals:
+        key = (sig["type"], sig["reason"])
+        if key not in seen:
+            seen.add(key)
+            unique.append(sig)
+    return unique
 
 
 def match_terms(text, terms):

@@ -153,7 +153,7 @@ def run_verification():
         for i in range(20):
             r_rep = requests.post(
                 "http://127.0.0.1:5000/api/report",
-                json={"upi": "test_spam@ybl", "description": "Spam query test"},
+                json={"upi_id": "test_spam@ybl", "fraud_type": "Spam", "description": "Spam query test"},
                 timeout=2
             )
             if r_rep.status_code == 429:
