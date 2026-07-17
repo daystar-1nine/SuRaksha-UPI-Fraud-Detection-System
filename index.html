@@ -63,7 +63,7 @@
     </nav>
 
     <!-- Right Actions -->
-    <div class="flex items-center gap-md">
+    <div class="flex items-center gap-sm sm:gap-md">
 
       <!-- Language Toggle -->
       <button
@@ -71,7 +71,7 @@
         aria-label="Toggle Language"
         class="p-2 rounded-xl hover:bg-surface-variant/20 active:scale-95 transition-all duration-300 font-bold text-xs text-primary flex items-center gap-1 cursor-pointer border border-transparent">
         <span class="material-symbols-outlined text-[18px] text-primary">language</span>
-        <span id="lang-label" class="text-primary">EN</span>
+        <span id="lang-label" class="text-primary hidden sm:inline">EN</span>
       </button>
 
       <!-- Theme Toggle -->
@@ -79,13 +79,11 @@
         id="theme-toggle"
         aria-label="Toggle dark mode"
         class="p-2 rounded-xl hover:bg-surface-variant/20 active:scale-95 transition-all duration-300">
-
         <span
           id="theme-icon"
           class="material-symbols-outlined text-primary">
           dark_mode
         </span>
-
       </button>
 
       <!-- User Profile Settings Button -->
@@ -100,18 +98,31 @@
 
       <!-- CTA -->
       <a href="scan.html"
-         class="bg-primary-container text-on-primary-container px-lg py-sm rounded-xl font-label-md flex items-center gap-sm hover:scale-105 hover:shadow-xl active:scale-95 transition-all duration-300">
-
+         class="bg-primary-container text-on-primary-container p-2 sm:px-lg sm:py-sm rounded-xl font-label-md flex items-center gap-sm hover:scale-105 hover:shadow-xl active:scale-95 transition-all duration-300">
         <span class="material-symbols-outlined text-[20px]">
           qr_code_scanner
         </span>
-
-        Open Scanner
-
+        <span class="hidden sm:inline">Open Scanner</span>
       </a>
+
+      <!-- Hamburger Menu Button -->
+      <button
+        id="mobile-menu-btn"
+        aria-label="Toggle mobile menu"
+        class="md:hidden p-2 rounded-xl hover:bg-surface-variant/20 active:scale-95 transition-all duration-300 flex items-center justify-center border border-primary/20 bg-surface cursor-pointer">
+        <span id="mobile-menu-icon" class="material-symbols-outlined text-primary">menu</span>
+      </button>
 
     </div>
 
+  </div>
+
+  <!-- Mobile Navigation Panel -->
+  <div id="mobile-nav-panel" class="hidden md:hidden border-t border-outline-variant/10 bg-background/95 backdrop-blur-xl px-lg py-md flex flex-col gap-md transition-all duration-300">
+    <a href="index.html" class="text-on-surface-variant hover:text-primary transition-colors duration-300 py-1">Home</a>
+    <a href="index.html#features" class="text-on-surface-variant hover:text-primary transition-colors duration-300 py-1">Features</a>
+    <a href="index.html#how-it-works" class="text-on-surface-variant hover:text-primary transition-colors duration-300 py-1">How It Works</a>
+    <a href="about.html" class="text-on-surface-variant hover:text-primary transition-colors duration-300 py-1">About</a>
   </div>
 
 </header>

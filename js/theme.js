@@ -76,6 +76,30 @@ function initThemeAndProfile() {
             syncNavbarProfile();
         }
     });
+
+    // 📱 Mobile Navigation Toggle
+    const mobileMenuBtn = document.getElementById("mobile-menu-btn");
+    const mobileNavPanel = document.getElementById("mobile-nav-panel");
+    const mobileMenuIcon = document.getElementById("mobile-menu-icon");
+
+    if (mobileMenuBtn && mobileNavPanel) {
+        mobileMenuBtn.addEventListener("click", () => {
+            const isHidden = mobileNavPanel.classList.toggle("hidden");
+            if (mobileMenuIcon) {
+                mobileMenuIcon.textContent = isHidden ? "menu" : "close";
+            }
+        });
+        
+        // Close menu when clicking links
+        mobileNavPanel.querySelectorAll("a").forEach(link => {
+            link.addEventListener("click", () => {
+                mobileNavPanel.classList.add("hidden");
+                if (mobileMenuIcon) {
+                    mobileMenuIcon.textContent = "menu";
+                }
+            });
+        });
+    }
 }
 
 // 🌐 Global Profile Redirect
