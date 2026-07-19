@@ -1,1 +1,99 @@
-﻿牦浯映慬歳椠灭牯⁴汆獡Ⱬ樠潳楮祦਍牦浯映慬歳损牯⁳浩潰瑲䌠剏൓昊潲⁭汦獡彫楬業整⹲牥潲獲椠灭牯⁴慒整楌業䕴捸敥敤൤ഊ昊潲⁭潲瑵獥愮慮祬敺椠灭牯⁴湡污穹彥灢਍牦浯爠畯整⹳敨污桴椠灭牯⁴敨污桴扟൰昊潲⁭潲瑵獥焮⁲浩潰瑲焠彲灢਍牦浯爠畯整⹳敲潰瑲椠灭牯⁴敲潰瑲扟൰ഊ⌊䤠楮楴污穩⁥敲慬楴湯污搠瑡扡獡⁥湡⁤潬摡瀠牥楳瑳湥⁴湩楤散൳昊潲⁭敳癲捩獥栮獩潴祲獟潴敲椠灭牯⁴湩瑩摟ൢ昊潲⁭瑵汩⹳楬業整⁲浩潰瑲氠浩瑩牥਍牦浯挠湯楦⁧浩潰瑲猠瑥楴杮൳昊潲⁭瑵汩⹳牥潲獲椠灭牯⁴敲楧瑳牥敟牲牯桟湡汤牥൳昊潲⁭瑵汩⹳潬杧牥椠灭牯⁴潬杧牥਍਍灡⁰‽汆獡⡫彟慮敭彟ഩ愊灰挮湯楦⹧牦浯浟灡楰杮ന †匠䍅䕒彔䕋㵙敳瑴湩獧匮䍅䕒彔䕋ⱙ਍††䕄啂㵇敳瑴湩獧䐮䉅䝕ബ †䔠噎猽瑥楴杮⹳久ൖ⤊਍敲楧瑳牥敟牲牯桟湡汤牥⡳灡⥰਍਍‣湅扡敬䌠潲獳伭楲楧⁮敒潳牵散匠慨楲杮⠠佃卒 潴愠汬睯琠敨映潲瑮湥⁤汣敩瑮⠠畲湮湩⁧湯瀠牯⁴〸〰ഩ⌊琠⁯敳畣敲祬洠歡⁥䩁塁䘯瑥档挠污獬琠⁯桴獩䘠慬歳猠牥敶⁲爨湵楮杮漠⁮潰瑲㔠〰⤰മ䌊剏⡓灡⥰਍਍‣ⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭ਍‣䕓啃䥒奔䴠䑉䱄坅剁⁅…䥌䥍䕔⁒鿰ꖔ਍‣ⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭ਍‣楂摮琠敨爠瑡⁥楬業整⁲潣普杩牵瑡潩⁮潴漠牵愠瑣癩⁥汆獡⁫灡汰捩瑡潩⹮਍楬業整⹲湩瑩慟灰愨灰ഩഊ䀊灡⹰牥潲桲湡汤牥刨瑡䱥浩瑩硅散摥摥ഩ搊晥爠瑡汥浩瑩桟湡汤牥攨㨩਍††∢ഢ †䠠湡汤獥䄠䥐爠瑡⁥楬業⁴硥散摥湡散⁳汧扯污祬മ †ഠ †删瑡敨⁲桴湡氠瑥楴杮䘠慬歳爠楡敳愠搠晥畡瑬䠠䵔⁌㈴‹慰敧‬桴獩挠獵潴⁭慨摮敬⁲慣捴敨⁳桴⁥਍††慒整楌業䕴捸敥敤⁤硥散瑰潩⁮湡⁤潦浲瑡⁳瑩愠⁳⁡瑳畲瑣牵摥䨠体⁎扯敪瑣‮桔獩愠汬睯⁳桴⁥਍††牦湯整摮䄠䥐挠楬湥⁴愨灰樮⥳琠⁯慣捴⁨桴⁥牥潲Ⱳ爠慥⁤桴⁥潣汯潤湷搠瑥楡⁬瘨慩✠敤捳楲瑰潩❮Ⱙ਍††湡⁤楤灳慬⁹⁡獵牥昭楲湥汤⁹污牥⁴潴獡⁴湩瑳慥⁤景猠汩湥汴⁹慦汩湩⹧਍††∢ഢ †爠瑥牵⁮獪湯晩⡹ൻ †††∠畳捣獥≳›慆獬ⱥ਍††††攢牲牯㨢笠਍††††††挢摯≥›㈴ⰹ਍††††††洢獥慳敧㨢∠慒整氠浩瑩攠捸敥敤≤ബ †††††∠敤捳楲瑰潩≮›瑳⡲⹥敤捳楲瑰潩⥮਍††††ൽ †素Ⱙ㐠㤲਍਍慀灰愮瑦牥牟煥敵瑳਍敤⁦摡彤敳畣楲祴桟慥敤獲爨獥潰獮⥥ഺ †∠∢਍††呈偔匠捥牵瑩⁹效摡牥⁳楍摤敬慷敲മ †ഠ †删湵⁳晡整⁲癥牥⁹敲畱獥⁴潴椠瑮牥散瑰爠獥潰獮獥愠摮椠橮捥⁴坏十ⵐ敲潣浭湥敤⁤敳畣楲祴栠慥敤獲ഺ †ㄠ‮ⵘ牆浡ⵥ灏楴湯㩳倠潲整瑣⁳条楡獮⁴汃捩橫捡楫杮戠⁹牰癥湥楴杮琠敨瀠条⁥牦浯氠慯楤杮椠⁮牦浡獥椯牦浡獥മ †㈠‮ⵘ潃瑮湥⵴祔数伭瑰潩獮›牐癥湥獴䴠䵉ⵅ湳晩楦杮瘠汵敮慲楢楬祴⠠潦捲獥戠潲獷牥琠⁯摡敨敲琠⁯敤汣牡摥䌠湯整瑮吭灹⥥മ †㌠‮敒敦牲牥倭汯捩㩹倠敲敶瑮⁳敳獮瑩癩⁥慤慴氠慥慫敧椠獮摩⁥呈偔爠晥牥敲獲眠敨⁮慮楶慧楴杮挠潲獳漭楲楧⹮਍††⸴䌠湯整瑮匭捥牵瑩⵹潐楬祣›敒瑳楲瑣⁳硥捥瑵潩⁮景猠牣灩⁴楦敬ⱳ愠獳瑥ⱳ愠摮渠瑥潷歲挠污獬漠汮⁹潴琠畲瑳摥猯晡⁥潬慣楴湯⹳਍††∢ഢ †爠獥潰獮⹥敨摡牥孳堢䘭慲敭伭瑰潩獮崢㴠∠䕄奎ഢ †爠獥潰獮⹥敨摡牥孳堢䌭湯整瑮吭灹ⵥ灏楴湯≳⁝‽渢獯楮晦ഢ †爠獥潰獮⹥敨摡牥孳刢晥牥敲⵲潐楬祣崢㴠∠瑳楲瑣漭楲楧⵮桷湥挭潲獳漭楲楧≮਍††敲灳湯敳栮慥敤獲≛潃瑮湥⵴敓畣楲祴倭汯捩≹⁝‽ന †††∠敤慦汵⵴牳⁣猧汥❦※ഢ †††∠潣湮捥⵴牳⁣猧汥❦※ഢ †††∠浩ⵧ牳⁣猧汥❦搠瑡㩡※ഢ †††∠牦浡ⵥ湡散瑳牯⁳渧湯❥∻਍††ഩ †爠瑥牵⁮敲灳湯敳਍਍‣ⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭ਍‣义呉䐠呁䉁十൅⌊ⴠⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭഭ⌊䈠潯獴牴灡琠敨匠䱑瑩⁥捳敨慭⠠楨瑳牯ⱹ挠浯汰楡瑮ⱳ愠摮猠慣獭映敥扤捡⁫慴汢獥 ਍‣湡⁤敶楲祦椠摮捩獥攠楸瑳瀠楲牯琠⁯慨摮楬杮愠祮椠扮畯摮爠畯整⹳਍湩瑩摟⡢ഩഊ⌊ⴠⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭഭ⌊删䝅卉䕔⁒佒呕卅਍‣ⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭ਍‣敒楧瑳牥戠畬灥楲瑮⁳潴欠敥⁰桴⁥潣敤慢敳洠摯汵牡穩摥‬灳楬⁴祢猠慣湮牥挠瑡来牯敩⹳਍灡⹰敲楧瑳牥扟畬灥楲瑮愨慮祬敺扟⥰਍灡⹰敲楧瑳牥扟畬灥楲瑮栨慥瑬彨灢ഩ愊灰爮来獩整彲汢敵牰湩⡴牱扟⥰਍灡⹰敲楧瑳牥扟畬灥楲瑮爨灥牯彴灢ഩഊ⌊ⴠⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭഭ⌊删乕䄠偐਍‣ⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭⴭ਍晩张湟浡彥 㴽∠彟慭湩彟㨢਍††‣瑓牡⁴桴⁥敤⁶敳癲牥‮潆⁲牰摯捵楴湯‬畲⁮敢楨摮愠圠䝓⁉潣瑮楡敮⁲攨朮‮畇楮潣湲⸩਍††潬杧牥椮普⡯≦瑓牡楴杮匠創歡桳⁡慂正湥⁤湯笠敳瑴湩獧䠮协絔笺敳瑴湩獧倮剏絔椠⁮獻瑥楴杮⹳久絖洠摯≥ഩ †愠灰爮湵栨獯㵴敳瑴湩獧䠮协ⱔ瀠牯㵴敳瑴湩獧倮剏ⱔ搠扥杵猽瑥楴杮⹳䕄啂⥇਍‍ഀ਀
+from flask import Flask, jsonify
+from flask_cors import CORS
+from flask_limiter.errors import RateLimitExceeded
+
+from routes.analyze import analyze_bp
+from routes.health import health_bp
+from routes.qr import qr_bp
+from routes.report import report_bp
+
+# Initialize relational database and load persistent indices
+from services.history_store import init_db
+from utils.limiter import limiter
+from config import settings
+from utils.errors import register_error_handlers
+from utils.logger import logger
+
+app = Flask(__name__)
+app.config.from_mapping(
+    SECRET_KEY=settings.SECRET_KEY,
+    DEBUG=settings.DEBUG,
+    ENV=settings.ENV
+)
+register_error_handlers(app)
+
+# Enable Cross-Origin Resource Sharing (CORS) to allow the frontend client (running on port 8000)
+# to securely make AJAX/Fetch calls to this Flask server (running on port 5000).
+CORS(app)
+
+# ----------------------------------------------------------------------
+# SECURITY MIDDLEWARE & LIMITER 🔥
+# ----------------------------------------------------------------------
+# Bind the rate limiter configuration to our active Flask application.
+limiter.init_app(app)
+
+@app.errorhandler(RateLimitExceeded)
+def ratelimit_handler(e):
+    """
+    Handles API rate limit exceedances globally.
+    
+    Rather than letting Flask raise a default HTML 429 page, this custom handler catches the 
+    RateLimitExceeded exception and formats it as a structured JSON object. This allows the 
+    frontend API client (app.js) to catch the error, read the cooldown detail (via 'description'),
+    and display a user-friendly alert toast instead of silently failing.
+    """
+    return jsonify({
+        "success": False,
+        "error": {
+            "code": 429,
+            "message": "Rate limit exceeded",
+            "description": str(e.description)
+        }
+    }), 429
+
+@app.after_request
+def add_security_headers(response):
+    """
+    HTTP Security Headers Middleware.
+    
+    Runs after every request to intercept responses and inject OWASP-recommended security headers:
+    1. X-Frame-Options: Protects against Clickjacking by preventing the page from loading in frames/iframes.
+    2. X-Content-Type-Options: Prevents MIME-sniffing vulnerability (forces browser to adhere to declared Content-Type).
+    3. Referrer-Policy: Prevents sensitive data leakage inside HTTP referrers when navigating cross-origin.
+    4. Content-Security-Policy: Restricts execution of script files, assets, and network calls only to trusted/safe locations.
+    """
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; "
+        "connect-src 'self'; "
+        "img-src 'self' data:; "
+        "frame-ancestors 'none';"
+    )
+    return response
+
+# ----------------------------------------------------------------------
+# INIT DATABASE
+# ----------------------------------------------------------------------
+# Bootstrap the SQLite schema (history, complaints, and scams feedback tables) 
+# and verify indices exist prior to handling any inbound routes.
+init_db()
+
+# ----------------------------------------------------------------------
+# REGISTER ROUTES
+# ----------------------------------------------------------------------
+# Register blueprints to keep the codebase modularized, split by scanner categories.
+app.register_blueprint(analyze_bp)
+app.register_blueprint(health_bp)
+app.register_blueprint(qr_bp)
+app.register_blueprint(report_bp)
+
+# ----------------------------------------------------------------------
+# RUN APP
+# ----------------------------------------------------------------------
+if __name__ == "__main__":
+    # Start the dev server. For production, run behind a WSGI container (e.g. Gunicorn).
+    logger.info(f"Starting SuRaksha Backend on {settings.HOST}:{settings.PORT} in {settings.ENV} mode")
+    app.run(host=settings.HOST, port=settings.PORT, debug=settings.DEBUG)
+
