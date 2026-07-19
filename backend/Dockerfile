@@ -1,4 +1,4 @@
-﻿# Use python:3.11-slim as base image to keep it lightweight
+# Use python:3.11-slim as base image to keep it lightweight
 FROM python:3.11-slim
 
 # Install system dependencies (including Hindi and Bengali Tesseract language packs)
@@ -29,5 +29,5 @@ ENV HOST=0.0.0.0
 ENV PORT=5000
 ENV FLASK_ENV=production
 
-# Run app using gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app"]
+# Run app using gunicorn with extended timeout for heavy OCR tasks
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--timeout", "120", "app:app"]
