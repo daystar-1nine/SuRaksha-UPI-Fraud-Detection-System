@@ -285,12 +285,8 @@ async function analyzeImage() {
         showScreenshotResultPopup(data);
 
     } catch (err) {
-
-        if (err.message !== "RATE_LIMIT_EXCEEDED") {
-            showToast("Backend error during scan", "error");
-        }
+        // apiRequest already shows the specific toast message, so we just log it here
         console.error(err);
-
     } finally {
         toggle($("loader"), false);
     }
