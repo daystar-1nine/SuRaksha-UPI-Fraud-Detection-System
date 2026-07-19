@@ -250,6 +250,17 @@ def extract_text(image_path_or_arr, filename=None):
             "method": "read_error"
         }
 
+    # ----------------------------------------------------------------------
+    # MEMORY OPTIMIZATION (Prevent OOM on Render Free Tier)
+    # ----------------------------------------------------------------------
+    # Tesseract OCR consumes massive amounts of RAM for high-resolution images (e.g., 4K screenshots).
+    # We downscale the image to a maximum of 1200px on its longest edge to keep memory footprint safe.
+    h, w = image.shape[:2]
+    max_dim = 1200
+    if h > max_dim or w > max_dim:
+        scale = max_dim / max(h, w)
+        image = cv2.resize(image, (int(w * scale), int(h * scale)))
+
     # Apply OpenCV perspective alignment for skewed/rotated uploads
     image = align_receipt(image)
 

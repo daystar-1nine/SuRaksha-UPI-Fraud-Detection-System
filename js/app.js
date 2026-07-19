@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------
 // Base API server URL. Dynamically switch between local dev and Vercel/Render production endpoints.
 const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-const API_BASE = isLocal ? "http://127.0.0.1:5000" : "https://suraksha-upi-fraud-detection-system.onrender.com"; // <-- Update this URL once your backend is deployed on Render/Railway
+const API_BASE = "https://suraksha-upi-fraud-detection-system.onrender.com";
 
 // Tracks active scan mode, HTML5Qrcode scanner references, and cached variables
 let AppState = {
@@ -272,11 +272,8 @@ async function analyzeImage() {
     toggle($("loader"), true);
 
     try {
-        // Compress the image before uploading to reduce network payload & speed up OCR processing
-        const compressedFile = await compressImage(file);
-        
         const formData = new FormData();
-        formData.append("image", compressedFile); // Use compressed image!
+        formData.append("image", file); // Send raw file to preserve metadata & ELA artifacts
         formData.append("intent", AppState.intent); // Add active intent!
 
         const data = await apiRequest("/analyze", formData, true);
