@@ -135,8 +135,8 @@ def analyze_image():
         file_size = file.tell()
         file.seek(0)
 
-        if file_size > 5 * 1024 * 1024:
-            raise AppError("File too large (max 5MB)", 413, {"request_id": request_id})
+        if file_size > 15 * 1024 * 1024:
+            raise AppError("File too large (max 15MB). Please compress the image.", 413, {"request_id": request_id})
 
         # ----------------------------------------------------------------------
         # IN-MEMORY PROCESSING (ZERO-DISK 🔥)

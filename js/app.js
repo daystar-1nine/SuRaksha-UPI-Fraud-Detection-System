@@ -145,7 +145,10 @@ async function apiRequest(endpoint, body, isForm = false) {
 
         // Standardise error responses that return success=false
         if (data.success === false) {
-            throw new Error(data.error || "API Error");
+            const errorMsg = (typeof data.error === 'object' && data.error !== null) 
+                ? data.error.message 
+                : data.error;
+            throw new Error(errorMsg || "API Error");
         }
 
         return data;
@@ -153,7 +156,8 @@ async function apiRequest(endpoint, body, isForm = false) {
     } catch (err) {
         // Prevent showing duplicate toast notifications if rate-limiting alert has already handled it
         if (err.message !== "RATE_LIMIT_EXCEEDED") {
-            showToast("⚠ Backend connection failed", "error");
+            const msg = err.message.startsWith("HTTP Error") ? "⚠ Backend connection failed" : `⚠ ${err.message}`;
+            showToast(msg, "error");
         }
         console.error("API ERROR:", err);
         throw err;
