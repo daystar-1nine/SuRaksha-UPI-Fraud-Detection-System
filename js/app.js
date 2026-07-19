@@ -209,6 +209,53 @@ function showToast(message, type = "info", duration = 3500) {
     }, duration);
 }
 
+// Compress and resize image using canvas before uploading
+function compressImage(file, maxWidth = 1000) {
+    return new Promise((resolve) => {
+        // Skip compression for tiny files (under 150KB) to save CPU cycles
+        if (file.size < 150 * 1024) {
+            resolve(file);
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+                const canvas = document.createElement("canvas");
+                let width = img.width;
+                let height = img.height;
+
+                if (width > maxWidth) {
+                    height = Math.round((height * maxWidth) / width);
+                    width = maxWidth;
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(img, 0, 0, width, height);
+
+                canvas.toBlob((blob) => {
+                    if (blob) {
+                        resolve(new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", { 
+                            type: "image/jpeg", 
+                            lastModified: Date.now() 
+                        }));
+                    } else {
+                        resolve(file);
+                    }
+                }, "image/jpeg", 0.75); // Compress at 75% quality to match ELA engine baseline
+            };
+            img.onerror = () => resolve(file);
+        };
+        reader.onerror = () => resolve(file);
+    });
+}
+
 // -----------------------------
 // 🖼 IMAGE ANALYSIS
 // -----------------------------
@@ -222,13 +269,15 @@ async function analyzeImage() {
         return;
     }
 
-    const formData = new FormData();
-    formData.append("image", file); // Use key "image" to match what the backend expects!
-    formData.append("intent", AppState.intent); // Add active intent!
-
     toggle($("loader"), true);
 
     try {
+        // Compress the image before uploading to reduce network payload & speed up OCR processing
+        const compressedFile = await compressImage(file);
+        
+        const formData = new FormData();
+        formData.append("image", compressedFile); // Use compressed image!
+        formData.append("intent", AppState.intent); // Add active intent!
 
         const data = await apiRequest("/analyze", formData, true);
 
@@ -1196,8 +1245,10 @@ $("qrImageInput")?.addEventListener("change", async (e) => {
     }
 
     try {
+        const compressedFile = await compressImage(file);
+        
         const formData = new FormData();
-        formData.append("image", file);
+        formData.append("image", compressedFile);
         formData.append("intent", AppState.intent);
         
         // Send directly to the robust backend QR parser
