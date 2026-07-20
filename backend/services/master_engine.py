@@ -137,7 +137,8 @@ def run_fraud_analysis(text, user_intent=None, tampering_score=0.0, metadata_sco
     # ----------------------------------------------------------------------
     # Consolidate alerts from all analytical modules into a single threat list
     all_signals = (
-        keyword_ai.get("signals", [])
+        scan_data.get("signals", [])
+        + keyword_ai.get("signals", [])
         + behavior.get("signals", [])
         + upi_pattern.get("signals", [])
         + name_match.get("signals", [])
@@ -157,7 +158,7 @@ def run_fraud_analysis(text, user_intent=None, tampering_score=0.0, metadata_sco
         "intent_mismatch": 1 if (
             user_intent and detected_action and user_intent.lower() != detected_action.lower()
         ) else 0,
-        "keyword_score": keyword_ai.get("risk_score", 0),
+        "keyword_score": min(keyword_ai.get("risk_score", 0) + scan_data.get("risk_score", 0), 10),
         "behavior_score": behavior.get("risk_score", 0),
         "upi_pattern_score": upi_pattern.get("risk_score", 0),
         "name_mismatch_score": name_match.get("risk_score", 0),

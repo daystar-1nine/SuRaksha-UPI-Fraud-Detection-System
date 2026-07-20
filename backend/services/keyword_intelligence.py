@@ -44,12 +44,20 @@ def deduplicate_signals(signals):
 
 
 def match_terms(text, terms):
-    """Word-boundary + safe regex match"""
+    """Smart matching: substring for phrases/long words, boundaries for short words"""
     matches = []
+    text_lower = text.lower()
     for term in terms:
-        pattern = rf"\b{re.escape(term)}\b"
-        if re.search(pattern, text):
-            matches.append(term)
+        term_lower = term.lower()
+        # If it's a phrase (contains space) or long enough, standard substring is safest
+        if " " in term_lower or len(term_lower) >= 5 or "." in term_lower:
+            if term_lower in text_lower:
+                matches.append(term)
+        else:
+            # For short single words (e.g. "kyc", "otp"), enforce word boundaries to avoid false positives
+            pattern = rf"\b{re.escape(term_lower)}\b"
+            if re.search(pattern, text_lower):
+                matches.append(term)
     return matches
 
 

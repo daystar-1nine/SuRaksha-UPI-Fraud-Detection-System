@@ -254,6 +254,21 @@ def analyze_message():
         # ----------------------------------------------------------------------
         result = run_fraud_analysis(req_data.text, req_data.intent)
 
+        # Scale up text-only analysis scores since image tampering, metadata, and name mismatch weights are N/A
+        # Max raw text score is ~27, so a ~3.7x multiplier scales it to 100
+        if result.get("risk_score", 0) > 0:
+            scaled_score = min(int(result["risk_score"] * 3.7), 100)
+            result["risk_score"] = scaled_score
+            # Update risk level based on new score
+            if scaled_score >= 80:
+                result["risk_level"] = "CRITICAL"
+            elif scaled_score >= 60:
+                result["risk_level"] = "HIGH"
+            elif scaled_score >= 40:
+                result["risk_level"] = "MEDIUM"
+            else:
+                result["risk_level"] = "LOW"
+
         repeat_counts = process_result(result)
 
         # ----------------------------------------------------------------------

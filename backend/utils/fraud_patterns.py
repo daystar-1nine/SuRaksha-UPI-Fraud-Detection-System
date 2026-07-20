@@ -1,133 +1,153 @@
-# backend/utils/fraud_patterns.py
-
-# -------------------------------
-# 🎯 MASTER FRAUD PATTERN DATABASE
-# -------------------------------
+﻿# backend/utils/fraud_patterns.py
 
 FRAUD_PATTERNS = [
     # -------------------------
-    # 💰 REWARD / GREED BAIT
+    # 💰 REWARD / GREED BAIT / LOTTERY
     # -------------------------
     {
-        "pattern": ["reward", "cashback", "bonus", "gift", "offer", "free", "win"],
+        "pattern": [
+            "reward", "cashback", "bonus", "gift", "offer", "free", "win",
+            "lottery", "lucky draw", "winner", "kbc", "jeep winner", "mahindra winner", "crorepat"
+        ],
         "category": "greed",
-        "score": 2,
-        "confidence": 0.7
+        "score": 3,
+        "confidence": 0.8
     },
-
-    # Hindi / Marathi
     {
-        "pattern": ["इनाम", "पुरस्कार", "कैशबैक", "ऑफर", "जीतें", "फ्री"],
+        "pattern": ["इनाम", "पुरस्कार", "कैशबैक", "ऑफर", "जीतें", "फ्री", "लॉटरी", "विजेता"],
         "category": "greed",
-        "score": 2,
-        "confidence": 0.75
+        "score": 3,
+        "confidence": 0.8
     },
-
-    # Bengali
-    {
-        "pattern": ["পুরস্কার", "ক্যাশব্যাক", "অফার", "জিতুন"],
-        "category": "greed",
-        "score": 2,
-        "confidence": 0.75
-    },
-
-    # Tamil
-    {
-        "pattern": ["பரிசு", "கேஷ்பேக்", "சலுகை"],
-        "category": "greed",
-        "score": 2,
-        "confidence": 0.75
-    },
-
+    
     # -------------------------
     # ⏰ URGENCY / PRESSURE
     # -------------------------
     {
         "pattern": [
-            "urgent", "act now", "limited time",
-            "verify immediately", "hurry", "today only"
+            "urgent", "act now", "limited time", "within 24 hours", "tonight",
+            "verify immediately", "hurry", "today only", "immediately"
         ],
         "category": "urgency",
-        "score": 2,
-        "confidence": 0.8
-    },
-
-    # Hindi
-    {
-        "pattern": ["तुरंत", "अभी करें", "जल्दी करें"],
-        "category": "urgency",
-        "score": 2,
-        "confidence": 0.8
-    },
-
-    # -------------------------
-    # ⚠️ FEAR / THREAT
-    # -------------------------
-    {
-        "pattern": [
-            "account blocked", "suspended",
-            "deactivated", "restricted", "expired"
-        ],
-        "category": "fear",
         "score": 3,
         "confidence": 0.85
     },
-
-    # Hindi
     {
-        "pattern": ["खाता बंद", "सस्पेंड", "ब्लॉक"],
-        "category": "fear",
+        "pattern": ["तुरंत", "अभी करें", "जल्दी करें", "आज रात"],
+        "category": "urgency",
         "score": 3,
         "confidence": 0.85
     },
 
     # -------------------------
-    # 🔐 OTP / KYC FRAUD
+    # ⚠️ FEAR / BANK / KYC THREAT
     # -------------------------
     {
         "pattern": [
-            "share otp", "send otp", "otp required",
-            "complete kyc", "update kyc"
+            "account blocked", "suspended", "deactivated", "restricted", "expired",
+            "pan card", "kyc", "aadhar", "penalty", "permanent suspension",
+            "bank account will be blocked", "update your details"
+        ],
+        "category": "fear_kyc",
+        "score": 5,
+        "confidence": 0.95
+    },
+    {
+        "pattern": ["खाता बंद", "सस्पेंड", "ब्लॉक", "पैन कार्ड", "आधार", "केवाईसी"],
+        "category": "fear_kyc",
+        "score": 5,
+        "confidence": 0.95
+    },
+
+    # -------------------------
+    # ⚡ ELECTRICITY SCAM
+    # -------------------------
+    {
+        "pattern": [
+            "electricity", "power disconnect", "update bill", "electricity officer",
+            "power will be disconnected", "unpaid bill", "disconnection"
+        ],
+        "category": "electricity_scam",
+        "score": 4,
+        "confidence": 0.9
+    },
+    {
+        "pattern": ["बिजली", "कटेगी", "बिल अपडेट", "बिजली अधिकारी"],
+        "category": "electricity_scam",
+        "score": 4,
+        "confidence": 0.9
+    },
+
+    # -------------------------
+    # 💼 JOB / TASK SCAM
+    # -------------------------
+    {
+        "pattern": [
+            "part time", "work from home", "wfh", "daily income", "youtube like", 
+            "telegram hr", "salary daily", "data entry job", "easy money"
+        ],
+        "category": "job_scam",
+        "score": 4,
+        "confidence": 0.85
+    },
+    
+    # -------------------------
+    # 📦 CUSTOMS / PARCEL SCAM
+    # -------------------------
+    {
+        "pattern": [
+            "customs fee", "parcel detained", "clearance fee", "fedex", "dhl",
+            "package suspended", "pay delivery fee"
+        ],
+        "category": "parcel_scam",
+        "score": 4,
+        "confidence": 0.9
+    },
+
+    # -------------------------
+    # 💸 LOAN SCAM
+    # -------------------------
+    {
+        "pattern": [
+            "pre-approved", "personal loan", "zero interest", "processing fee", 
+            "cibil score", "instant approval", "loan amount"
+        ],
+        "category": "loan_scam",
+        "score": 3,
+        "confidence": 0.8
+    },
+
+    # -------------------------
+    # 🔗 PHISHING LINKS / APPS
+    # -------------------------
+    {
+        "pattern": [
+            "click the link", "click below", "official portal", "verify link", 
+            "download apk", "install app", "login here", "claim now", "bit.ly", "tinyurl"
+        ],
+        "category": "phishing",
+        "score": 4,
+        "confidence": 0.9
+    },
+    
+    # -------------------------
+    # 🔐 OTP FRAUD
+    # -------------------------
+    {
+        "pattern": [
+            "share otp", "send otp", "otp required", "do not share"
         ],
         "category": "otp_fraud",
         "score": 4,
-        "confidence": 0.9
-    },
-
-    # Hindi
-    {
-        "pattern": ["otp साझा करें", "kyc अपडेट करें"],
-        "category": "otp_fraud",
-        "score": 4,
-        "confidence": 0.9
-    },
-
-    # Marathi
-    {
-        "pattern": ["otp शेअर करा"],
-        "category": "otp_fraud",
-        "score": 4,
-        "confidence": 0.9
-    },
-
-    # Tamil
-    {
-        "pattern": ["otp பகிரவும்"],
-        "category": "otp_fraud",
-        "score": 4,
-        "confidence": 0.9
+        "confidence": 0.95
     }
 ]
 
-
-# -------------------------------
-# 🔍 QUICK ACCESS LISTS (BACKWARD COMPATIBILITY)
-# -------------------------------
-
-# Flattened lists for old modules (optional)
+# Flattened lists for backward compatibility
 SUSPICIOUS_KEYWORDS = [
     word
     for group in FRAUD_PATTERNS
+    if group["category"] not in ["urgency", "phishing"]
     for word in group["pattern"]
 ]
 
@@ -141,6 +161,6 @@ URGENCY_PHRASES = [
 SCAM_SENTENCES = [
     word
     for group in FRAUD_PATTERNS
-    if group["category"] in ["otp_fraud", "fear"]
+    if group["category"] in ["otp_fraud", "fear_kyc", "electricity_scam", "parcel_scam", "phishing"]
     for word in group["pattern"]
 ]
