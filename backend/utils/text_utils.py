@@ -10,8 +10,8 @@ def normalize_text(text: str) -> str:
     if not text:
         return ""
     text = str(text).lower()
-    # Replace non-alphanumeric (excluding @ for UPI) with space
-    text = re.sub(r'[^a-z0-9\s@\.\-]', ' ', text)
+    # Replace non-alphanumeric (excluding @ for UPI and unicode word chars) with space
+    text = re.sub(r'[^\w\s@\.\-]', ' ', text)
     # Collapse multiple spaces
     text = re.sub(r'\s+', ' ', text).strip()
     return text

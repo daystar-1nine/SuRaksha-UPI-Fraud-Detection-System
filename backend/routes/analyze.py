@@ -256,18 +256,22 @@ def analyze_message():
 
         # Scale up text-only analysis scores since image tampering, metadata, and name mismatch weights are N/A
         # Max raw text score is ~27, so a ~3.7x multiplier scales it to 100
-        if result.get("risk_score", 0) > 0:
-            scaled_score = min(int(result["risk_score"] * 3.7), 100)
-            result["risk_score"] = scaled_score
+        if "risk" in result and result["risk"].get("risk_score", 0) > 0:
+            scaled_score = min(int(result["risk"]["risk_score"] * 3.7), 100)
+            result["risk"]["risk_score"] = scaled_score
             # Update risk level based on new score
             if scaled_score >= 80:
-                result["risk_level"] = "CRITICAL"
+                result["risk"]["risk_level"] = "CRITICAL"
+                result["alert"] = "🔴 FRAUD ALERT"
             elif scaled_score >= 60:
-                result["risk_level"] = "HIGH"
+                result["risk"]["risk_level"] = "HIGH"
+                result["alert"] = "🟠 DANGER"
             elif scaled_score >= 40:
-                result["risk_level"] = "MEDIUM"
+                result["risk"]["risk_level"] = "MEDIUM"
+                result["alert"] = "🟡 WARNING"
             else:
-                result["risk_level"] = "LOW"
+                result["risk"]["risk_level"] = "LOW"
+                result["alert"] = "🟢 LOW RISK"
 
         repeat_counts = process_result(result)
 
