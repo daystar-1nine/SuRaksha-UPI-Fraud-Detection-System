@@ -1151,17 +1151,18 @@ function togglePaymentDrawer(show) {
 
         if (amountInput) {
             amountInput.readOnly = false; // Always editable by payer!
-            amountInput.value = maxLimit ? maxLimit : "";
+            amountInput.value = ""; // Blank by default so payer enters their desired amount
             amountInput.placeholder = maxLimit ? `Enter amount (Max ₹${maxLimit})` : "Enter amount to pay";
 
-            // Attach validation listener
+            // Attach dynamic input validation listener
             amountInput.oninput = validatePaymentAmountInput;
+            setTimeout(() => amountInput.focus(), 100);
         }
 
         if (limitHint) {
             if (maxLimit != null && maxLimit > 0) {
-                limitHint.innerText = `Allowed payment: ₹1 to ₹${maxLimit} (Merchant Set Maximum Cap)`;
-                limitHint.className = "text-[9px] text-amber-400/90 font-medium block";
+                limitHint.innerText = `Allowed payment: ₹1 to ₹${maxLimit} (Merchant Maximum Cap: ₹${maxLimit})`;
+                limitHint.className = "text-[9px] text-amber-400 font-medium block";
             } else {
                 limitHint.innerText = "Enter payment amount (Min ₹1)";
                 limitHint.className = "text-[9px] text-gray-400 font-medium block";
@@ -1181,14 +1182,14 @@ function validatePaymentAmountInput() {
     if (isNaN(val) || val <= 0) {
         if (limitHint) {
             limitHint.innerText = maxLimit ? `Allowed payment: ₹1 to ₹${maxLimit}` : "Enter a valid amount (Min ₹1)";
-            limitHint.className = "text-[9px] text-amber-400/90 font-medium block";
+            limitHint.className = "text-[9px] text-amber-400 font-medium block";
         }
         return false;
     }
 
     if (maxLimit != null && maxLimit > 0 && val > maxLimit) {
         if (limitHint) {
-            limitHint.innerText = `❌ Exceeds Maximum Limit! Enter an amount up to ₹${maxLimit}`;
+            limitHint.innerText = `❌ Exceeds Maximum Limit! The merchant set a maximum limit of ₹${maxLimit}. Please enter ₹${maxLimit} or less.`;
             limitHint.className = "text-[9px] text-red-400 font-bold block animate-pulse";
         }
         return false;
@@ -1239,33 +1240,22 @@ function simulatePaymentLaunch(appName) {
 
     if (appConfig) {
         if (isAndroid && appConfig.androidPackage) {
-            // Force Android Intent to open EXACT package name (e.g. com.google.android.apps.nbu.paisa.user or com.fampay.in)
+            // Android Package Intent - forces Android OS to launch ONLY the targeted app package
             targetLaunchUri = `intent://pay?${queryParams}#Intent;scheme=upi;package=${appConfig.androidPackage};end`;
         } else if (isIOS && appConfig.iosScheme) {
-            // Force iOS custom scheme (e.g. gpay://upi/pay?pa=... or fampay://pay?pa=...)
+            // iOS Custom App Scheme (e.g. gpay://upi/pay?pa=... or fampay://pay?pa=... or bhim://pay?pa=...)
             targetLaunchUri = `${appConfig.iosScheme}?${queryParams}`;
         }
     }
 
-    showToast(`Launching ${appName}... Transferring ₹${amountVal} to ${payeeName}`, "info", 3000);
+    showToast(`🚀 Opening ${appName}... Transferring ₹${amountVal} to ${payeeName}`, "info", 4000);
 
-    const loader = $("loader");
-    if (loader) {
-        const p = loader.querySelector("p");
-        if (p) p.innerText = `Redirecting to ${appName}...`;
-        loader.classList.remove("hidden");
-        setTimeout(() => {
-            loader.classList.add("hidden");
-            if (p) p.innerText = "Analyzing... AI is checking fraud";
-        }, 2000);
-    }
-
-    // Launch targeted app deep link
+    // Launch immediately on user click gesture
     try {
         window.location.href = targetLaunchUri;
     } catch (e) {
-        console.warn(`Direct launch for ${appName} failed, falling back to standard URI`, e);
-        window.location.href = genericUpiUri;
+        console.warn(`Direct launch for ${appName} failed:`, e);
+        showToast(`⚠️ Unable to open ${appName}. Please ensure the app is installed.`, "warning", 5000);
     }
 }
 
