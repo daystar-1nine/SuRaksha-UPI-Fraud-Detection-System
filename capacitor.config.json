@@ -1,5 +1,8 @@
 {
   "appId": "com.daystar.suraksha",
   "appName": "SuRaksha",
-  "webDir": "android_dist"
+  "webDir": "android_dist",
+  "server": {
+    "androidScheme": "https"
+  }
 }
