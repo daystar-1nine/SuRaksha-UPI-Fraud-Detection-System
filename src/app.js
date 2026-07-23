@@ -308,6 +308,17 @@ async function startScanner() {
     AppState.scanning = true;
     try {
         let cameraConstraint = { facingMode: "environment" };
+        
+        // Explicitly trigger getUserMedia permission prompt for Android WebView
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                stream.getTracks().forEach(track => track.stop());
+            } catch (permErr) {
+                console.warn("Camera getUserMedia prompt:", permErr);
+            }
+        }
+
         try {
             const devices = await Html5Qrcode.getCameras();
             if (devices && devices.length > 0) {
