@@ -1078,6 +1078,66 @@ function showResultPopup(apiResponse) {
 }
 
 
+// App-Specific UPI Router Registry for Android Package Intents & iOS Custom Schemes
+const UPI_APP_ROUTER = {
+    "Google Pay": {
+        name: "Google Pay",
+        androidPackage: "com.google.android.apps.nbu.paisa.user",
+        iosScheme: "gpay://upi/pay",
+        fallbackScheme: "tez://upi/pay",
+        storeUrl: "https://play.google.com/store/apps/details?id=com.google.android.apps.nbu.paisa.user"
+    },
+    "PhonePe": {
+        name: "PhonePe",
+        androidPackage: "com.phonepe.app",
+        iosScheme: "phonepe://pay",
+        fallbackScheme: "phonepe://upi/pay",
+        storeUrl: "https://play.google.com/store/apps/details?id=com.phonepe.app"
+    },
+    "Paytm": {
+        name: "Paytm",
+        androidPackage: "net.one97.paytm",
+        iosScheme: "paytmmp://pay",
+        fallbackScheme: "paytm://upi/pay",
+        storeUrl: "https://play.google.com/store/apps/details?id=net.one97.paytm"
+    },
+    "BHIM UPI": {
+        name: "BHIM UPI",
+        androidPackage: "in.org.npci.upiapp",
+        iosScheme: "bhim://pay",
+        fallbackScheme: "bhim://upi/pay",
+        storeUrl: "https://play.google.com/store/apps/details?id=in.org.npci.upiapp"
+    },
+    "FamPay": {
+        name: "FamPay",
+        androidPackage: "com.fampay.in",
+        iosScheme: "fampay://pay",
+        fallbackScheme: "fampay://upi/pay",
+        storeUrl: "https://play.google.com/store/apps/details?id=com.fampay.in"
+    },
+    "POP": {
+        name: "POP",
+        androidPackage: "com.pop.app",
+        iosScheme: "pop://pay",
+        fallbackScheme: "pop://upi/pay",
+        storeUrl: "https://play.google.com/store/apps/details?id=com.pop.app"
+    },
+    "Cred": {
+        name: "CRED",
+        androidPackage: "com.cred.club",
+        iosScheme: "cred://pay",
+        fallbackScheme: "cred://upi/pay",
+        storeUrl: "https://play.google.com/store/apps/details?id=com.cred.club"
+    },
+    "Amazon Pay": {
+        name: "Amazon Pay",
+        androidPackage: "in.amazon.mShop.android.shopping",
+        iosScheme: "amazonpay://pay",
+        fallbackScheme: "com.amazon.mobile.shopping://upi/pay",
+        storeUrl: "https://play.google.com/store/apps/details?id=in.amazon.mShop.android.shopping"
+    }
+};
+
 function togglePaymentDrawer(show) {
     const drawer = $("paymentDrawer");
     const actions = $("popupActions");
@@ -1087,52 +1147,125 @@ function togglePaymentDrawer(show) {
     if (show) {
         const amountInput = $("payAmountInput");
         const limitHint = $("payAmountLimitHint");
+        const maxLimit = AppState.scannedAmountLimit;
 
-        if (AppState.scannedAmountLimit != null && AppState.scannedAmountLimit > 0) {
-            if (amountInput) {
-                amountInput.value = AppState.scannedAmountLimit;
-                amountInput.max = AppState.scannedAmountLimit;
-                amountInput.readOnly = true; // Lock input to merchant set limit cap
+        if (amountInput) {
+            amountInput.readOnly = false; // Always editable by payer!
+            amountInput.value = maxLimit ? maxLimit : "";
+            amountInput.placeholder = maxLimit ? `Enter amount (Max ₹${maxLimit})` : "Enter amount to pay";
+
+            // Attach validation listener
+            amountInput.oninput = validatePaymentAmountInput;
+        }
+
+        if (limitHint) {
+            if (maxLimit != null && maxLimit > 0) {
+                limitHint.innerText = `Allowed payment: ₹1 to ₹${maxLimit} (Merchant Set Maximum Cap)`;
+                limitHint.className = "text-[9px] text-amber-400/90 font-medium block";
+            } else {
+                limitHint.innerText = "Enter payment amount (Min ₹1)";
+                limitHint.className = "text-[9px] text-gray-400 font-medium block";
             }
-            safeText(limitHint, `🔒 MERCHANT LIMIT LOCKED: Payment is capped at a maximum of ₹${AppState.scannedAmountLimit} by the merchant.`);
-        } else {
-            if (amountInput) {
-                amountInput.value = "";
-                amountInput.removeAttribute("max");
-                amountInput.readOnly = false;
-            }
-            safeText(limitHint, "Enter payment amount. Payments above ₹100 are monitored by SuRaksha rules.");
         }
     }
 }
 
-function simulatePaymentLaunch(appName) {
-    let amountVal = parseFloat($("payAmountInput")?.value);
+function validatePaymentAmountInput() {
+    const amountInput = $("payAmountInput");
+    const limitHint = $("payAmountLimitHint");
+    if (!amountInput) return false;
 
-    // If merchant set an amount limit cap on the Secure QR, enforce it strictly!
-    if (AppState.scannedAmountLimit != null && AppState.scannedAmountLimit > 0) {
-        amountVal = AppState.scannedAmountLimit;
-    } else if (isNaN(amountVal) || amountVal <= 0) {
-        amountVal = 100;
+    let val = parseFloat(amountInput.value);
+    const maxLimit = AppState.scannedAmountLimit;
+
+    if (isNaN(val) || val <= 0) {
+        if (limitHint) {
+            limitHint.innerText = maxLimit ? `Allowed payment: ₹1 to ₹${maxLimit}` : "Enter a valid amount (Min ₹1)";
+            limitHint.className = "text-[9px] text-amber-400/90 font-medium block";
+        }
+        return false;
     }
 
+    if (maxLimit != null && maxLimit > 0 && val > maxLimit) {
+        if (limitHint) {
+            limitHint.innerText = `❌ Exceeds Maximum Limit! Enter an amount up to ₹${maxLimit}`;
+            limitHint.className = "text-[9px] text-red-400 font-bold block animate-pulse";
+        }
+        return false;
+    }
+
+    if (limitHint) {
+        limitHint.innerText = maxLimit ? `✅ Valid amount (Max limit ₹${maxLimit})` : "✅ Valid amount";
+        limitHint.className = "text-[9px] text-emerald-400 font-medium block";
+    }
+    return true;
+}
+
+function simulatePaymentLaunch(appName) {
+    const amountInput = $("payAmountInput");
+    let amountVal = parseFloat(amountInput?.value);
+    const maxLimit = AppState.scannedAmountLimit;
+
+    // 1. Validate payment amount against merchant maximum limit
+    if (isNaN(amountVal) || amountVal <= 0) {
+        showToast("⚠️ Please enter a valid payment amount (Min ₹1)", "warning");
+        if (amountInput) amountInput.focus();
+        return;
+    }
+
+    if (maxLimit != null && maxLimit > 0 && amountVal > maxLimit) {
+        showToast(`🛑 Payment Blocked: ₹${amountVal} exceeds the merchant's maximum limit of ₹${maxLimit}`, "error", 5000);
+        validatePaymentAmountInput();
+        if (amountInput) amountInput.focus();
+        return;
+    }
+
+    // 2. Prepare full UPI parameters
     const payeeVpa = AppState.lastScannedPayeeVpa || AppState.lastScannedUpi || "merchant@paytm";
     const payeeName = AppState.lastScannedPayeeName || "Merchant Store";
+    const txnNote = "SuRaksha Verified Payment";
+    const txnRef = "SRK" + Date.now();
 
-    const upiUri = `upi://pay?pa=${encodeURIComponent(payeeVpa)}&pn=${encodeURIComponent(payeeName)}&am=${amountVal}&cu=INR`;
+    // Base query string with all required parameters
+    const queryParams = `pa=${encodeURIComponent(payeeVpa)}&pn=${encodeURIComponent(payeeName)}&am=${amountVal}&cu=INR&tn=${encodeURIComponent(txnNote)}&tr=${encodeURIComponent(txnRef)}`;
+    const genericUpiUri = `upi://pay?${queryParams}`;
 
-    showToast(`Redirecting to ${appName}... Opening ${payeeName} (₹${amountVal})`, "info");
+    const appConfig = UPI_APP_ROUTER[appName];
+    const userAgent = navigator.userAgent || "";
+    const isAndroid = /android/i.test(userAgent);
+    const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
+
+    let targetLaunchUri = genericUpiUri;
+
+    if (appConfig) {
+        if (isAndroid && appConfig.androidPackage) {
+            // Force Android Intent to open EXACT package name (e.g. com.google.android.apps.nbu.paisa.user or com.fampay.in)
+            targetLaunchUri = `intent://pay?${queryParams}#Intent;scheme=upi;package=${appConfig.androidPackage};end`;
+        } else if (isIOS && appConfig.iosScheme) {
+            // Force iOS custom scheme (e.g. gpay://upi/pay?pa=... or fampay://pay?pa=...)
+            targetLaunchUri = `${appConfig.iosScheme}?${queryParams}`;
+        }
+    }
+
+    showToast(`Launching ${appName}... Transferring ₹${amountVal} to ${payeeName}`, "info", 3000);
 
     const loader = $("loader");
     if (loader) {
         const p = loader.querySelector("p");
-        if (p) p.innerText = "Redirecting to " + appName + "...";
+        if (p) p.innerText = `Redirecting to ${appName}...`;
         loader.classList.remove("hidden");
         setTimeout(() => {
             loader.classList.add("hidden");
             if (p) p.innerText = "Analyzing... AI is checking fraud";
-            window.location.href = upiUri;
-        }, 1200);
+        }, 2000);
+    }
+
+    // Launch targeted app deep link
+    try {
+        window.location.href = targetLaunchUri;
+    } catch (e) {
+        console.warn(`Direct launch for ${appName} failed, falling back to standard URI`, e);
+        window.location.href = genericUpiUri;
     }
 }
 
@@ -2295,13 +2428,8 @@ async function generateSecureStoreQr() {
     const name = $("secMerchantName").value.trim();
     const vpa = $("secMerchantVpa").value.trim();
     const secret = $("secSecretKey").value.trim();
-    let limitAmount = parseFloat($("secAmountLimit")?.value) || 100;
-
-    if (limitAmount > 100) {
-        limitAmount = 100;
-        if ($("secAmountLimit")) $("secAmountLimit").value = 100;
-    }
-    if (limitAmount < 1) {
+    let limitAmount = parseFloat($("secAmountLimit")?.value) || 500;
+    if (isNaN(limitAmount) || limitAmount < 1) {
         limitAmount = 1;
         if ($("secAmountLimit")) $("secAmountLimit").value = 1;
     }
