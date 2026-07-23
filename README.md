@@ -8,6 +8,9 @@
   <img src="https://img.shields.io/badge/python-3.8+-blue.svg" alt="Python Version">
   <img src="https://img.shields.io/badge/flask-v3.0-green.svg" alt="Flask Framework">
   <img src="https://img.shields.io/badge/tailwindcss-v3.0-cyan.svg" alt="Tailwind CSS">
+  <img src="https://img.shields.io/badge/vite-v6.0-purple.svg" alt="Vite">
+  <img src="https://img.shields.io/badge/capacitor-v7.0-blue.svg" alt="Capacitor">
+  <img src="https://img.shields.io/badge/android-native-green.svg" alt="Android">
   <img src="https://img.shields.io/badge/database-sqlite3-blue.svg" alt="SQLite3">
   <img src="https://img.shields.io/badge/forensics-opencv-orange.svg" alt="OpenCV">
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="MIT License">
@@ -154,6 +157,11 @@ SuRaksha leverages a multi-layered defense-in-depth architecture to intercept an
    * Provides full out-of-the-box PyCharm configuration files (.idea/ directories), excluding heavy virtual environments from indexing.
    * Packages pre-configured shared Run Configurations for launching the Flask API server and running automated verification tests.
 
+10. **Native Android Intent Interceptor (Capacitor)**
+    * Features a fully native Android APK build using Capacitor.
+    * Overrides Android's `WebViewClient` natively in `MainActivity.java` to intercept `intent://` URIs.
+    * Allows seamless, direct routing to specific payment apps (Google Pay, PhonePe, Paytm, FamPay, Cred, POP) rather than falling back to default handlers like WhatsApp.
+
 ---
 
 ## 🎨 Advanced Engineering Deep-Dive
@@ -205,35 +213,33 @@ To prevent automated DDoS spam and **Machine Learning Data Poisoning** (where at
 
 ```text
 SuRaksha/
+├── android/                  # Native Android App (Capacitor + Gradle 9.4.1)
+│   ├── app/src/main/java/com/daystar/suraksha/MainActivity.java # Intent Interceptor
+│   └── build.gradle          # Android build configuration (Java 17 / SDK 36)
 ├── backend/                  # Python Flask API Backend
 │   ├── routes/               # API endpoint routers (analyze, qr, report)
-│   │   ├── analyze.py
-│   │   ├── health.py
-│   │   ├── qr.py
-│   │   └── report.py
 │   ├── services/             # Heuristic engines (tamper, OCR, NLP, ML)
-│   │   ├── history_store.py
-│   │   ├── ml_classifier.py
-│   │   ├── ocr_service.py
-│   │   ├── tamper_detector.py
-│   │   ├── qr_risk_analyzer.py
-│   │   └── master_engine.py
 │   ├── utils/                # Shared settings and constants
-│   │   ├── limiter.py
-│   │   └── constants.py
 │   ├── fraud_history.db       # SQLite3 database
 │   ├── requirements.txt      # Backend Python dependencies
 │   └── app.py                # Flask main runner
 │
-├── assets/                   # UI images, logos, and screenshots
-├── css/                      # Main stylesheets (index.css, theme-style.css)
-├── js/                       # Frontend application logic (app.js, theme.js, language.js, upi_database.js)
-├── index.html                # Home / Command Center Dashboard
-├── scan.html                 # Live QR Scanner & Interactive Threat Maps
-├── test.html                 # Attack Sandbox simulator
-├── about.html                # About / Help Center
-├── profile.html              # Threat Log & Profile statistics
-├── result.html               # Risk HUD page
+├── src/                      # Frontend UI Source (HTML, CSS, JS)
+│   ├── assets/               # UI images, logos, and screenshots
+│   ├── css/                  # Main stylesheets (index.css, theme-style.css)
+│   ├── js/                   # Frontend application logic (app.js, theme.js)
+│   ├── index.html            # Home / Command Center Dashboard
+│   ├── scan.html             # Live QR Scanner & Interactive Threat Maps
+│   ├── test.html             # Attack Sandbox simulator
+│   ├── about.html            # About / Help Center
+│   ├── profile.html          # Threat Log & Profile statistics
+│   └── result.html           # Risk HUD page
+│
+├── dist/                     # Vite Production Web Build
+├── android_dist/             # Capacitor Android Asset Sync Build
+├── capacitor.config.json     # Capacitor settings
+├── package.json              # Node.js dependencies (Vite, Capacitor)
+├── vite.config.js            # Vite build configuration
 │
 ├── .vercelignore             # Ignored paths to keep Vercel static builds clean
 ├── verify_security.py        # Local security testing script
@@ -271,13 +277,26 @@ python app.py
 ```
 *The Flask backend compiles `init_db()` dynamic index structures and runs on `http://127.0.0.1:5000`.*
 
-### 3. Frontend Web Server Launch
+### 3. Frontend & Native Android Build (Vite & Capacitor)
+SuRaksha now uses Vite for lightning-fast bundling and Capacitor for native Android integration.
+
 ```bash
-# Navigate to project root folder and start http.server
-cd ..
-python -m http.server 8000
+# 1. Install Node dependencies
+npm install
+
+# 2. Run the Vite Development Server
+npm run dev
+# Open http://localhost:5173 in your browser
+
+# 3. Build for Production Web
+npm run build
+
+# 4. Sync & Build for Native Android
+npm run build
+powershell ./build_android.ps1
+npx cap sync android
 ```
-*Open [http://localhost:8000/frontend/index.html](http://localhost:8000/frontend/index.html) in your browser.*
+*To open the project in Android Studio, run `npx cap open android`. Ensure you are using JDK 17 for Gradle 9.4.1 compatibility.*
 
 ---
 
