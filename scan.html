@@ -8,18 +8,19 @@
     document.documentElement.classList.add("dark");
   }
 </script>
-<script type="module" src="./js/theme.js"></script>
-<script type="module" src="./js/language.js"></script>
+<script type="module" src="/js/theme.js"></script>
+<script type="module" src="/js/language.js"></script>
 <meta charset="utf-8"/>
 <link rel="icon" type="image/png" href="assets/images/logo.png" />
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>SuRaksha | Scan &amp; Analyze</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 
 
 
-<script type="module" src="./js/tailwind-config.js"></script>
+<script type="module" src="/js/tailwind-config.js"></script>
 <link rel="stylesheet" href="css/theme-style.css" />
 <link rel="stylesheet" href="css/web-fixes.css" />
 
@@ -118,7 +119,7 @@
   </div>
 
 </header>
-<main class="pt-32 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-8 sm:space-y-12">
+<main class="pt-32 pb-12 px-6 max-w-7xl mx-auto space-y-xl">
 <!-- Hero Section -->
 <section class="text-center py-10 md:py-12 space-y-8">
 
@@ -209,12 +210,14 @@
 <span class="material-symbols-outlined text-primary text-3xl" data-icon="payments">payments</span>
 </div>
 <div id="payTick"
-     class="hidden absolute top-4 right-4 bg-primary text-white w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs shadow-md z-10">
+     class="hidden absolute top-2 right-2 text-blue-400 text-xl">
+
     ✓
+
 </div>
 </div>
 <h3 class="font-headline-md text-headline-md mb-2">Send Money (Pay)</h3>
-<p class="text-on-surface-variant text-sm sm:text-base">You are paying someone. Use this to verify the destination UPI ID and ensure the QR code hasn't been tampered with.</p>
+<p class="text-on-surface-variant">You are paying someone. Use this to verify the destination UPI ID and ensure the QR code hasn't been tampered with.</p>
 </div>
 <!-- Card B: Receive -->
 <div id="receiveCard"
@@ -234,8 +237,10 @@
     </div>
 
     <div id="receiveTick"
-         class="hidden absolute top-4 right-4 bg-secondary text-white w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs shadow-md z-10">
+         class="hidden absolute top-2 right-2 text-yellow-400 text-xl">
+
         ✓
+
     </div>
 
 </div>
@@ -717,7 +722,7 @@
 <!-- Footer -->
 <footer class="w-full mt-xxl bg-gradient-to-b from-[#0b1220] to-[#05080f] border-t border-white/10">
 
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 grid md:grid-cols-2 gap-12">
+  <div class="max-w-7xl mx-auto px-lg py-xxl grid md:grid-cols-3 gap-xl">
 
     <!-- BRAND -->
     <div class="space-y-md">
@@ -1170,9 +1175,12 @@
     </div>
 
 </div>
+<!-- QR LIBRARY -->
+<script src="https://unpkg.com/html5-qrcode"></script>
+
 <!-- APP JS -->
-<script type="module" src="./js/upi_database.js"></script>
-<script type="module" src="./src/app.js"></script>
+<script type="module" src="/js/upi_database.js"></script>
+<script type="module" src="/src/app.js"></script>
 
 <script>
   // Save & restore scroll position on reload

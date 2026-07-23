@@ -9,18 +9,20 @@
     document.documentElement.classList.add("dark");
   }
 </script>
-<script type="module" src="./js/theme.js"></script>
-<script type="module" src="./js/language.js"></script>
+<script type="module" src="/js/theme.js"></script>
+<script type="module" src="/js/language.js"></script>
 <meta charset="utf-8"/>
 <link rel="icon" type="image/png" href="assets/images/logo.png" />
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 
 
-<script type="module" src="./js/tailwind-config.js"></script>
+
+<script type="module" src="/js/tailwind-config.js"></script>
 <link rel="stylesheet" href="css/theme-style.css" />
-<link rel="stylesheet" href="css/web-fixes.css" />
 
 </head>
 <body class="bg-surface text-on-background font-body-md min-h-screen flex flex-col">
@@ -217,7 +219,7 @@
 <span class="material-symbols-outlined" data-icon="qr_code_scanner">qr_code_scanner</span>
                     Scan Again
                 </button>
-<button class="w-full border-2 border-error text-error py-lg rounded-xl font-headline-md hover:bg-error/10 transition-all flex items-center justify-center gap-2">
+<button class="w-full border-1.5 border-error text-error py-lg rounded-xl font-headline-md hover:bg-error/10 transition-all flex items-center justify-center gap-2">
 <span class="material-symbols-outlined" data-icon="flag">flag</span>
                     Report Fraud
                 </button>
@@ -231,7 +233,7 @@
 <!-- Footer -->
 <footer class="w-full mt-xxl bg-gradient-to-b from-[#0b1220] to-[#05080f] border-t border-white/10">
 
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 grid md:grid-cols-2 gap-12">
+  <div class="max-w-7xl mx-auto px-lg py-xxl grid md:grid-cols-3 gap-xl">
 
     <!-- BRAND -->
     <div class="space-y-md">
@@ -337,7 +339,7 @@ if (!data) {
     }
     else {
         alertText.innerText = "✅ SAFE TRANSACTION";
-        alertText.className = "text-green-500 font-display-md animate-text-glow";
+        alertText.className = "text-green-500 font-display-md text-glow";
         safeBadge.innerText = "Safe to Pay: YES";
         safeBadge.className = "bg-green-600 text-white px-6 py-3 rounded-full";
     }

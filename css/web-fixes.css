@@ -33,31 +33,15 @@ img, video, canvas, svg {
 }
 
 /* Prevent long UPI IDs and URLs from forcing horizontal scroll */
-p, span, h1, h2, h3, h4, h5, h6, li, td, th, label, a {
-  overflow-wrap: break-word;
-  word-break: normal;
+p, span, h1, h2, h3, h4, h5, h6, li, td, th, label {
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 /* Exception: monospace/code should not break mid-character */
 input.font-mono, .font-mono, code, pre {
   word-break: normal;
   overflow-wrap: break-word;
-}
-
-/* Camera box viewfinder styling for scan.html */
-#reader {
-  width: 100% !important;
-  min-height: 280px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  background: #000000 !important;
-}
-
-#reader video {
-  width: 100% !important;
-  height: 100% !important;
-  object-fit: cover !important;
 }
 
 /* Grid children must never exceed their column width */

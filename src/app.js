@@ -1,16 +1,8 @@
-import { Html5Qrcode } from 'html5-qrcode';
-if (typeof window !== 'undefined') {
-    window.Html5Qrcode = Html5Qrcode;
-}
-
 // ----------------------------------------------------------------------
 // 🌍 GLOBAL STATE & APPLICATION STATE
 // ----------------------------------------------------------------------
-// Base API server URL. Dynamically switch between local dev and Render production endpoints.
-// On physical Android/iOS native builds (Capacitor), window.Capacitor is present or protocol is capacitor:// or file://.
-const isCapacitorNative = Boolean(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
-const isLocal = !isCapacitorNative && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
-
+// Base API server URL. Dynamically switch between local dev and Vercel/Render production endpoints.
+const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || window.location.hostname === "";
 const API_BASE = isLocal
     ? "http://127.0.0.1:5000"
     : "https://suraksha-upi-fraud-detection-system.onrender.com";
@@ -762,11 +754,6 @@ function initApp() {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get("openProfile") === "true") {
         setTimeout(openProfileModal, 300);
-    }
-
-    // Automatically initialize camera scanner when mounting scan.html or qrSection
-    if ($("qrSection")) {
-        selectIntent("pay");
     }
 }
 

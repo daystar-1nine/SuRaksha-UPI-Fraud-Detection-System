@@ -1,22 +1,31 @@
 # build_android.ps1
-# Compiles Vite production bundle and syncs static assets into android_dist folder
+# This script copies only the frontend files into the android_dist folder
+# so that the APK does not include the heavy python backend and .git files.
 
 $DistFolder = "android_dist"
 
-Write-Host "Building production web bundle using Vite..."
-npm run build
-
-# Remove old android_dist folder if exists
+# Remove old dist folder if exists
 if (Test-Path $DistFolder) {
     Remove-Item -Recurse -Force $DistFolder
 }
 
-# Create new android_dist folder
+# Create new dist folder
 New-Item -ItemType Directory -Force -Path $DistFolder
 
-# Copy compiled dist bundle to android_dist
-if (Test-Path "dist") {
-    Copy-Item -Recurse -Path "dist\*" -Destination $DistFolder
+# Folders to copy
+$Folders = @("css", "js", "assets")
+foreach ($folder in $Folders) {
+    if (Test-Path $folder) {
+        Copy-Item -Recurse -Path $folder -Destination "$DistFolder\$folder"
+    }
 }
+
+# Copy HTML files
+Copy-Item -Path "*.html" -Destination $DistFolder
+
+# Copy manifest/icons if they exist
+if (Test-Path "manifest.json") { Copy-Item "manifest.json" -Destination $DistFolder }
+if (Test-Path "favicon.ico") { Copy-Item "favicon.ico" -Destination $DistFolder }
+if (Test-Path "apple-touch-icon.png") { Copy-Item "apple-touch-icon.png" -Destination $DistFolder }
 
 Write-Host "Frontend build completed successfully in '$DistFolder' directory!"
