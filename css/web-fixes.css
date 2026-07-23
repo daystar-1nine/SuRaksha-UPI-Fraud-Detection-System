@@ -149,3 +149,15 @@ a[role="button"],
     transform: scale(0.97) !important;
   }
 }
+
+/* ──────────────────────────────────────────
+   5. CONTAINER BORDER SOFTENING — Mobile screens
+   Softens high-contrast border outlines on dark cards
+   ────────────────────────────────────────── */
+
+@media (max-width: 767px) {
+  #messageSection > div.bg-surface,
+  .bg-surface.rounded-xxl.border {
+    border-color: rgba(255, 255, 255, 0.06) !important;
+  }
+}

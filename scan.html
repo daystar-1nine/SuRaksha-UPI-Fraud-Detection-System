@@ -91,7 +91,7 @@
 
       <!-- CTA -->
       <a href="scan.html"
-         class="bg-primary-container text-on-primary-container p-2 sm:px-lg sm:py-sm rounded-xl font-label-md flex items-center gap-sm hover:scale-105 hover:shadow-xl active:scale-95 transition-all duration-300">
+         class="hidden sm:flex bg-primary-container text-on-primary-container p-2 sm:px-lg sm:py-sm rounded-xl font-label-md items-center gap-sm hover:scale-105 hover:shadow-xl active:scale-95 transition-all duration-300">
         <span class="material-symbols-outlined text-[20px]">
           qr_code_scanner
         </span>
@@ -421,29 +421,29 @@
 <!-- Section: Scan Message -->
 <section id="messageSection" class="space-y-lg">
 <h2 class="font-headline-lg text-headline-lg">Scan Message</h2>
-<div class="bg-surface rounded-xxl p-lg border border-outline-variant/20 shadow-lg space-y-lg">
+<div class="bg-surface rounded-2xl md:rounded-xxl p-3.5 sm:p-lg border border-white/5 md:border-outline-variant/20 shadow-lg space-y-md sm:space-y-lg">
 
   <!-- Sample scam message chips -->
   <div class="space-y-3">
     <p class="text-[10px] text-on-surface-variant font-bold uppercase tracking-widest flex items-center gap-1"><span class="material-symbols-outlined text-[14px] text-secondary">bolt</span> Try sample messages</p>
-    <div class="flex flex-wrap gap-2.5">
-      <button onclick="pasteChatScamSample(0)" class="text-xs font-semibold px-4 py-2 rounded-full bg-error/10 text-error border border-error/20 hover:bg-error/20 hover:border-error/40 hover:shadow-lg hover:shadow-error/10 active:scale-95 transition-all duration-300 flex items-center gap-1.5 cursor-pointer">
-        <span class="material-symbols-outlined text-[16px]">warning</span> Cashback Scam
+    <div class="flex flex-wrap gap-2">
+      <button onclick="pasteChatScamSample(0)" class="text-xs font-semibold px-3.5 py-1.5 rounded-full bg-error/10 text-error border border-error/20 hover:bg-error/20 hover:border-error/40 hover:shadow-lg hover:shadow-error/10 active:scale-95 transition-all duration-300 flex items-center gap-1.5 cursor-pointer">
+        <span class="material-symbols-outlined text-[15px]">warning</span> Cashback Scam
       </button>
-      <button onclick="pasteChatScamSample(1)" class="text-xs font-semibold px-4 py-2 rounded-full bg-error/10 text-error border border-error/20 hover:bg-error/20 hover:border-error/40 hover:shadow-lg hover:shadow-error/10 active:scale-95 transition-all duration-300 flex items-center gap-1.5 cursor-pointer">
-        <span class="material-symbols-outlined text-[16px]">warning</span> KYC Fraud
+      <button onclick="pasteChatScamSample(1)" class="text-xs font-semibold px-3.5 py-1.5 rounded-full bg-error/10 text-error border border-error/20 hover:bg-error/20 hover:border-error/40 hover:shadow-lg hover:shadow-error/10 active:scale-95 transition-all duration-300 flex items-center gap-1.5 cursor-pointer">
+        <span class="material-symbols-outlined text-[15px]">warning</span> KYC Fraud
       </button>
-      <button onclick="pasteChatScamSample(2)" class="text-xs font-semibold px-4 py-2 rounded-full bg-error/10 text-error border border-error/20 hover:bg-error/20 hover:border-error/40 hover:shadow-lg hover:shadow-error/10 active:scale-95 transition-all duration-300 flex items-center gap-1.5 cursor-pointer">
-        <span class="material-symbols-outlined text-[16px]">warning</span> Prize Winner
+      <button onclick="pasteChatScamSample(2)" class="text-xs font-semibold px-3.5 py-1.5 rounded-full bg-error/10 text-error border border-error/20 hover:bg-error/20 hover:border-error/40 hover:shadow-lg hover:shadow-error/10 active:scale-95 transition-all duration-300 flex items-center gap-1.5 cursor-pointer">
+        <span class="material-symbols-outlined text-[15px]">warning</span> Prize Winner
       </button>
-      <button onclick="pasteChatScamSample(3)" class="text-xs font-semibold px-4 py-2 rounded-full bg-secondary/10 text-secondary border border-secondary/20 hover:bg-secondary/20 hover:border-secondary/40 hover:shadow-lg hover:shadow-secondary/10 active:scale-95 transition-all duration-300 flex items-center gap-1.5 cursor-pointer">
-        <span class="material-symbols-outlined text-[16px]">check_circle</span> Legitimate
+      <button onclick="pasteChatScamSample(3)" class="text-xs font-semibold px-3.5 py-1.5 rounded-full bg-secondary/10 text-secondary border border-secondary/20 hover:bg-secondary/20 hover:border-secondary/40 hover:shadow-lg hover:shadow-secondary/10 active:scale-95 transition-all duration-300 flex items-center gap-1.5 cursor-pointer">
+        <span class="material-symbols-outlined text-[15px]">check_circle</span> Legitimate
       </button>
     </div>
   </div>
 
   <!-- WhatsApp-style Mobile Chat Simulator Chassis -->
-  <div class="bg-slate-900 border-[6px] border-slate-800 rounded-[36px] w-full max-w-md mx-auto shadow-2xl overflow-hidden relative shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+  <div class="bg-slate-900 border-2 sm:border-[6px] border-slate-700/60 sm:border-slate-800 rounded-2xl sm:rounded-[36px] w-full max-w-md mx-auto shadow-2xl overflow-hidden relative shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
     
     <!-- Phone Top Camera Bar Notch -->
     <div class="w-32 h-6 bg-slate-800 absolute top-0 left-1/2 transform -translate-x-1/2 rounded-b-[18px] z-30 flex items-center justify-center gap-2 shadow-inner">
@@ -497,8 +497,8 @@
       <input type="text" id="chatMessageInput" 
              onkeydown="if(event.key === 'Enter') sendChatMessage()"
              enterkeyhint="send"
-             class="flex-1 bg-white dark:bg-[#2a3942] border border-transparent focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/20 rounded-full px-5 py-2.5 text-sm text-slate-800 dark:text-white placeholder:text-slate-400 focus:outline-none transition-all shadow-sm" 
-             placeholder="Type or paste suspicious message...">
+             class="flex-1 bg-white dark:bg-[#2a3942] border border-transparent focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/20 rounded-full px-4 py-2.5 text-sm text-slate-800 dark:text-white placeholder:text-slate-400 focus:outline-none transition-all shadow-sm" 
+             placeholder="Type or paste message...">
       <button onclick="sendChatMessage()" 
               class="w-10 h-10 bg-emerald-600 hover:bg-emerald-500 rounded-full flex items-center justify-center text-white transition-all duration-300 active:scale-90 shadow-md hover:shadow-lg cursor-pointer shrink-0 group">
         <span class="material-symbols-outlined text-[20px] text-white group-hover:translate-x-0.5 transition-transform">send</span>
