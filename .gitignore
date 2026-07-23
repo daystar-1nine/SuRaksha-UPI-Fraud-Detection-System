@@ -187,8 +187,25 @@ tempCodeRunnerFile.py
 # Marimo
 marimo/_static/
 marimo/_lsp/
-__marimo__/
+# Node.js
+node_modules/
+dist/
+android_dist/
+scratch/
 
-# Streamlit
-.streamlit/secrets.toml
+# Temporary python scripts
+extract_*.py
+get_*.py
+split_app*.py
+fix_all_html.py
+health.py
+test_*.py
+update_*.py
+peek_*.py
+revert_*.py
+move_*.py
+bbox_*.py
+add_exports.py
+djaiss_path.txt
+india_djaiss.svg
 

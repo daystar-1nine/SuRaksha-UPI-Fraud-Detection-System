@@ -61,10 +61,30 @@ def parse_upi_string(qr_data):
 # -------------------------------
 def parse_upi_qr(image_path):
     try:
+        raw_texts = []
+        
+        # Pass 1: PyZbar on raw image
         image = Image.open(image_path)
         decoded_objects = decode(image)
+        
+        if decoded_objects:
+            for obj in decoded_objects:
+                try:
+                    raw_texts.append(obj.data.decode("utf-8", errors="ignore").strip())
+                except Exception:
+                    continue
 
-        if not decoded_objects:
+        # Pass 2: OpenCV Fallback if PyZbar fails (very robust for some angles/contrast)
+        if not raw_texts:
+            import cv2
+            img_cv = cv2.imread(image_path)
+            if img_cv is not None:
+                detector = cv2.QRCodeDetector()
+                data, bbox, _ = detector.detectAndDecode(img_cv)
+                if data:
+                    raw_texts.append(data.strip())
+
+        if not raw_texts:
             return {
                 "success": False,
                 "message": "No QR code detected",
@@ -73,11 +93,7 @@ def parse_upi_qr(image_path):
 
         results = []
 
-        for obj in decoded_objects:
-            try:
-                qr_data = obj.data.decode("utf-8", errors="ignore").strip()
-            except Exception:
-                continue
+        for qr_data in raw_texts:
 
             parsed = parse_upi_string(qr_data)
 

@@ -183,12 +183,18 @@ def analyze_qr_risk(parsed_data, raw_text=""):
     dir_info = lookup_upi_in_directory(upi_id) if upi_id else None
     if dir_info:
         if dir_info["category"] == "unsafe":
+            main_reason = f"Blacklisted {dir_info['subtype'].upper()} VPA ({dir_info['name']}): {dir_info['description']}"
             signals.append(make_signal(
                 "directory_blacklist",
                 10,
                 0.99,
-                f"Blacklisted {dir_info['subtype'].upper()} VPA: Flagged as suspicious ({dir_info['name']} - {dir_info['description']})"
+                main_reason
             ))
+            reasons_list = [main_reason]
+            if dir_info.get("complaints"):
+                for c in dir_info["complaints"]:
+                    reasons_list.append(f"Cyber Complaint: {c}")
+
             return {
                 "risk_score": 100,
                 "risk_level": "CRITICAL",
@@ -197,7 +203,30 @@ def analyze_qr_risk(parsed_data, raw_text=""):
                 "fraud_type": f"Criminal / {dir_info['subtype'].capitalize()}",
                 "detected_action": "Immediate Block — Listed in National Cyber Fraud Registry",
                 "signals": signals,
-                "reasons": [s["reason"] for s in signals]
+                "reasons": reasons_list
+            }
+        elif dir_info["category"] == "medium":
+            main_reason = f"Suspect {dir_info['subtype'].upper()} VPA ({dir_info['name']}): {dir_info['description']}"
+            signals.append(make_signal(
+                "directory_medium_risk",
+                4.0,
+                0.85,
+                main_reason
+            ))
+            reasons_list = [main_reason]
+            if dir_info.get("complaints"):
+                for c in dir_info["complaints"]:
+                    reasons_list.append(f"Caution Flag: {c}")
+
+            return {
+                "risk_score": 35,
+                "risk_level": "MEDIUM",
+                "confidence": 0.85,
+                "suspicious": True,
+                "fraud_type": f"Suspect / {dir_info['subtype'].capitalize()}",
+                "detected_action": "Verify carefully before paying — Unverified profile",
+                "signals": signals,
+                "reasons": reasons_list
             }
         elif dir_info["category"] == "safe":
             signals.append(make_signal(

@@ -2,8 +2,10 @@
 // 🌍 GLOBAL STATE & APPLICATION STATE
 // ----------------------------------------------------------------------
 // Base API server URL. Dynamically switch between local dev and Vercel/Render production endpoints.
-const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-const API_BASE = "https://suraksha-upi-fraud-detection-system.onrender.com";
+const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || window.location.hostname === "";
+const API_BASE = isLocal
+    ? "http://127.0.0.1:5000"
+    : "https://suraksha-upi-fraud-detection-system.onrender.com";
 
 // Tracks active scan mode, HTML5Qrcode scanner references, and cached variables
 let AppState = {
@@ -458,11 +460,17 @@ async function sendQR(text) {
         if (scannedUpi) {
             AppState.lastScannedUpi = scannedUpi;  // Save to enable report-fraud click modal later
             
-            // Check local in-browser database cache
+            // Check local in-browser database cache & classifyUPI registry
             const matched = localBlacklist.find(item => item.upi.toLowerCase() === scannedUpi);
-            if (matched) {
+            const clientClassified = (window.classifyUPI) ? window.classifyUPI(scannedUpi) : null;
+
+            if (matched || (clientClassified && (clientClassified.type === "unsafe" || clientClassified.type === "medium"))) {
                 console.log("0ms Local Intercept Match Found for UPI:", scannedUpi);
                 toggle($("loader"), false);
+
+                const upiDisplay = matched ? matched.upi : scannedUpi;
+                const reportsCount = matched ? matched.reports : 3;
+                const isMedium = clientClassified && clientClassified.type === "medium";
 
                 // Synthesize mockup API response structure to route directly to popup renderer
                 const mockApiResponse = {
@@ -470,22 +478,26 @@ async function sendQR(text) {
                     data: {
                         qr: {
                             parsed: {
-                                pa: [matched.upi],
-                                pn: ["Reported Fraud Profile"],
+                                pa: [upiDisplay],
+                                pn: [isMedium ? "Suspect Account Profile" : "Blacklisted Scammer Profile"],
                                 am: [""],
-                                tn: ["Local Database Blocked"]
+                                tn: [isMedium ? "Unverified Account Caution" : "Local Database Blocked"]
                             }
                         },
                         analysis: {
-                            risk_score: Math.max(matched.reports * 10, 80),
-                            risk_level: matched.risk_level || "CRITICAL",
-                            fraud_type: "Local Blacklist Match",
-                            detected_action: "Immediate Block. Severe reports exist locally.",
-                            confidence: 0.99,
-                            reasons: [
-                                `UPI address match found in locally synchronized blacklist database.`,
-                                `Reported threat intensity: ${matched.risk_level}.`,
-                                `Total complaints logged locally: ${matched.reports}.`
+                            risk_score: isMedium ? 35 : 100,
+                            risk_level: isMedium ? "MEDIUM" : "CRITICAL",
+                            fraud_type: isMedium ? "Suspect / Unverified Account" : "Criminal / Fraud Registry",
+                            detected_action: isMedium ? "Verify carefully before paying — Unverified profile" : "Immediate Block — Listed in National Cyber Fraud Registry",
+                            confidence: isMedium ? 0.85 : 0.99,
+                            reasons: isMedium ? [
+                                `Suspect VPA (${upiDisplay}): ⚠️ CAUTION: Unverified promotional account handle.`,
+                                `Caution Flag: Unverified cashback/helpdesk portal with recent activity alerts.`,
+                                `Caution Flag: Verify recipient identity and payment purpose carefully before approving.`
+                            ] : [
+                                `Blacklisted FRAUD VPA (${upiDisplay}): 🚨 ALERT: Flagged in ${reportsCount} Cyber Crime complaints.`,
+                                `Cyber Complaint: Posed as Fake Executive; sent fake update bill / cashback link.`,
+                                `Cyber Complaint: Sent emergency UPI collect request claiming account will be blocked.`
                             ]
                         }
                     }
@@ -515,8 +527,9 @@ async function sendQR(text) {
         const extractedUpi = extractUpiAddress(text);
         if (extractedUpi) AppState.lastScannedUpi = extractedUpi;
 
-        // If intent is "receive" money, notify user that showing their QR carries zero debit risk
-        if (AppState.intent === "receive") {
+        // If intent is "receive" money and QR is safe, notify user that showing their QR carries zero debit risk
+        const qrRiskLevel = data?.data?.risk_level;
+        if (AppState.intent === "receive" && qrRiskLevel !== "CRITICAL" && qrRiskLevel !== "HIGH") {
             toggle($("loader"), false);
             $("resultPopup")?.classList.add("hidden");
             showToast("✅ This QR is safe for receiving money", "success");
@@ -564,7 +577,12 @@ async function checkUpiManual() {
     const input = $("manualUpiInput");
     if (!input) return;
 
-    const upiText = input.value.trim();
+    let upiText = input.value.trim();
+    const match = upiText.match(/([a-zA-Z0-9._+\-]{2,}@[a-zA-Z]{2,20})/);
+    if (match) {
+        upiText = match[1];
+        input.value = upiText;
+    }
 
     if (!upiText) {
         showToast("Enter a UPI ID first (e.g. name@bank)", "warning");
@@ -751,7 +769,7 @@ function showResultPopup(apiResponse) {
         console.warn("Skipping result popup: Invalid or unsuccessful API response.", apiResponse);
         return;
     }
-    const analysis = apiResponse.data.analysis;
+    const analysis = apiResponse.data.analysis || apiResponse.data;
     if (!analysis) {
         console.warn("Skipping result popup: Missing analysis content.", apiResponse);
         return;
@@ -955,23 +973,24 @@ function showResultPopup(apiResponse) {
     // 📋 REASONS
     // -----------------------------
     const list = $("popupReasons");
-
     if (list) {
-
         list.innerHTML = "";
-
-        (data?.reasons ?? []).forEach(reason => {
-
+        const reasons = data?.reasons ?? [];
+        if (reasons.length === 0) {
             const li = document.createElement("li");
-
-            li.textContent = "⚠ " + reason;
-
-            li.className = "text-sm text-gray-300";
-
+            li.textContent = "✔ No threat indicators detected — VPA is clean";
+            li.className = "text-sm text-emerald-400 font-medium";
             list.appendChild(li);
-
-        });
-
+        } else {
+            reasons.forEach(reason => {
+                const li = document.createElement("li");
+                li.textContent = (reason.startsWith("✔") || reason.startsWith("🚨") || reason.startsWith("⚠")) ? reason : "⚠ " + reason;
+                li.className = reason.toLowerCase().includes("blacklisted") || reason.toLowerCase().includes("complaint") || reason.toLowerCase().includes("fraud") || reason.toLowerCase().includes("alert")
+                    ? "text-sm text-red-400 font-medium"
+                    : "text-sm text-gray-300";
+                list.appendChild(li);
+            });
+        }
     }
 
     // -----------------------------
@@ -1671,6 +1690,7 @@ function pasteChatScamSample(index) {
 }
 
 // ── ELA SLIDER DRAG & MAGNIFIER ZOOM LENS LOGIC ──
+let elaSliderController = null;
 function setupElaSlider() {
     const container = $("elaSliderContainer");
     const handle = $("elaSliderDivider");
@@ -1678,6 +1698,10 @@ function setupElaSlider() {
     const lens = $("elaZoomLens");
     const canvas = $("screenshotElaCanvas");
     if (!container || !handle || !heatmap || !lens || !canvas) return;
+
+    if (elaSliderController) elaSliderController.abort();
+    elaSliderController = new AbortController();
+    const opts = { signal: elaSliderController.signal };
 
     let isDragging = false;
 
@@ -1692,19 +1716,19 @@ function setupElaSlider() {
     };
 
     // Drag events
-    handle.addEventListener("mousedown", (e) => { e.preventDefault(); isDragging = true; });
-    window.addEventListener("mouseup", () => isDragging = false);
+    handle.addEventListener("mousedown", (e) => { e.preventDefault(); isDragging = true; }, opts);
+    window.addEventListener("mouseup", () => isDragging = false, opts);
     window.addEventListener("mousemove", (e) => {
         if (!isDragging) return;
         onMove(e.clientX);
-    });
+    }, opts);
 
-    handle.addEventListener("touchstart", (e) => { isDragging = true; });
-    window.addEventListener("touchend", () => isDragging = false);
+    handle.addEventListener("touchstart", (e) => { isDragging = true; }, opts);
+    window.addEventListener("touchend", () => isDragging = false, opts);
     window.addEventListener("touchmove", (e) => {
         if (!isDragging) return;
         onMove(e.touches[0].clientX);
-    });
+    }, opts);
 
     // ── BROWSER-BASED ZOOM LENS LENS FORENSICS OVERLAY ──
     let lensBgSet = false;
@@ -1716,11 +1740,11 @@ function setupElaSlider() {
             lens.style.backgroundImage = `url(${canvas.toDataURL()})`;
             lensBgSet = true;
         }
-    });
+    }, opts);
 
     container.addEventListener("mouseleave", () => {
         lens.style.display = "none";
-    });
+    }, opts);
 
     container.addEventListener("mousemove", (e) => {
         if (isDragging) {
@@ -1756,13 +1780,26 @@ function generateClientSideEla(imageFileOrPath) {
             // Load original image to popup preview
             origImg.src = img.src;
 
-            const w = img.naturalWidth || img.width;
-            const h = img.naturalHeight || img.height;
+            let w = img.naturalWidth || img.width;
+            let h = img.naturalHeight || img.height;
+            
+            // Limit maximum dimension to 800px to prevent UI freezes on high-res images
+            const maxDim = 800;
+            if (w > maxDim || h > maxDim) {
+                if (w > h) {
+                    h = Math.round((h * maxDim) / w);
+                    w = maxDim;
+                } else {
+                    w = Math.round((w * maxDim) / h);
+                    h = maxDim;
+                }
+            }
+            
             canvas.width = w;
             canvas.height = h;
 
             const ctx = canvas.getContext("2d");
-            ctx.drawImage(img, 0, 0);
+            ctx.drawImage(img, 0, 0, w, h);
 
             // Step 1: Re-compress image at JPEG quality 0.75
             const jpegUrl = canvas.toDataURL("image/jpeg", 0.75);
@@ -1773,7 +1810,7 @@ function generateClientSideEla(imageFileOrPath) {
                 bufferCanvas.width = w;
                 bufferCanvas.height = h;
                 const bufCtx = bufferCanvas.getContext("2d");
-                bufCtx.drawImage(compImg, 0, 0);
+                bufCtx.drawImage(compImg, 0, 0, w, h);
 
                 // Step 3: Diff buffers
                 const origData = ctx.getImageData(0, 0, w, h);
@@ -2306,8 +2343,10 @@ const threatTypes = [
     "Fake Fastag Portal", "Urgent Utility Fraud", "Government Refund Spoof"
 ];
 
+let socThreatInterval = null;
 function initSocThreatFeed() {
-    setInterval(updateSocThreatFeed, 4000);
+    if (socThreatInterval) clearInterval(socThreatInterval);
+    socThreatInterval = setInterval(updateSocThreatFeed, 4000);
     updateSocThreatFeed();
 }
 
@@ -2349,8 +2388,8 @@ async function updateSocThreatFeed() {
         feed.insertBefore(item, feed.firstChild);
 
         // Caps feed to last 8 logs for visual neatness
-        if (feed.childNodes.length > 8) {
-            feed.removeChild(feed.lastChild);
+        if (feed.children.length > 8) {
+            feed.removeChild(feed.lastElementChild);
         }
 
         // Dynamic ping pulse animation on corresponding map node
@@ -2448,7 +2487,7 @@ function closeProfileModal() {
 }
 
 // Image compression utility to prevent localStorage QuotaExceeded errors
-function compressImage(file, maxSize, callback) {
+function compressProfileImage(file, maxSize, callback) {
     const reader = new FileReader();
     reader.onload = function(e) {
         const img = new Image();
@@ -2493,7 +2532,7 @@ function handleProfilePhotoUpload(event) {
         if ($("profileUploadProgressBar")) $("profileUploadProgressBar").style.width = progress + "%";
     }, 200);
 
-    compressImage(file, 256, function(photoData) {
+    compressProfileImage(file, 256, function(photoData) {
         clearInterval(interval);
         if ($("profileUploadProgressBar")) $("profileUploadProgressBar").style.width = "100%";
         
@@ -2535,7 +2574,7 @@ function handleCustomQrUpload(event) {
 
     showToast("Processing custom QR code...", "info", 1500);
 
-    compressImage(file, 512, function(qrData) {
+    compressProfileImage(file, 512, function(qrData) {
         if ($("profile-modal-preview-qr")) {
             $("profile-modal-preview-qr").src = qrData;
             $("profile-modal-preview-qr").classList.remove("hidden");
@@ -2599,3 +2638,73 @@ function saveUserProfile() {
 }
 
 
+
+
+// --- AUTO EXPORTS TO WINDOW FOR MODULAR COMPATIBILITY ---
+window.safeText = safeText;
+window.toggle = toggle;
+window.selectIntent = selectIntent;
+window.apiRequest = apiRequest;
+window.showToast = showToast;
+window.compressImage = compressImage;
+window.analyzeImage = analyzeImage;
+window.startScanner = startScanner;
+window.stopScanner = stopScanner;
+window.extractUpiAddress = extractUpiAddress;
+window.sendQR = sendQR;
+window.analyzeMessage = analyzeMessage;
+window.checkUpiManual = checkUpiManual;
+window.showReportModal = showReportModal;
+window.submitFraudReport = submitFraudReport;
+window.animateCounter = animateCounter;
+window.loadStats = loadStats;
+window.initApp = initApp;
+window.showResultPopup = showResultPopup;
+window.togglePaymentDrawer = togglePaymentDrawer;
+window.simulatePaymentLaunch = simulatePaymentLaunch;
+window.closePopup = closePopup;
+window.showScreenshotResultPopup = showScreenshotResultPopup;
+window.closeScreenshotPopup = closeScreenshotPopup;
+window.syncOfflineBlacklist = syncOfflineBlacklist;
+window.validateUpiLive = validateUpiLive;
+window.updateCharCount = updateCharCount;
+window.highlightScamKeywords = highlightScamKeywords;
+window.sendChatMessage = sendChatMessage;
+window.appendChatBubble = appendChatBubble;
+window.pasteChatScamSample = pasteChatScamSample;
+window.setupElaSlider = setupElaSlider;
+window.generateClientSideEla = generateClientSideEla;
+window.renderRadarChart = renderRadarChart;
+window.triggerSandboxSimulation = triggerSandboxSimulation;
+window.resetSandboxTerminal = resetSandboxTerminal;
+window.showChatMessageScamModal = showChatMessageScamModal;
+window.showSandboxResultPopup = showSandboxResultPopup;
+window.showSandboxQrResult = showSandboxQrResult;
+window.drawQrTargetBrackets = drawQrTargetBrackets;
+window.clearQrOverlay = clearQrOverlay;
+window.sha256 = sha256;
+window.generateSecureStoreQr = generateSecureStoreQr;
+window.toggleSecretVisibility = toggleSecretVisibility;
+window.openMerchantCertificateModal = openMerchantCertificateModal;
+window.closeMerchantCertificateModal = closeMerchantCertificateModal;
+window.initSocThreatFeed = initSocThreatFeed;
+window.updateSocThreatFeed = updateSocThreatFeed;
+window.initProfile = initProfile;
+window.openProfileModal = openProfileModal;
+window.closeProfileModal = closeProfileModal;
+window.compressImage = compressImage;
+window.handleProfilePhotoUpload = handleProfilePhotoUpload;
+window.removeProfilePhoto = removeProfilePhoto;
+window.handleCustomQrUpload = handleCustomQrUpload;
+window.removeCustomQr = removeCustomQr;
+window.saveUserProfile = saveUserProfile;
+window.isLocal = isLocal;
+window.API_BASE = API_BASE;
+window.AppState = AppState;
+window.localBlacklist = localBlacklist;
+window.localTrustedMerchants = localTrustedMerchants;
+window.SCAM_SAMPLES = SCAM_SAMPLES;
+window.isSandboxRunning = isSandboxRunning;
+window.socCities = socCities;
+window.mockThreatVpas = mockThreatVpas;
+window.threatTypes = threatTypes;

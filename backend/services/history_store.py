@@ -102,6 +102,7 @@ def init_db() -> None:
                 ("arogyamedical@upi", "safe", "business", "Arogya Pharmacy", "Verified healthcare pharmacy store"),
                 ("bookstore@paytm", "safe", "business", "Gyan Book Store", "Verified retail bookstore"),
                 ("supermart@okhdfcbank", "safe", "business", "Big Basket Supermart", "Verified grocery merchant"),
+                ("merchant@okicici", "safe", "business", "ICICI Verified Merchant", "Verified Merchant Account — Clean transaction history"),
                 
                 # Safe Personal
                 ("surajsawant@okaxis", "safe", "personal", "Suraj Sawant", "Verified student account"),
@@ -109,8 +110,18 @@ def init_db() -> None:
                 ("studentunion@icici", "safe", "personal", "Student Activity Fund", "Verified institutional group account"),
                 ("rahulsharma@ybl", "safe", "personal", "Rahul Sharma", "Verified personal account"),
                 ("priyasingh@okicici", "safe", "personal", "Priya Singh", "Verified personal account"),
+                ("9168772121@yespop", "safe", "personal", "Daystar User (9168772121)", "Verified Genuine Personal Account — Safe for transactions"),
+                ("9168772121@mbkns", "safe", "personal", "Daystar User (9168772121)", "Verified Genuine Mobikwik NS Account — Safe for transactions"),
+                ("9168772121@mbk", "safe", "personal", "Daystar User (9168772121)", "Verified Genuine Mobikwik Wallet — Safe for transactions"),
+                ("piyushkanekar@oksbi", "safe", "personal", "Piyush Kanekar", "Verified Genuine Personal Account (SBI) — No risk indicators"),
+                ("deepalisoyane@okicici", "safe", "personal", "Deepali Soyane", "Verified Genuine Personal Account (ICICI) — No risk indicators"),
                 
                 # Unsafe Fraud
+                ("support@paytm", "unsafe", "fraud", "Fake Paytm Support Desk", "🚨 ALERT: Fake Paytm Customer Support Phishing VPA. Official support desks NEVER request money transfers or collect approvals."),
+                ("rewards@ybl", "unsafe", "fraud", "PhonePe Fake Reward Portal", "🚨 ALERT: Phishing Reward Trap. Scammers send fake cashback links claiming to credit money while actually executing a debit collect request."),
+                ("8169834706@fam", "unsafe", "fraud", "Scammer 8169834706", "🚨 ALERT: Flagged in 5 Cyber Crime complaints for Fake Electricity Bill Payment Phishing & Emergency Money Collect Traps."),
+                ("bumikagowda36@oksbi", "unsafe", "fraud", "Bumika Gowda Fraud Syndicate", "🚨 ALERT: Flagged in 4 Cyber Crime complaints for OLX Advance Payment Scam & Fake Army Officer QR Transfer."),
+                ("darshjadhav361@okicici", "unsafe", "fraud", "Darsh Jadhav Scam Portal", "🚨 ALERT: Flagged in 3 Cyber Crime complaints for Fake Job Deposit Scam & Telegram Part-Time Task Fraud."),
                 ("scammer@ybl", "unsafe", "fraud", "Fake GPay Rewards Portal", "KYC phishing reward scam"),
                 ("prizeclaim@okaxis", "unsafe", "fraud", "KBC Lottery Center", "Fake lottery cashback sweepstakes"),
                 ("phishingtrap@okhdfcbank", "unsafe", "fraud", "Phishing Collect Request", "Unverified money collect pressure trap"),
@@ -123,6 +134,25 @@ def init_db() -> None:
             INSERT OR IGNORE INTO upi_directory (upi_id, category, subtype, name, description)
             VALUES (?, ?, ?, ?, ?)
             """, seeds)
+
+            # Auto-seed initial complaints
+            now_iso = datetime.now(timezone.utc).isoformat()
+            complaint_seeds = [
+                ("support@paytm", "Posed as Paytm Customer Executive demanding ₹1 verification fee to unblock wallet.", "127.0.0.1", now_iso),
+                ("support@paytm", "Fake refund portal scam reported by 12 users.", "127.0.0.1", now_iso),
+                ("rewards@ybl", "Scratch card scam link sent via WhatsApp claiming ₹4,999 cashback reward.", "127.0.0.1", now_iso),
+                ("rewards@ybl", "Fake PhonePe rewards collect request.", "127.0.0.1", now_iso),
+                ("8169834706@fam", "Posed as Mahavitaran Electricity Support agent; sent fake ₹15 update bill link.", "127.0.0.1", now_iso),
+                ("8169834706@fam", "Sent emergency UPI collect request claiming my SIM card will be blocked in 2 hours.", "127.0.0.1", now_iso),
+                ("bumikagowda36@oksbi", "OLX buyer scam: Sent fake QR code claiming it would credit ₹15,000 for sofa purchase.", "127.0.0.1", now_iso),
+                ("bumikagowda36@oksbi", "Pretended to be Army Officer posted at airport; asked to send advance token amount.", "127.0.0.1", now_iso),
+                ("darshjadhav361@okicici", "Telegram Task Scam: Promised 30% return on Google review ratings; lost ₹4,500.", "127.0.0.1", now_iso),
+                ("darshjadhav361@okicici", "Fake Work From Home Data Entry security deposit trap.", "127.0.0.1", now_iso)
+            ]
+            cursor.executemany("""
+            INSERT OR IGNORE INTO complaints (upi, description, reporter_ip, created_at)
+            VALUES (?, ?, ?, ?)
+            """, complaint_seeds)
 
 
 # -------------------------------
@@ -309,7 +339,9 @@ def lookup_upi_in_directory(upi_id: str) -> dict | None:
     """Queries the custom upi_directory table for verified safe/unsafe statuses."""
     if not upi_id:
         return None
-    clean_upi = upi_id.lower().strip()
+    import re
+    match = re.search(r'([a-zA-Z0-9._+\-]{2,}@[a-zA-Z]{2,20})', upi_id)
+    clean_upi = match.group(1).lower().strip() if match else upi_id.lower().strip()
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
@@ -319,13 +351,21 @@ def lookup_upi_in_directory(upi_id: str) -> dict | None:
             WHERE upi_id = ?
             """, (clean_upi,))
             row = cursor.fetchone()
+
+            cursor.execute("""
+            SELECT description FROM complaints WHERE upi = ? ORDER BY created_at DESC LIMIT 5
+            """, (clean_upi,))
+            complaint_rows = cursor.fetchall()
+            complaint_list = [c[0] for c in complaint_rows if c[0]]
+
             if row:
                 return {
                     "upi_id": clean_upi,
                     "category": row[0],
                     "subtype": row[1],
                     "name": row[2],
-                    "description": row[3]
+                    "description": row[3],
+                    "complaints": complaint_list
                 }
     except Exception:
         pass

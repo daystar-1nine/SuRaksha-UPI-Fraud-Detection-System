@@ -23,6 +23,15 @@ tailwind.config = {
         error: "rgb(var(--error-rgb) / <alpha-value>)",
         success: "rgb(var(--success-rgb) / <alpha-value>)",
 
+        /* Material Design 3 container/tonal tokens */
+        "primary-container":    "var(--primary-container)",
+        "on-primary-container": "var(--on-primary-container)",
+        "secondary-container":  "var(--secondary-container)",
+        "on-secondary-container": "var(--on-secondary-container)",
+        "secondary-fixed-dim":  "var(--secondary-fixed-dim)",
+        "error-container":      "var(--error-container)",
+        "on-error-container":   "var(--on-error-container)",
+
         "dark-background": "#070a13",
         "dark-on-surface": "#f1f5f9",
       },
@@ -35,7 +44,7 @@ tailwind.config = {
       fontFamily: {
         "body-md": ["Inter"], "label-sm": ["Inter"], "headline-md": ["Plus Jakarta Sans"],
         "body-lg": ["Inter"], "display-lg": ["Plus Jakarta Sans"],
-        "headline-lg": ["Plus Jakarta Sans"], "label-md": ["Inter"]
+        "headline-lg": ["Plus Jakarta Sans"], "label-md": ["Inter"], "label-lg": ["Inter"]
       },
       fontSize: {
         "body-md": ["16px", { lineHeight: "1.6", fontWeight: "400" }],
@@ -44,7 +53,8 @@ tailwind.config = {
         "body-lg": ["18px", { lineHeight: "1.6", fontWeight: "400" }],
         "display-lg": ["48px", { lineHeight: "1.2", letterSpacing: "-0.02em", fontWeight: "700" }],
         "headline-lg": ["32px", { lineHeight: "1.3", fontWeight: "600" }],
-        "label-md": ["14px", { lineHeight: "1.2", letterSpacing: "0.01em", fontWeight: "500" }]
+        "label-md": ["14px", { lineHeight: "1.2", letterSpacing: "0.01em", fontWeight: "500" }],
+        "label-lg": ["16px", { lineHeight: "1.3", letterSpacing: "0.01em", fontWeight: "600" }]
       }
     }
   }

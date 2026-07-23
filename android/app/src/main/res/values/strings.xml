@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">SuRaksha</string>
+    <string name="title_activity_main">SuRaksha</string>
+    <string name="package_name">com.daystar.suraksha</string>
+    <string name="custom_url_scheme">com.daystar.suraksha</string>
+</resources>

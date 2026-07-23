@@ -19,7 +19,8 @@ class Settings:
     DATABASE_PATH: str = os.getenv("DATABASE_PATH", os.path.join(os.path.dirname(__file__), "fraud_history.db"))
     
     # Security
-    SECRET_KEY: str = os.getenv("SECRET_KEY", "suraksha-super-secret-key-change-in-prod")
+    # IMPORTANT: Set SECRET_KEY env var on Render/production — do NOT rely on default
+    SECRET_KEY: str = os.getenv("SECRET_KEY") or __import__("secrets").token_hex(32)
     CORS_ORIGINS: list = field(default_factory=lambda: ["*"])
     
     # Rate Limiting

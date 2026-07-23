@@ -1,0 +1,151 @@
+/* ═══════════════════════════════════════════════════════════════════
+   web-fixes.css — Universal Web Compatibility Fixes
+   Safe for ALL browsers (desktop + mobile web).
+   Does NOT override layout-critical !important rules the way
+   mobile-fixes.css does (that file is Android WebView only).
+   ═══════════════════════════════════════════════════════════════════ */
+
+
+/* ──────────────────────────────────────────
+   1. GLOBAL BOX MODEL — Safe for all platforms
+   ────────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  scroll-behavior: smooth;
+  overflow-x: clip; /* Prevent horizontal scroll without breaking vertical */
+}
+
+body {
+  overflow-x: clip; /* Clip horizontal overflow at body level */
+  min-height: 100vh;
+}
+
+/* Images must never overflow their container */
+img, video, canvas, svg {
+  max-width: 100%;
+}
+
+/* Prevent long UPI IDs and URLs from forcing horizontal scroll */
+p, span, h1, h2, h3, h4, h5, h6, li, td, th, label {
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+/* Exception: monospace/code should not break mid-character */
+input.font-mono, .font-mono, code, pre {
+  word-break: normal;
+  overflow-wrap: break-word;
+}
+
+/* Grid children must never exceed their column width */
+[class*="grid"] > * {
+  min-width: 0;
+}
+
+
+/* ──────────────────────────────────────────
+   2. TOUCH TARGET MINIMUM SIZE
+   (Also helps desktop usability)
+   ────────────────────────────────────────── */
+
+button,
+a[role="button"],
+[onclick] {
+  touch-action: manipulation; /* Eliminate 300ms tap delay on mobile browsers */
+  cursor: pointer;
+}
+
+
+/* ──────────────────────────────────────────
+   3. MOBILE WEB — Responsive fixes (NOT Android WebView specific)
+   Only apply on narrow viewports, safe for all browsers.
+   ────────────────────────────────────────── */
+
+@media (max-width: 767px) {
+  /* Hero heading — scale down for phones */
+  h1.font-display-lg,
+  .text-display-lg {
+    font-size: clamp(1.6rem, 7.5vw, 2.6rem) !important;
+    line-height: 1.2 !important;
+  }
+
+  /* Section headings */
+  h2.font-headline-lg,
+  .text-headline-lg {
+    font-size: clamp(1.2rem, 5.5vw, 1.6rem) !important;
+    line-height: 1.3 !important;
+  }
+
+  /* Reduce xxl padding so sections don't have huge gaps on phones */
+  .py-xxl { padding-top: 40px !important; padding-bottom: 40px !important; }
+  .pt-xxl { padding-top: 40px !important; }
+  .pb-xxl { padding-bottom: 40px !important; }
+
+  /* Feature bento grid → single column */
+  .grid.md\:grid-cols-3 {
+    grid-template-columns: 1fr !important;
+  }
+  .grid.md\:grid-cols-2 {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Footer grid → single column */
+  footer .grid.md\:grid-cols-3 {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+    text-align: center !important;
+  }
+  footer .flex.items-center.gap-sm {
+    justify-content: center !important;
+  }
+
+  /* Testimonials: add spacing for floating quote icon */
+  .glass-card.card-hover.relative {
+    margin-top: 16px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  /* Stats grid: scale down text */
+  .grid.grid-cols-2 > div .text-3xl {
+    font-size: 1.5rem !important;
+  }
+
+  /* Comparison table: compact on small screens */
+  .overflow-x-auto table {
+    font-size: 0.8rem !important;
+  }
+  .overflow-x-auto table th,
+  .overflow-x-auto table td {
+    padding: 8px 6px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Chip/tag rows: smaller font */
+  .flex.flex-wrap.justify-center.gap-4 button {
+    font-size: 0.75rem !important;
+    padding: 5px 10px !important;
+  }
+}
+
+
+/* ──────────────────────────────────────────
+   4. HOVER STATES — Disable sticky hover on touch screens
+   (touch devices leave hover state applied after tap)
+   ────────────────────────────────────────── */
+
+@media (hover: none) and (pointer: coarse) {
+  button:active,
+  a:active {
+    opacity: 0.8;
+    transform: scale(0.97) !important;
+  }
+}

@@ -8,8 +8,8 @@
     document.documentElement.classList.add("dark");
   }
 </script>
-<script src="js/theme.js" defer></script>
-<script src="js/language.js" defer></script>
+<script type="module" src="/js/theme.js"></script>
+<script type="module" src="/js/language.js"></script>
 <meta charset="utf-8"/>
 <link rel="icon" type="image/png" href="assets/images/logo.png" />
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
@@ -17,12 +17,12 @@
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 
 
 
-<script src="js/tailwind-config.js"></script>
+<script type="module" src="/js/tailwind-config.js"></script>
 <link rel="stylesheet" href="css/theme-style.css" />
+<link rel="stylesheet" href="css/web-fixes.css" />
 
 </head>
 <body class="bg-background text-on-surface font-body-md selection:bg-primary-container selection:text-on-primary-container">
@@ -36,7 +36,7 @@
        class="flex items-center gap-sm group">
 
       <img
-        class="h-10 w-10 rounded-xl object-cover group-hover:rotate-6 transition-transform duration-300"
+        class="h-10 w-10 rounded-xl object-contain group-hover:rotate-6 transition-transform duration-300"
         src="assets/images/logo.png"
         alt="SuRaksha logo"
       />
@@ -119,7 +119,7 @@
   </div>
 
 </header>
-<main class="pt-24 pb-12 px-6 max-w-7xl mx-auto space-y-xl">
+<main class="pt-32 pb-12 px-6 max-w-7xl mx-auto space-y-xl">
 <!-- Hero Section -->
 <section class="text-center py-10 md:py-12 space-y-8">
 
@@ -356,9 +356,9 @@
     <!-- Suggested examples -->
     <div class="flex flex-wrap gap-2">
       <span class="text-xs text-on-surface-variant mr-1 self-center">Try:</span>
-      <button onclick="document.getElementById('manualUpiInput').value='support@paytm'; validateUpiLive()" class="text-xs px-3 py-1 rounded-full bg-error/10 text-error border border-error/20 hover:bg-error/20 transition">support@paytm</button>
-      <button onclick="document.getElementById('manualUpiInput').value='rewards@ybl'; validateUpiLive()" class="text-xs px-3 py-1 rounded-full bg-error/10 text-error border border-error/20 hover:bg-error/20 transition">rewards@ybl</button>
-      <button onclick="document.getElementById('manualUpiInput').value='merchant@okicici'; validateUpiLive()" class="text-xs px-3 py-1 rounded-full bg-success/10 text-success border border-success/20 hover:bg-success/20 transition">merchant@okicici</button>
+      <button onclick="document.getElementById('manualUpiInput').value='8169834706@fam'; validateUpiLive()" class="text-xs px-3 py-1 rounded-full bg-error/10 text-error border border-error/20 hover:bg-error/20 transition">8169834706@fam (Scam)</button>
+      <button onclick="document.getElementById('manualUpiInput').value='cashback.offers@ybl'; validateUpiLive()" class="text-xs px-3 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/20 transition">cashback.offers@ybl (Medium Risk)</button>
+      <button onclick="document.getElementById('manualUpiInput').value='9168772121@yespop'; validateUpiLive()" class="text-xs px-3 py-1 rounded-full bg-success/10 text-success border border-success/20 hover:bg-success/20 transition">9168772121@yespop (Safe)</button>
     </div>
 
     <button onclick="checkUpiManual()"
@@ -443,7 +443,7 @@
   </div>
 
   <!-- WhatsApp-style Mobile Chat Simulator Chassis -->
-  <div class="bg-slate-900 border-[6px] border-slate-800 rounded-[36px] max-w-md mx-auto shadow-2xl overflow-hidden relative shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+  <div class="bg-slate-900 border-[6px] border-slate-800 rounded-[36px] w-full max-w-md mx-auto shadow-2xl overflow-hidden relative shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
     
     <!-- Phone Top Camera Bar Notch -->
     <div class="w-32 h-6 bg-slate-800 absolute top-0 left-1/2 transform -translate-x-1/2 rounded-b-[18px] z-30 flex items-center justify-center gap-2 shadow-inner">
@@ -495,6 +495,8 @@
     <div class="bg-[#f0f2f5] dark:bg-[#202c33] p-3 flex items-center gap-2 relative z-10">
       <span class="material-symbols-outlined text-[24px] text-slate-500 cursor-pointer hover:text-primary transition-colors">add</span>
       <input type="text" id="chatMessageInput" 
+             onkeydown="if(event.key === 'Enter') sendChatMessage()"
+             enterkeyhint="send"
              class="flex-1 bg-white dark:bg-[#2a3942] border border-transparent focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/20 rounded-full px-5 py-2.5 text-sm text-slate-800 dark:text-white placeholder:text-slate-400 focus:outline-none transition-all shadow-sm" 
              placeholder="Type or paste suspicious message...">
       <button onclick="sendChatMessage()" 
@@ -1123,10 +1125,6 @@
   </div>
 </div>
 
-<!-- Section: User Profile Settings Modal -->
-<div id="profileSettingsModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-  <div class="bg-surface border border-outline-variant/30 rounded-3xl w-full max-w-md p-lg shadow-2xl relative overflow-hidden text-center animate-fadeIn">
-    <!-- Top Close Button -->
 <div id="loader"
      class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50">
 
@@ -1140,8 +1138,8 @@
 <script src="https://unpkg.com/html5-qrcode"></script>
 
 <!-- APP JS -->
-<script src="js/upi_database.js"></script>
-<script src="js/app.js"></script>
+<script type="module" src="/js/upi_database.js"></script>
+<script type="module" src="/src/app.js"></script>
 
 <script>
   // Save & restore scroll position on reload
@@ -1172,4 +1170,4 @@
     }, { passive: true });
   })();
 </script>
-</body></html>
+</body></html>

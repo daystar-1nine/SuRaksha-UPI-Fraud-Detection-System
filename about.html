@@ -8,8 +8,8 @@
     document.documentElement.classList.add("dark");
   }
 </script>
-<script src="js/theme.js" defer></script>
-<script src="js/language.js" defer></script>
+<script type="module" src="/js/theme.js"></script>
+<script type="module" src="/js/language.js"></script>
 <meta charset="utf-8"/>
 <link rel="icon" type="image/png" href="assets/images/logo.png" />
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
@@ -18,101 +18,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 
-<script id="tailwind-config">
-        tailwind.config = {
-          darkMode: "class",
-          theme: {
-            extend: {
-              "colors": {
-                      background: "var(--background)",
-                      "on-background": "var(--on-background)",
-                      surface: "var(--surface)",
-                      "on-surface": "var(--on-surface)",
-                      "surface-container": "var(--surface-container)",
-                      "surface-container-low": "var(--surface-container-low)",
-                      "surface-container-high": "var(--surface-container-high)",
-                      "surface-container-lowest": "var(--surface-container-lowest)",
-                      "surface-container-highest": "var(--surface-container-highest)",
-                      "surface-variant": "var(--surface-variant)",
-                      "outline-variant": "var(--outline-variant)",
-                      outline: "var(--outline)",
-                      "on-surface-variant": "var(--on-surface-variant)",
-                      "surface-dim": "var(--surface-dim)",
-                      
-                      primary: "rgb(var(--primary-rgb) / <alpha-value>)",
-                      secondary: "rgb(var(--secondary-rgb) / <alpha-value>)",
-                      error: "rgb(var(--error-rgb) / <alpha-value>)",
-                      success: "rgb(var(--success-rgb) / <alpha-value>)",
-
-                      "dark-background": "#070a13",
-                      "dark-on-surface": "#f1f5f9",
-
-                      "secondary-fixed": "#ffdf9e",
-                      "inverse-primary": "#0057cc",
-                      "on-secondary-fixed": "#261a00",
-                      "on-secondary": "#3f2e00",
-                      "on-tertiary-container": "#ffdccf",
-                      "on-secondary-fixed-variant": "#5b4300",
-                      "on-primary-fixed-variant": "#00419d",  
-                      "secondary-fixed-dim": "#fabd00",
-                      "tertiary-fixed-dim": "#ffb597",
-                      "inverse-on-surface": "#2e3038",
-                      "on-secondary-container": "var(--on-secondary-container)",
-                      "on-tertiary": "#591d00",
-                      "tertiary-fixed": "#ffdbcd",
-                      "inverse-surface": "#e1e2ec",
-                      "surface-bright": "#373941",
-                      "on-error": "#690005",
-                      "error-container": "var(--error-container)",
-                      "on-primary-container": "var(--on-primary-container)",
-                      "on-error-container": "#ffdad6",
-                      "primary-container": "var(--primary-container)",
-                      "tertiary-container": "#b04100",
-                      "primary-fixed": "#d9e2ff",
-                      "primary-fixed-dim": "#b0c6ff",
-                      "on-tertiary-fixed-variant": "#7e2c00",
-                      "on-primary-fixed": "#001945",
-                      "on-tertiary-fixed": "#360f00",
-                      "secondary-container": "var(--secondary-container)",
-                      "tertiary": "#ffb597",
-                      "surface-tint": "#b0c6ff",
-              },
-              "borderRadius": {
-                      "DEFAULT": "0.25rem",
-                      "lg": "0.5rem",
-                      "xl": "0.75rem",
-                      "full": "9999px"
-              },
-              "spacing": {
-                      "lg": "1.5rem",
-                      "sm": "0.5rem",
-                      "xl": "2.5rem",
-                      "xxl": "4rem",
-                      "xs": "0.25rem",
-                      "md": "1rem"
-              },
-              "fontFamily": {
-                      "headline-lg": ["Plus Jakarta Sans"],
-                      "label-sm": ["Inter"],
-                      "body-md": ["Inter"],
-                      "headline-md": ["Plus Jakarta Sans"],
-                      "display-lg": ["Plus Jakarta Sans"],
-                      "label-md": ["Inter"],
-                      "body-lg": ["Inter"]
-              },
-              "fontSize": {
-                      "headline-lg": ["32px", {"lineHeight": "1.3", "fontWeight": "600"}],
-                      "label-sm": ["12px", {"lineHeight": "1.2", "fontWeight": "600"}],
-                      "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
-                      "headline-md": ["24px", {"lineHeight": "1.4", "fontWeight": "600"}],
-                      "display-lg": ["48px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
-                      "label-md": ["14px", {"lineHeight": "1.2", "letterSpacing": "0.01em", "fontWeight": "500"}],
-                      "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}]
-              }
-            },
-          },
-        }
-    </script>
+<script type="module" src="/js/tailwind-config.js"></script>
 <style>
         :root {
             --background: #f8fafc;
@@ -267,6 +173,8 @@
       min-height: max(884px, 100dvh);
     }
   </style>
+  <link rel="stylesheet" href="css/theme-style.css" />
+  <link rel="stylesheet" href="css/web-fixes.css" />
   </head>
 <body class="bg-background text-on-background font-body-md">
 <!-- TopAppBar -->
@@ -279,7 +187,7 @@
        class="flex items-center gap-sm group">
 
       <img
-        class="h-10 w-10 rounded-xl object-cover group-hover:rotate-6 transition-transform duration-300"
+        class="h-10 w-10 rounded-xl object-contain group-hover:rotate-6 transition-transform duration-300"
         src="assets/images/logo.png"
         alt="SuRaksha logo"
       />
@@ -362,7 +270,7 @@
   </div>
 
 </header>
-<main class="pt-24 px-lg max-w-7xl mx-auto space-y-xxl">
+<main class="pt-32 px-lg max-w-7xl mx-auto space-y-xxl">
 <!-- Hero Section -->
 <section class="max-w-7xl mx-auto px-lg md:px-xl py-xl text-center">
 <h1 class="font-display-lg text-display-lg mb-md bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent animate-gradient">About SuRaksha</h1>

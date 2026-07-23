@@ -1,0 +1,670 @@
+/* ═══════════════════════════════════════════════════════════════════
+   mobile-fixes.css — Production-Quality Native Android UI Fixes
+   Systematic, page-by-page, component-by-component audit & repair.
+   Written for SuRaksha app (Capacitor WebView on Samsung S21 FE)
+   ═══════════════════════════════════════════════════════════════════ */
+
+
+/* ──────────────────────────────────────────
+   1. GLOBAL RESETS — Box Model, Overflow, Safe Area
+   ROOT CAUSE: Without these, child elements inherit
+   incorrect sizing and cause horizontal scroll bleed.
+   ────────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box; /* Prevents padding from pushing elements wider than parent */
+  -webkit-tap-highlight-color: transparent; /* Remove blue flash on Android tap */
+}
+
+html {
+  max-width: 100%; /* Prevent html from exceeding viewport */
+  scroll-behavior: smooth;
+}
+
+body {
+  max-width: 100%;
+  min-height: 100dvh; /* Use dynamic viewport height for correct mobile sizing */
+  -webkit-user-select: none;
+  user-select: none;
+
+  /* Safe area insets: S21 FE has a punch-hole camera at top */
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Allow text selection only in inputs */
+input, textarea, [contenteditable] {
+  -webkit-user-select: auto;
+  user-select: auto;
+}
+
+/* All images, videos, canvases must never exceed their container */
+img, video, canvas, svg, iframe {
+  max-width: 100%;
+  height: auto;
+  display: block; /* Removes bottom whitespace gap under inline images */
+}
+
+
+/* ──────────────────────────────────────────
+   2. FIX: SCROLL BROKEN ON HOME & PROFILE
+   ROOT CAUSE: The body on index.html has class `overflow-x-hidden`
+   which in some Android WebViews incorrectly clips overflow-y too.
+   We must ensure main content can scroll freely on the Y axis.
+   ────────────────────────────────────────── */
+
+body {
+  overflow-y: auto !important; /* Force vertical scroll to always be enabled */
+}
+
+/* main is the scroll container - ensure it can grow freely */
+main {
+  overflow-y: visible !important; /* Don't clip main's children */
+  height: auto !important; /* Prevent accidental height constraint */
+  width: 100%;
+  max-width: 100%;
+}
+
+
+/* ──────────────────────────────────────────
+   3. FIX: NAVBAR — Crowding and Text Wrapping
+   ROOT CAUSE: Gap tokens (gap-sm, gap-md) from tailwind-config.js
+   may resolve to values too large for small phone screens (360-400px).
+   The "SuRaksha" text in nav was wrapping to two lines.
+   ────────────────────────────────────────── */
+
+header {
+  /* Ensure header itself doesn't cause page width to grow */
+  max-width: 100vw;
+  overflow: hidden;
+  /* Push navbar down from status bar - 48px to clear punch hole cameras */
+  padding-top: max(env(safe-area-inset-top), 48px) !important;
+}
+
+header .max-w-7xl {
+  padding-left: 12px !important;
+  padding-right: 12px !important;
+  gap: 6px;
+}
+
+/* Prevent logo text from wrapping/breaking */
+header a.flex span.font-headline-lg {
+  white-space: nowrap;
+  font-size: clamp(0.9rem, 4vw, 1.1rem);
+}
+
+/* Logo image: keep fixed small size and DO NOT CROP */
+header img.h-10.w-10,
+header img.h-10 {
+  flex-shrink: 0;
+  width: 32px !important;
+  height: 32px !important;
+  object-fit: contain !important;
+}
+
+/* Right action buttons: shrink gap on very small screens */
+@media (max-width: 400px) {
+  header .flex.items-center.gap-sm {
+    gap: 4px !important;
+  }
+  /* Hide language label text on tiny screens */
+  #lang-label {
+    display: none !important;
+  }
+  /* Shrink icon button padding */
+  header button {
+    padding: 6px !important;
+  }
+}
+
+
+/* ──────────────────────────────────────────
+   4. FIX: MAIN CONTENT PADDING (pt-24 on scan, pt-32 on profile)
+   ROOT CAUSE: Fixed header height on mobile is ~60px but
+   Tailwind's pt-24 (96px) / pt-32 (128px) creates too much gap.
+   We need consistent offset. Also `px-6` (24px) can cause overflow
+   when combined with 100vw child elements.
+   ────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  /* Home page - pt-24 = 96px, header ~60px, 76px is safe with nav */
+  main.pt-24 {
+    padding-top: calc(max(env(safe-area-inset-top), 32px) + 72px) !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  /* Profile page - pt-32 = 128px */
+  main.pt-32 {
+    padding-top: calc(max(env(safe-area-inset-top), 32px) + 80px) !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  /* Scan page - pt-24 with extra px-6 */
+  main.pt-24.pb-12.px-6 {
+    padding-top: calc(max(env(safe-area-inset-top), 32px) + 72px) !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+}
+
+
+/* ──────────────────────────────────────────
+   5. FIX: HERO SECTION — Improper Text Sizing & Aspect Ratio
+   ROOT CAUSE: font-display-lg resolves to a very large value
+   (likely 3rem+). On small 360px screens, this causes text to
+   overflow and pushes content outside the viewport horizontally.
+   ────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  /* Stack hero vertically, center everything */
+  section.flex.flex-col.md\:flex-row.items-center {
+    flex-direction: column !important;
+    text-align: center !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  /* Responsive hero heading */
+  h1.font-display-lg,
+  .text-display-lg {
+    font-size: clamp(1.5rem, 7vw, 2.5rem) !important;
+    line-height: 1.2 !important;
+    max-width: 100% !important;
+  }
+
+  /* Section headings */
+  h1.font-display-lg ~ h1,
+  h2.font-headline-lg,
+  .text-headline-lg {
+    font-size: clamp(1.1rem, 5vw, 1.5rem) !important;
+    line-height: 1.3 !important;
+  }
+
+  /* Hero body text */
+  p.font-body-lg,
+  .text-body-lg {
+    font-size: clamp(0.85rem, 3.5vw, 1rem) !important;
+  }
+
+  /* Hero CTA buttons — stack and full width on mobile */
+  .flex.flex-col.sm\:flex-row.gap-md {
+    flex-direction: column !important;
+    width: 100% !important;
+  }
+  .flex.flex-col.sm\:flex-row.gap-md a,
+  .flex.flex-col.sm\:flex-row.gap-md button {
+    width: 100% !important;
+    text-align: center !important;
+    justify-content: center !important;
+  }
+
+  /* Hero shield image: constrain width so it doesn't overflow */
+  .animate-float img {
+    width: 180px !important;
+    max-width: 55vw !important;
+    height: auto !important;
+    margin: 0 auto !important;
+  }
+
+  /* Hero flex child: remove flex-1 stretching */
+  section > div.flex-1:last-child {
+    width: 100% !important;
+    flex: none !important;
+  }
+}
+
+
+/* ──────────────────────────────────────────
+   6. FIX: STATS BAR — Sizing and Grid
+   ────────────────────────────────────────── */
+
+.grid.grid-cols-2.md\:grid-cols-4 {
+  /* Already 2-col on mobile, just ensure it doesn't overflow */
+  width: 100% !important;
+}
+
+.grid.grid-cols-2 > div {
+  min-width: 0; /* Critical: prevent grid children from expanding past grid width */
+}
+
+
+/* ──────────────────────────────────────────
+   7. FIX: HORIZONTAL SCROLL — Phone Frame Demo Cards
+   ROOT CAUSE: The phone frame mockups use `max-w-[290px]`
+   with `aspect-[9/19]`. Inside a `flex lg:flex-row` parent, these
+   maintain their wide size and push the row beyond viewport width.
+   ────────────────────────────────────────── */
+
+@media (max-width: 1024px) {
+  /* Stack the phone frame demo vertically */
+  .flex.flex-col.lg\:flex-row.items-center.justify-between {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 24px !important;
+  }
+
+  /* Hide desktop arrow between phone frames */
+  .hidden.lg\:block {
+    display: none !important;
+  }
+
+  /* Shrink phone frame on mobile to fit screen */
+  .w-full.max-w-\[290px\] {
+    max-width: min(240px, 65vw) !important;
+    width: min(240px, 65vw) !important;
+  }
+}
+
+
+/* ──────────────────────────────────────────
+   8. FIX: FEATURES BENTO GRID — Single column on mobile
+   ────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .grid.md\:grid-cols-3 {
+    grid-template-columns: 1fr !important;
+  }
+  .grid.md\:grid-cols-2 {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+
+/* ──────────────────────────────────────────
+   9. FIX: AI ENGINE SECTION — Image aspect ratio
+   ROOT CAUSE: img has h-full with absolute inset but its
+   parent container uses min-h-[300px] without a defined height,
+   causing the absolute image to have zero computed height.
+   ────────────────────────────────────────── */
+
+/* Trust & Privacy section large image */
+.flex.flex-1 img[class*="h-\[400px\]"],
+img[class*="h-\[400px\]"] {
+  height: auto !important;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  width: 100% !important;
+}
+
+@media (max-width: 768px) {
+  /* Ensure trust image doesn't stretch */
+  .flex-1 img.rounded-\[2\.5rem\] {
+    height: 220px !important;
+    object-fit: cover !important;
+    width: 100% !important;
+  }
+}
+
+/* AI Engine section image: fix absolute inset not working without explicit height */
+.flex-1.w-full.lg\:h-full {
+  position: relative;
+  min-height: 200px;
+}
+.flex-1.w-full.lg\:h-full img {
+  position: relative !important;
+  inset: unset !important;
+  width: 100% !important;
+  height: 250px !important;
+  object-fit: cover !important;
+  display: block;
+}
+
+
+/* ──────────────────────────────────────────
+   10. FIX: TESTIMONIALS — Quote icon overlapping
+   ROOT CAUSE: `absolute -top-4 -left-4` causes the quote icon
+   to sit outside its card container and overlap adjacent content.
+   ────────────────────────────────────────── */
+
+.glass-card.card-hover.relative span.absolute.-top-4.-left-4 {
+  top: -8px !important;
+  left: -8px !important;
+  width: 28px !important;
+  height: 28px !important;
+  font-size: 16px !important;
+  padding: 4px !important;
+}
+
+@media (max-width: 768px) {
+  /* Ensure testimonials have enough top padding to show quote icon */
+  .glass-card.card-hover.relative {
+    margin-top: 16px !important;
+  }
+}
+
+
+/* ──────────────────────────────────────────
+   11. FIX: CTA SECTION — Text too large, button overflow
+   ROOT CAUSE: font-display-lg in the CTA is the same font size
+   as the hero. On mobile this text fills 3-4 lines and pushes
+   buttons down off-screen. We see this in your screenshot 2.
+   ────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  /* CTA container padding */
+  .rounded-\[2\.5rem\].p-xl.md\:p-xxl {
+    padding: 28px 16px !important;
+    border-radius: 24px !important;
+  }
+
+  /* CTA heading */
+  .relative.z-10.space-y-lg h2 {
+    font-size: clamp(1.4rem, 6vw, 2rem) !important;
+    line-height: 1.25 !important;
+  }
+
+  /* CTA subtext */
+  .relative.z-10.space-y-lg p {
+    font-size: 0.875rem !important;
+  }
+
+  /* CTA buttons: stack and full width */
+  .flex.flex-col.sm\:flex-row.justify-center {
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+  .flex.flex-col.sm\:flex-row.justify-center a {
+    width: 100% !important;
+    text-align: center !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+}
+
+
+/* ──────────────────────────────────────────
+   12. FIX: COMPARISON TABLE — Horizontal scroll
+   ROOT CAUSE: table min-width might exceed viewport.
+   We have `overflow-x-auto` wrapper but need to ensure
+   text doesn't force the table too wide.
+   ────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .overflow-x-auto table {
+    font-size: 0.8rem !important;
+  }
+  .overflow-x-auto table th,
+  .overflow-x-auto table td {
+    padding: 8px 4px !important;
+  }
+}
+
+
+/* ──────────────────────────────────────────
+   13. FIX: FOOTER — Column stacking and centering
+   ROOT CAUSE: md:grid-cols-3 with gap-xl is too wide for mobile.
+   ────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  footer .grid.md\:grid-cols-3 {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+    text-align: center !important;
+  }
+  footer .flex.items-center.gap-sm {
+    justify-content: center !important;
+  }
+  footer .space-y-md p,
+  footer .space-y-md a {
+    font-size: 0.85rem !important;
+  }
+}
+
+
+/* ──────────────────────────────────────────
+   14. FIX: PROFILE PAGE — min-h-screen causing scroll lock
+   ROOT CAUSE: `min-h-screen` on the main element of profile.html
+   combined with `overflow-hidden` on body can make Android WebView
+   think the page is exactly one screen tall and disable scrolling.
+   ────────────────────────────────────────── */
+
+main.min-h-screen {
+  min-height: unset !important; /* Remove height lock */
+  height: auto !important;
+}
+
+/* Profile card: remove overflow-hidden that clips bottom content */
+.bg-surface.border.rounded-3xl.overflow-hidden {
+  overflow: visible !important;
+}
+
+@media (max-width: 768px) {
+  /* Profile card padding */
+  .bg-surface.border.rounded-3xl {
+    padding: 24px 16px !important;
+    border-radius: 20px !important;
+  }
+
+  /* Profile avatar container: prevent overflow */
+  .h-32.w-32 {
+    width: 96px !important;
+    height: 96px !important;
+  }
+
+  /* Profile QR upload box: reduce height */
+  label[for="customQrInput"] {
+    padding: 24px 12px !important;
+  }
+
+  /* Profile QR preview image */
+  #profile-modal-preview-qr {
+    height: 120px !important;
+    width: 120px !important;
+  }
+}
+
+
+/* ──────────────────────────────────────────
+   15. FIX: SCAN PAGE — Scanner area, chat simulator, sections
+   ────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  /* Scanner section min-height: don't lock it to 480px */
+  #qrSection .min-h-\[480px\] {
+    min-height: auto !important;
+    padding: 16px !important;
+  }
+
+  /* QR camera box: square but constrained */
+  #scannerWrapper .relative.w-full.max-w-sm {
+    max-width: 100% !important;
+    max-height: 70vw !important;
+    aspect-ratio: 1 / 1;
+  }
+
+  /* UPI input: prevent badge overlap on small screens */
+  #manualUpiInput {
+    padding-right: 12px !important;
+    font-size: 0.8rem !important;
+  }
+
+  /* Screenshot upload area */
+  div[ondragover] {
+    padding: 20px 12px !important;
+  }
+  div[ondragover] .text-6xl {
+    font-size: 2.2rem !important;
+  }
+
+  /* Chat simulator phone frame: simplify on small screens */
+  .bg-slate-900.border-\[6px\].rounded-\[36px\] {
+    border-radius: 16px !important;
+    border-width: 3px !important;
+    max-width: 100% !important;
+  }
+  /* Hide phone notch on mobile (we're already on a phone!) */
+  .w-32.h-6.bg-slate-800.absolute {
+    display: none !important;
+  }
+  /* Chat window height */
+  #chatSimulatorWindow {
+    height: 240px !important;
+  }
+
+  /* Secure QR generator grid */
+  #secureQrSection .bg-surface.rounded-xxl.grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+
+/* ──────────────────────────────────────────
+   16. FIX: MODALS & POPUPS — Full width on small phones
+   ROOT CAUSE: max-w-4xl or max-w-md popups are wider than
+   360px phone screens. Flex fixed-height containers also clip buttons.
+   ────────────────────────────────────────── */
+
+/* Overlay containers must be full-viewport */
+#resultPopup,
+#screenshotResultPopup,
+#upiResultModal,
+#reportModal {
+  padding: 8px !important;
+  padding-top: calc(env(safe-area-inset-top, 0px) + 8px) !important;
+}
+
+/* All popup inner cards */
+#resultPopup > div,
+#screenshotResultPopup > div,
+#upiResultModal > div {
+  max-width: calc(100vw - 16px) !important;
+  max-height: calc(100dvh - 24px) !important;
+  overflow-y: auto !important;
+  border-radius: 16px !important;
+}
+
+/* Two-column popup → single column on mobile */
+@media (max-width: 640px) {
+  #resultPopup .grid,
+  #screenshotResultPopup .grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Popup close buttons */
+  button[onclick*="closePopup"],
+  button[onclick*="close"],
+  button[onclick*="acknowledge"] {
+    width: 100% !important;
+    padding: 14px !important;
+    margin-top: 8px !important;
+  }
+}
+
+
+/* ──────────────────────────────────────────
+   17. FIX: SCROLL CHIP NAV ROW — Prevent chips from causing overflow
+   ────────────────────────────────────────── */
+
+.flex.flex-wrap.justify-center.gap-4 {
+  padding: 0 4px !important;
+  row-gap: 8px !important;
+  column-gap: 8px !important;
+}
+
+@media (max-width: 480px) {
+  .flex.flex-wrap.justify-center.gap-4 button {
+    font-size: 0.7rem !important;
+    padding: 5px 10px !important;
+  }
+}
+
+
+/* ──────────────────────────────────────────
+   18. FIX: REMOVE HOVER TRANSFORMS ON TOUCH DEVICES
+   ROOT CAUSE: hover:scale-105 leaves elements in scaled state
+   after first touch on Android, permanently overlapping siblings.
+   ────────────────────────────────────────── */
+
+@media (hover: none) and (pointer: coarse) {
+  *:hover {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Replace with tap feedback instead */
+  button:active,
+  a:active {
+    opacity: 0.75 !important;
+    transform: scale(0.97) !important;
+  }
+}
+
+
+/* ──────────────────────────────────────────
+   19. FIX: TYPOGRAPHY — Prevent overflow from long words / UPI IDs
+   ROOT CAUSE: UPI IDs like `surajsawant@okaxis` or fraud URLs
+   are single long tokens that don't wrap, causing horizontal scroll.
+   ────────────────────────────────────────── */
+
+p, span, h1, h2, h3, h4, h5, h6, li, td, th, label, a {
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+/* Exception: monospace UPI inputs should not break mid-character */
+input.font-mono, .font-mono {
+  word-break: normal;
+  overflow-wrap: break-word;
+}
+
+
+/* ──────────────────────────────────────────
+   20. FIX: BUTTON TOUCH TARGETS — Minimum 44px (Apple/Google HIG)
+   ROOT CAUSE: Some icon buttons are as small as 28x28px,
+   making them difficult to tap precisely on a touchscreen.
+   ────────────────────────────────────────── */
+
+button,
+a[role="button"],
+[onclick] {
+  min-height: 36px;
+  touch-action: manipulation; /* Eliminate 300ms tap delay on Android */
+  cursor: pointer;
+}
+
+
+/* ──────────────────────────────────────────
+   21. FIX: INTENT SELECTION CARDS (Pay / Receive)
+   Ensure they stack on mobile and text doesn't overflow
+   ────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  section.grid.md\:grid-cols-2 {
+    grid-template-columns: 1fr !important;
+  }
+  /* Ensure card text doesn't bleed */
+  #payCard p, #receiveCard p {
+    font-size: 0.85rem !important;
+    line-height: 1.4 !important;
+  }
+}
+
+
+/* ──────────────────────────────────────────
+   22. FINAL PASS — Additional overflow guards
+   These catch any missed cases from Tailwind utility classes.
+   ────────────────────────────────────────── */
+
+/* Any section/div that uses px-lg on mobile */
+@media (max-width: 768px) {
+  .px-lg {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+  /* Vertical section padding */
+  .py-xxl { padding-top: 32px !important; padding-bottom: 32px !important; }
+  .pt-xxl { padding-top: 32px !important; }
+  .pb-xxl { padding-bottom: 32px !important; }
+  .mb-xxl { margin-bottom: 32px !important; }
+}
+
+/* Ensure no grid children can overflow their column */
+[class*="grid"] > * {
+  min-width: 0;
+}

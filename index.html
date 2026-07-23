@@ -8,8 +8,8 @@
     document.documentElement.classList.add("dark");
   }
 </script>
-<script src="js/theme.js" defer></script>
-<script src="js/language.js" defer></script>
+<script type="module" src="/js/theme.js"></script>
+<script type="module" src="/js/language.js"></script>
 <meta charset="utf-8"/>
 <link rel="icon" type="image/png" href="assets/images/logo.png" />
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
@@ -22,13 +22,14 @@
 
 
 
-<script src="js/tailwind-config.js"></script>
+<script type="module" src="/js/tailwind-config.js"></script>
 <link rel="stylesheet" href="css/theme-style.css" />
+<link rel="stylesheet" href="css/web-fixes.css" />
 
 </head>
 
 <body
-  class="bg-background text-on-surface font-body-md overflow-x-hidden transition-colors duration-300 opacity-0 transition-opacity duration-500"
+  class="bg-background text-on-surface font-body-md overflow-x-clip transition-colors duration-300 opacity-0 transition-opacity duration-500"
   onload="document.body.classList.add('opacity-100')">
 
 <!-- ════════════════════════════════════════════
@@ -43,7 +44,7 @@
        class="flex items-center gap-sm group">
 
       <img
-        class="h-10 w-10 rounded-xl object-cover group-hover:rotate-6 transition-transform duration-300"
+        class="h-10 w-10 rounded-xl object-contain group-hover:rotate-6 transition-transform duration-300"
         src="assets/images/logo.png"
         alt="SuRaksha logo"
       />
@@ -127,10 +128,10 @@
 
 </header>
 
-<main class="pt-24">
+<main class="pt-32">
 
   <!-- ════════ HERO ════════ -->
-  <section class="relative px-lg max-w-7xl mx-auto py-xxl flex flex-col md:flex-row items-center gap-xl">
+  <section class="relative isolate px-lg max-w-7xl mx-auto py-xxl flex flex-col md:flex-row items-center gap-xl">
     <div class="hero-glow absolute inset-0 -z-10"></div>
     <div class="flex-1 text-center md:text-left space-y-lg">
       <div class="inline-flex items-center gap-sm px-md py-xs bg-primary/10 border border-primary/20 rounded-full fade-up fade-up-1">
@@ -164,7 +165,7 @@
     </div>
     <div class="flex-1 flex justify-center items-center relative">
       <div class="animate-float relative z-10">
-        <img alt="SuRaksha Shield" loading="lazy" class="w-64 md:w-80 lg:w-[400px] drop-shadow-2xl"
+        <img alt="SuRaksha Shield" loading="lazy" width="400" height="400" class="w-64 md:w-80 lg:w-[400px] drop-shadow-2xl"
           src="https://lh3.googleusercontent.com/aida-public/AB6AXuDRV-tZGGapjsON5fyWt3OR2vNOI8Von8uNiE7XTZgcrpkr1ndGeDRj4_zYmE4zdEx3I8jCjXdAnnCv22HujToQv9HXusGQO3H0cUWKM5AO3HAR6IrBr0j14_IdHFOATV_RCJgCHwwqlPFxXA5rw5qbdtOWSKaDp38UKfMDMzCtoeLg4AFKopSlH0XCgA9Hu2ix1Xw4dxY9eReQAGdv3oW1cTkBDPzLEichncoE8MuVTLCTPk4iO0ewUmpu8v9bSuruVpkpyPkFICaY"/>
       </div>
       <div class="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent blur-3xl rounded-full opacity-50 scale-75"></div>
@@ -345,7 +346,7 @@
 <!-- Phone Frame 2 (The Risk Result) -->
 <div class="w-full max-w-[290px] aspect-[9/19] rounded-[3rem] bg-gradient-to-b from-[#3a3f4a] via-[#1e2025] to-[#0c0d10] p-[8px] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.6)] ring-1 ring-white/10 hover:shadow-error/20 transition-all duration-500 relative">
   <!-- Absolute high risk badge at top of chassis -->
-  <div class="absolute -top-3 -right-3 bg-error text-white px-3 py-1 rounded-full text-[9px] font-bold shadow-lg tracking-wider animate-bounce z-50">HIGH RISK</div>
+  <div class="absolute -top-3 -right-3 bg-error text-white px-3 py-1 rounded-full text-[9px] font-bold shadow-lg tracking-wider animate-bounce z-30">HIGH RISK</div>
   
   <div class="w-full h-full rounded-[2.5rem] bg-black p-[6px] relative flex flex-col justify-between overflow-hidden select-none">
     <!-- Outer screen container -->
@@ -917,7 +918,7 @@ document.querySelectorAll("section").forEach(section => {
 <script>
 // ── Index Page Live Stats ──
 (function() {
-    const API = "http://127.0.0.1:5000";
+    const API = "https://suraksha-upi-fraud-detection-system.onrender.com";
 
     function animCount(el, target, dur) {
         if (!el) return;
@@ -943,6 +944,229 @@ document.querySelectorAll("section").forEach(section => {
         })
         .catch(() => {}); // Silent fail — stats are optional
 })();
+
+// ── Interactive Demo Modal ──
+function openDemoModal() {
+    document.getElementById('demoModal').classList.remove('hidden');
+    document.getElementById('demoModal').classList.add('flex');
+    document.body.style.overflow = 'hidden';
+    // Auto-play demo sequence after short delay
+    setTimeout(() => runDemoSequence(0), 400);
+}
+
+function closeDemoModal() {
+    const modal = document.getElementById('demoModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    document.body.style.overflow = '';
+    // Reset demo
+    const steps = document.querySelectorAll('.demo-step');
+    steps.forEach(s => s.classList.remove('active-step'));
+    document.getElementById('demoProgress').style.width = '0%';
+    document.getElementById('demoCurrent').textContent = '1';
+}
+
+const DEMO_STEPS = [
+    {
+        icon: 'qr_code_scanner',
+        title: 'Step 1: Scan Suspicious QR',
+        desc: 'Point your camera at a UPI QR code. SuRaksha instantly reads the embedded VPA and initiates deep-scan verification.',
+        color: 'text-blue-400',
+        bg: 'bg-blue-500/10',
+        border: 'border-blue-500/30',
+        result: '🔍 Scanning UPI ID: fraud@okaxis',
+        resultColor: 'text-yellow-400',
+        badge: 'SCANNING',
+        badgeColor: 'bg-blue-500/20 text-blue-300'
+    },
+    {
+        icon: 'shield_with_heart',
+        title: 'Step 2: AI Risk Analysis',
+        desc: 'Our NLP + ML engine checks the UPI against 10,000+ known fraud patterns, behavioral signals, and live complaint databases.',
+        color: 'text-purple-400',
+        bg: 'bg-purple-500/10',
+        border: 'border-purple-500/30',
+        result: '⚠ HIGH RISK: 3 complaints filed. Known phishing VPA.',
+        resultColor: 'text-orange-400',
+        badge: 'ANALYZING',
+        badgeColor: 'bg-purple-500/20 text-purple-300'
+    },
+    {
+        icon: 'image_search',
+        title: 'Step 3: Screenshot Forensics',
+        desc: 'Drag & drop a payment proof image. Our ELA engine detects pixel-level forgery — edited amounts, pasted logos, or cloned receipts.',
+        color: 'text-cyan-400',
+        bg: 'bg-cyan-500/10',
+        border: 'border-cyan-500/30',
+        result: '🖼 Tamper detected: amount region shows 94% ELA anomaly',
+        resultColor: 'text-red-400',
+        badge: 'FORENSICS',
+        badgeColor: 'bg-cyan-500/20 text-cyan-300'
+    },
+    {
+        icon: 'sms',
+        title: 'Step 4: Message NLP Scan',
+        desc: 'Paste any suspicious SMS or WhatsApp message. SuRaksha\'s NLP model identifies urgency tactics, fake bank names, and phishing links.',
+        color: 'text-green-400',
+        bg: 'bg-green-500/10',
+        border: 'border-green-500/30',
+        result: '📱 SCAM DETECTED: "Urgent KYC" social engineering pattern',
+        resultColor: 'text-red-400',
+        badge: 'NLP SCAN',
+        badgeColor: 'bg-green-500/20 text-green-300'
+    },
+    {
+        icon: 'verified_user',
+        title: 'Step 5: Secure QR Generator',
+        desc: 'Merchants generate SHA-256 cryptographically signed QR codes — impossible to clone or sticker-swap, protecting shoppers automatically.',
+        color: 'text-emerald-400',
+        bg: 'bg-emerald-500/10',
+        border: 'border-emerald-500/30',
+        result: '✅ SAFE: Signed QR verified. Merchant identity confirmed.',
+        resultColor: 'text-green-400',
+        badge: 'VERIFIED',
+        badgeColor: 'bg-emerald-500/20 text-emerald-300'
+    }
+];
+
+let demoTimer = null;
+function runDemoSequence(idx) {
+    clearTimeout(demoTimer);
+    if (idx >= DEMO_STEPS.length) idx = 0;
+    const step = DEMO_STEPS[idx];
+    const total = DEMO_STEPS.length;
+
+    // Update progress bar
+    document.getElementById('demoProgress').style.width = ((idx + 1) / total * 100) + '%';
+    document.getElementById('demoCurrent').textContent = idx + 1;
+
+    // Update dot indicators
+    document.querySelectorAll('.demo-dot').forEach((dot, i) => {
+        dot.classList.toggle('bg-primary', i === idx);
+        dot.classList.toggle('bg-white/20', i !== idx);
+        dot.classList.toggle('scale-125', i === idx);
+    });
+
+    // Update main card
+    const card = document.getElementById('demoCard');
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(16px)';
+    setTimeout(() => {
+        document.getElementById('demoIcon').className = `material-symbols-outlined text-5xl mb-1 ${step.color}`;
+        document.getElementById('demoIcon').textContent = step.icon;
+        document.getElementById('demoTitle').textContent = step.title;
+        document.getElementById('demoDesc').textContent = step.desc;
+        document.getElementById('demoBadge').textContent = step.badge;
+        document.getElementById('demoBadge').className = `text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border ${step.border} ${step.badgeColor}`;
+        document.getElementById('demoResult').textContent = step.result;
+        document.getElementById('demoResult').className = `text-sm font-mono ${step.resultColor} mt-2`;
+        document.getElementById('demoCardBg').className = `rounded-2xl p-5 border ${step.border} ${step.bg} text-center space-y-2 transition-all duration-300`;
+        card.style.opacity = '1';
+        card.style.transform = 'translateY(0)';
+    }, 150);
+
+    // Update prev/next button states
+    document.getElementById('demoPrev').disabled = idx === 0;
+    document.getElementById('demoNext').textContent = idx === total - 1 ? 'Try It Live →' : 'Next';
+
+    // Store current for nav
+    card.dataset.idx = idx;
+
+    // Auto-advance every 3.5s
+    demoTimer = setTimeout(() => {
+        if (idx + 1 < total) runDemoSequence(idx + 1);
+    }, 3500);
+}
+
+// Expose to HTML onclick
+window.openDemoModal = openDemoModal;
+window.closeDemoModal = closeDemoModal;
+window.demoNav = function(dir) {
+    const current = parseInt(document.getElementById('demoCard').dataset.idx || '0');
+    const next = current + dir;
+    if (next < 0 || next >= DEMO_STEPS.length) {
+        if (next >= DEMO_STEPS.length) { closeDemoModal(); window.location.href = 'scan.html'; }
+        return;
+    }
+    runDemoSequence(next);
+};
 </script>
+
+<!-- ═══════════ INTERACTIVE DEMO MODAL ═══════════ -->
+<div id="demoModal"
+     onclick="if(event.target === this) closeDemoModal()"
+     class="hidden fixed inset-0 bg-black/85 backdrop-blur-md items-center justify-center z-[999] p-4">
+
+  <div class="bg-[#0d1117] border border-white/10 rounded-3xl w-full max-w-md shadow-2xl shadow-black/80 overflow-hidden">
+
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-primary/20 to-purple-500/20 border-b border-white/10 px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 bg-primary/20 rounded-xl flex items-center justify-center">
+          <span class="material-symbols-outlined text-primary text-[18px]">security</span>
+        </div>
+        <div>
+          <h2 class="text-white font-bold text-base">SuRaksha Live Demo</h2>
+          <p class="text-white/40 text-xs">See how we detect UPI fraud</p>
+        </div>
+      </div>
+      <button onclick="closeDemoModal()" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/15 flex items-center justify-center transition-colors">
+        <span class="material-symbols-outlined text-white/60 text-[18px]">close</span>
+      </button>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="w-full bg-white/5 h-1">
+      <div id="demoProgress" class="h-full bg-gradient-to-r from-primary to-purple-500 transition-all duration-700 ease-out" style="width: 20%"></div>
+    </div>
+
+    <!-- Main Card -->
+    <div class="px-6 py-5">
+      <div id="demoCard" data-idx="0" style="transition: opacity 0.3s ease, transform 0.3s ease;">
+        <div id="demoCardBg" class="rounded-2xl p-5 border border-blue-500/30 bg-blue-500/10 text-center space-y-2">
+          <div class="flex items-center justify-between mb-3">
+            <span id="demoBadge" class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border border-blue-500/30 bg-blue-500/20 text-blue-300">SCANNING</span>
+            <span class="text-white/30 text-xs font-mono">Step <span id="demoCurrent">1</span> / 5</span>
+          </div>
+          <span id="demoIcon" class="material-symbols-outlined text-5xl mb-1 text-blue-400">qr_code_scanner</span>
+          <h3 id="demoTitle" class="text-white font-bold text-base">Step 1: Scan Suspicious QR</h3>
+          <p id="demoDesc" class="text-white/60 text-sm leading-relaxed">Point your camera at a UPI QR code. SuRaksha instantly reads the embedded VPA and initiates deep-scan verification.</p>
+          <p id="demoResult" class="text-sm font-mono text-yellow-400 mt-2">🔍 Scanning UPI ID: fraud@okaxis</p>
+        </div>
+      </div>
+
+      <!-- Step Dots -->
+      <div class="flex items-center justify-center gap-2 mt-4">
+        <div class="demo-dot w-2 h-2 rounded-full bg-primary scale-125 transition-all cursor-pointer" onclick="runDemoSequence(0)"></div>
+        <div class="demo-dot w-2 h-2 rounded-full bg-white/20 transition-all cursor-pointer" onclick="runDemoSequence(1)"></div>
+        <div class="demo-dot w-2 h-2 rounded-full bg-white/20 transition-all cursor-pointer" onclick="runDemoSequence(2)"></div>
+        <div class="demo-dot w-2 h-2 rounded-full bg-white/20 transition-all cursor-pointer" onclick="runDemoSequence(3)"></div>
+        <div class="demo-dot w-2 h-2 rounded-full bg-white/20 transition-all cursor-pointer" onclick="runDemoSequence(4)"></div>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="border-t border-white/10 px-6 py-4 flex items-center justify-between gap-3">
+      <button id="demoPrev" onclick="demoNav(-1)" disabled
+              class="flex-1 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white/60 text-sm font-semibold transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
+        ← Back
+      </button>
+      <button id="demoNext" onclick="demoNav(1)"
+              class="flex-1 py-2.5 rounded-xl bg-primary hover:bg-primary/80 text-white text-sm font-bold transition-colors">
+        Next
+      </button>
+    </div>
+
+    <!-- CTA -->
+    <div class="bg-white/3 border-t border-white/5 px-6 py-3 text-center">
+      <a href="scan.html"
+         class="text-primary hover:text-primary/80 text-sm font-semibold transition-colors flex items-center justify-center gap-1">
+        <span class="material-symbols-outlined text-[16px]">rocket_launch</span>
+        Skip demo — Try with a real QR or image
+      </a>
+    </div>
+
+  </div>
+</div>
 </body>
 </html>
