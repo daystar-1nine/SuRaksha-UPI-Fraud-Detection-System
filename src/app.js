@@ -1,3 +1,8 @@
+import { Html5Qrcode } from 'html5-qrcode';
+if (typeof window !== 'undefined') {
+    window.Html5Qrcode = Html5Qrcode;
+}
+
 // ----------------------------------------------------------------------
 // 🌍 GLOBAL STATE & APPLICATION STATE
 // ----------------------------------------------------------------------
