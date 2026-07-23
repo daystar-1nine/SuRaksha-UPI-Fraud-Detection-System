@@ -763,6 +763,11 @@ function initApp() {
     if (urlParams.get("openProfile") === "true") {
         setTimeout(openProfileModal, 300);
     }
+
+    // Automatically initialize camera scanner when mounting scan.html or qrSection
+    if ($("qrSection")) {
+        selectIntent("pay");
+    }
 }
 
 if (document.readyState === "loading") {
