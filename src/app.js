@@ -849,6 +849,23 @@ function showResultPopup(apiResponse) {
     // -----------------------------
     // 📊 BASIC DATA
     // -----------------------------
+    const parsedQr = apiResponse.data?.qr?.parsed || apiResponse.data?.analysis?.qr?.parsed || {};
+    let payeeName = (parsedQr.pn && parsedQr.pn[0] && parsedQr.pn[0] !== "") ? parsedQr.pn[0] : (analysis.name || "Verified Merchant Account");
+    let payeeVpa = (parsedQr.pa && parsedQr.pa[0] && parsedQr.pa[0] !== "") ? parsedQr.pa[0] : (AppState.lastScannedUpi || "unlisted@upi");
+
+    AppState.lastScannedPayeeName = payeeName;
+    AppState.lastScannedPayeeVpa = payeeVpa;
+
+    // Check if QR payload contains a merchant amount limit cap (am=...)
+    if (parsedQr.am && parsedQr.am[0] && !isNaN(parseFloat(parsedQr.am[0]))) {
+        AppState.scannedAmountLimit = parseFloat(parsedQr.am[0]);
+    } else {
+        AppState.scannedAmountLimit = null;
+    }
+
+    safeText($("popupPayeeName"), payeeName);
+    safeText($("popupPayeeVpa"), payeeVpa);
+
     safeText($("popupScore"), data?.risk_score ?? "-");
     safeText($("popupLevel"), data?.risk_level ?? "-");
     safeText($("popupType"), data?.fraud_type ?? "General");
@@ -1055,11 +1072,45 @@ function togglePaymentDrawer(show) {
     const actions = $("popupActions");
     if (drawer) drawer.classList.toggle("hidden", !show);
     if (actions) actions.classList.toggle("hidden", show);
+
+    if (show) {
+        const amountInput = $("payAmountInput");
+        const limitHint = $("payAmountLimitHint");
+
+        if (AppState.scannedAmountLimit != null && AppState.scannedAmountLimit > 0) {
+            if (amountInput) {
+                amountInput.value = AppState.scannedAmountLimit;
+                amountInput.max = AppState.scannedAmountLimit;
+                amountInput.readOnly = true; // Lock input to merchant set limit cap
+            }
+            safeText(limitHint, `🔒 MERCHANT LIMIT LOCKED: Payment is capped at a maximum of ₹${AppState.scannedAmountLimit} by the merchant.`);
+        } else {
+            if (amountInput) {
+                amountInput.value = "";
+                amountInput.removeAttribute("max");
+                amountInput.readOnly = false;
+            }
+            safeText(limitHint, "Enter payment amount. Payments above ₹100 are monitored by SuRaksha rules.");
+        }
+    }
 }
 
 function simulatePaymentLaunch(appName) {
-    const amountVal = parseFloat($("payAmountInput")?.value);
-    // Any amount is allowed when scanning, as requested by the user.
+    let amountVal = parseFloat($("payAmountInput")?.value);
+
+    // If merchant set an amount limit cap on the Secure QR, enforce it strictly!
+    if (AppState.scannedAmountLimit != null && AppState.scannedAmountLimit > 0) {
+        amountVal = AppState.scannedAmountLimit;
+    } else if (isNaN(amountVal) || amountVal <= 0) {
+        amountVal = 100;
+    }
+
+    const payeeVpa = AppState.lastScannedPayeeVpa || AppState.lastScannedUpi || "merchant@paytm";
+    const payeeName = AppState.lastScannedPayeeName || "Merchant Store";
+
+    const upiUri = `upi://pay?pa=${encodeURIComponent(payeeVpa)}&pn=${encodeURIComponent(payeeName)}&am=${amountVal}&cu=INR`;
+
+    showToast(`Redirecting to ${appName}... Opening ${payeeName} (₹${amountVal})`, "info");
 
     const loader = $("loader");
     if (loader) {
@@ -1069,7 +1120,8 @@ function simulatePaymentLaunch(appName) {
         setTimeout(() => {
             loader.classList.add("hidden");
             if (p) p.innerText = "Analyzing... AI is checking fraud";
-        }, 1500);
+            window.location.href = upiUri;
+        }, 1200);
     }
 }
 

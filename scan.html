@@ -817,6 +817,18 @@
 
                 <hr class="border-white/10" />
 
+                <!-- Payee / Merchant Details Banner -->
+                <div class="bg-white/5 p-3.5 rounded-xl border border-white/10 flex items-center justify-between gap-3 text-left shadow-sm">
+                    <div class="space-y-0.5 overflow-hidden">
+                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Payee / Merchant Name</span>
+                        <span id="popupPayeeName" class="text-sm font-bold text-white truncate block">Merchant Account</span>
+                    </div>
+                    <div class="text-right space-y-0.5 shrink-0">
+                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">UPI VPA Address</span>
+                        <span id="popupPayeeVpa" class="text-xs font-mono text-primary font-bold block">unlisted@upi</span>
+                    </div>
+                </div>
+
                 <!-- Metrics Grid -->
                 <div class="grid grid-cols-2 gap-3 text-sm">
                     <div class="bg-white/5 p-3 rounded-xl border border-white/5 space-y-1">
@@ -874,7 +886,7 @@
                         <label class="block text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Payment Amount (₹)</label>
                         <input type="number" id="payAmountInput" placeholder="Enter amount to pay" 
                                class="w-full bg-[#111827] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-primary/50 transition">
-                        <span class="text-[9px] text-gray-500 block">Enter amount. Payments above ₹100 will be blocked by SuRaksha rules.</span>
+                        <span id="payAmountLimitHint" class="text-[9px] text-amber-400/90 font-medium block">Enter amount to pay.</span>
                     </div>
                     
                     <div class="grid grid-cols-2 gap-2">
