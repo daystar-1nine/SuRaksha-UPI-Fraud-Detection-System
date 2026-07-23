@@ -80,9 +80,8 @@ main {
 header {
   /* Ensure header itself doesn't cause page width to grow */
   max-width: 100vw;
-  overflow: hidden;
-  /* Push navbar down from status bar - 48px to clear punch hole cameras */
-  padding-top: max(env(safe-area-inset-top), 48px) !important;
+  /* Use native safe-area-inset-top on Android WebView without hardcoded 48px shift */
+  padding-top: env(safe-area-inset-top, 0px) !important;
 }
 
 header .max-w-7xl {
@@ -493,10 +492,16 @@ main.min-h-screen {
   }
 
   /* Chat simulator phone frame: simplify on small screens */
-  .bg-slate-900.border-\[6px\].rounded-\[36px\] {
+  .bg-slate-900[class*="border-"] {
     border-radius: 16px !important;
-    border-width: 3px !important;
+    border-width: 2px !important;
     max-width: 100% !important;
+  }
+  /* Soften outer container border lines on dark theme */
+  #messageSection > div.bg-surface,
+  .bg-surface.rounded-xxl.border {
+    border-color: rgba(255, 255, 255, 0.06) !important;
+    padding: 12px !important;
   }
   /* Hide phone notch on mobile (we're already on a phone!) */
   .w-32.h-6.bg-slate-800.absolute {
@@ -504,7 +509,7 @@ main.min-h-screen {
   }
   /* Chat window height */
   #chatSimulatorWindow {
-    height: 240px !important;
+    height: 280px !important;
   }
 
   /* Secure QR generator grid */
