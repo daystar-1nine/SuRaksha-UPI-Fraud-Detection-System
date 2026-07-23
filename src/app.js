@@ -1,8 +1,11 @@
 // ----------------------------------------------------------------------
 // 🌍 GLOBAL STATE & APPLICATION STATE
 // ----------------------------------------------------------------------
-// Base API server URL. Dynamically switch between local dev and Vercel/Render production endpoints.
-const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || window.location.hostname === "";
+// Base API server URL. Dynamically switch between local dev and Render production endpoints.
+// On physical Android/iOS native builds (Capacitor), window.Capacitor is present or protocol is capacitor:// or file://.
+const isCapacitorNative = Boolean(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+const isLocal = !isCapacitorNative && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
+
 const API_BASE = isLocal
     ? "http://127.0.0.1:5000"
     : "https://suraksha-upi-fraud-detection-system.onrender.com";
