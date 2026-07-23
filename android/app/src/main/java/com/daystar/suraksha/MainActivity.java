@@ -1,5 +1,6 @@
 package com.daystar.suraksha;
 
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -8,6 +9,7 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.Toast;
 import com.getcapacitor.BridgeActivity;
 
 public class MainActivity extends BridgeActivity {
@@ -42,16 +44,34 @@ public class MainActivity extends BridgeActivity {
                             
                             try {
                                 Intent intent;
+                                String pkgName = null;
                                 if (url.startsWith("intent://")) {
                                     intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME);
+                                    if (intent != null) {
+                                        pkgName = intent.getPackage();
+                                    }
                                 } else {
                                     intent = new Intent(Intent.ACTION_VIEW, uri);
                                 }
                                 
                                 if (intent != null) {
                                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                    startActivity(intent);
-                                    return true; // Successfully launched targeted native Android App!
+                                    try {
+                                        startActivity(intent);
+                                    } catch (ActivityNotFoundException notFoundErr) {
+                                        if (pkgName != null) {
+                                            try {
+                                                Intent storeIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + pkgName));
+                                                storeIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                                startActivity(storeIntent);
+                                            } catch (Exception ex) {
+                                                Toast.makeText(MainActivity.this, "Selected payment app is not installed on this device.", Toast.LENGTH_LONG).show();
+                                            }
+                                        } else {
+                                            Toast.makeText(MainActivity.this, "Selected payment app is not installed on this device.", Toast.LENGTH_LONG).show();
+                                        }
+                                    }
+                                    return true; // Handled natively by Intent launcher!
                                 }
                             } catch (Exception e) {
                                 e.printStackTrace();
