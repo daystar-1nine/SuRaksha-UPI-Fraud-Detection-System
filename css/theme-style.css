@@ -20,6 +20,7 @@
   --color-secondary: rgb(var(--secondary-rgb));
   --color-error: rgb(var(--error-rgb));
   --color-success: rgb(var(--success-rgb));
+  --color-warning: #f59e0b;
 
   --color-primary-container: var(--primary-container);
   --color-on-primary-container: var(--on-primary-container);
@@ -28,6 +29,7 @@
   --color-secondary-fixed-dim: var(--secondary-fixed-dim);
   --color-error-container: var(--error-container);
   --color-on-error-container: var(--on-error-container);
+  --color-on-secondary: #ffffff;
 
   --color-dark-background: #070a13;
   --color-dark-on-surface: #f1f5f9;
@@ -38,6 +40,8 @@
   --spacing-lg: 1.5rem;
   --spacing-xl: 2.5rem;
   --spacing-xxl: 4rem;
+
+  --radius-xxl: 2rem;
 
   --font-body-md: Inter, sans-serif;
   --font-label-sm: Inter, sans-serif;
