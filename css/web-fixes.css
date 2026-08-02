@@ -68,7 +68,20 @@ a[role="button"],
    Only apply on narrow viewports, safe for all browsers.
    ────────────────────────────────────────── */
 
+/* ──────────────────────────────────────────
+   3. SECTION SPACING — Reduce excessive gaps (all screen sizes)
+   ────────────────────────────────────────── */
+
+/* On desktop, cap the xxl spacing so it's not overwhelming */
+@media (min-width: 768px) {
+  .py-xxl { padding-top: 64px; padding-bottom: 64px; }
+  .pt-xxl { padding-top: 64px; }
+  .pb-xxl { padding-bottom: 64px; }
+  .space-y-xxl > * + * { margin-top: 64px; }
+}
+
 @media (max-width: 767px) {
+
   /* Hero heading — scale down for phones */
   h1.font-display-lg,
   .text-display-lg {
@@ -87,6 +100,7 @@ a[role="button"],
   .py-xxl { padding-top: 40px !important; padding-bottom: 40px !important; }
   .pt-xxl { padding-top: 40px !important; }
   .pb-xxl { padding-bottom: 40px !important; }
+
 
   /* Feature bento grid → single column */
   .grid.md\:grid-cols-3 {

@@ -1227,7 +1227,6 @@ function simulatePaymentLaunch(appName) {
     const txnNote = "SuRaksha Verified Payment";
     const txnRef = "SRK" + Date.now();
 
-    // Base query string with all required parameters
     const queryParams = `pa=${encodeURIComponent(payeeVpa)}&pn=${encodeURIComponent(payeeName)}&am=${amountVal}&cu=INR&tn=${encodeURIComponent(txnNote)}&tr=${encodeURIComponent(txnRef)}`;
     const genericUpiUri = `upi://pay?${queryParams}`;
 
@@ -1236,21 +1235,46 @@ function simulatePaymentLaunch(appName) {
     const isAndroid = /android/i.test(userAgent);
     const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
 
-    let targetLaunchUri = genericUpiUri;
+    // 3. Detect if running inside the native Capacitor Android app (WebView)
+    //    window.Capacitor is injected by the Capacitor bridge when running as a native app.
+    //    In a regular browser (Chrome, Firefox, Safari desktop/mobile web), this is undefined.
+    const isNativeCapacitor = !!(window.Capacitor && window.Capacitor.isNative);
+    const isNativeMobileBrowser = isAndroid || isIOS;
 
+    // 4. In browser context (not native app): show helpful message and attempt generic upi:// link
+    if (!isNativeCapacitor) {
+        if (!isNativeMobileBrowser) {
+            // Desktop browser — UPI apps cannot be launched from desktop
+            showToast(
+                `📱 Open SuRaksha app on your Android phone to pay with ${appName}. Desktop browsers cannot launch UPI apps.`,
+                "info",
+                6000
+            );
+            return;
+        }
+        // Mobile browser (Chrome/Safari on phone) — try generic upi:// which may trigger the OS app chooser
+        showToast(`🚀 Opening ${appName}... Transferring ₹${amountVal} to ${payeeName}`, "info", 4000);
+        try {
+            window.location.href = genericUpiUri;
+        } catch (e) {
+            showToast(`⚠️ Unable to open ${appName}. Please ensure the app is installed.`, "warning", 5000);
+        }
+        return;
+    }
+
+    // 5. Native Capacitor app — use app-specific Intent / iOS scheme routing
+    let targetLaunchUri = genericUpiUri;
     if (appConfig) {
         if (isAndroid && appConfig.androidPackage) {
-            // Android Package Intent - forces Android OS to launch ONLY the targeted app package
+            // Android Package Intent — forces OS to launch ONLY the targeted app
             targetLaunchUri = `intent://pay?${queryParams}#Intent;scheme=upi;package=${appConfig.androidPackage};end`;
         } else if (isIOS && appConfig.iosScheme) {
-            // iOS Custom App Scheme (e.g. gpay://upi/pay?pa=... or fampay://pay?pa=... or bhim://pay?pa=...)
+            // iOS Custom App Scheme
             targetLaunchUri = `${appConfig.iosScheme}?${queryParams}`;
         }
     }
 
     showToast(`🚀 Opening ${appName}... Transferring ₹${amountVal} to ${payeeName}`, "info", 4000);
-
-    // Launch immediately on user click gesture
     try {
         window.location.href = targetLaunchUri;
     } catch (e) {

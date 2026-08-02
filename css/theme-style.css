@@ -1,4 +1,24 @@
+/* ── Prevent white flash on page load / navigation ──
+   Sets background before JS runs. The inline <script> in each HTML page
+   sets the class on <html>, so these rules fire immediately. */
+html {
+    background-color: #070a13; /* dark default — overridden by .light below */
+}
+html:not(.dark) {
+    background-color: #f8fafc; /* light mode */
+}
+
+/* ── Page transition fade: prevents jarring white flash between pages ── */
+body {
+    opacity: 0;
+    transition: opacity 0.18s ease;
+}
+body.page-ready {
+    opacity: 1;
+}
+
 :root {
+
     --background: #f8fafc;
     --on-background: #0f172a;
     --surface: #ffffff;
@@ -228,3 +248,30 @@ html {
     background: transparent !important;
     box-shadow: none !important;
 }
+
+/* ── Custom Modern Scrollbar Design ── */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%);
+    border-radius: 9999px;
+    border: 2px solid var(--background);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #60a5fa 0%, #2563eb 100%);
+}
+
+/* Firefox Scrollbar support */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: #3b82f6 var(--background);
+}
+

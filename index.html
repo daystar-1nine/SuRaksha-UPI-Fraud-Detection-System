@@ -26,11 +26,11 @@
 <link rel="stylesheet" href="css/theme-style.css" />
 <link rel="stylesheet" href="css/web-fixes.css" />
 
+<script>document.addEventListener("DOMContentLoaded",function(){document.body.classList.add("page-ready");});</script>
 </head>
 
 <body
-  class="bg-background text-on-surface font-body-md overflow-x-clip transition-colors duration-300 opacity-0 transition-opacity duration-500"
-  onload="document.body.classList.add('opacity-100')">
+  class="bg-background text-on-surface font-body-md overflow-x-clip transition-colors duration-300">
 
 <!-- ════════════════════════════════════════════
      NAVIGATION
@@ -44,14 +44,12 @@
        class="flex items-center gap-sm group">
 
       <img
-        class="h-10 w-10 rounded-xl object-contain group-hover:rotate-6 transition-transform duration-300"
+        class="h-10 w-10 rounded-xl object-contain group-hover:rotate-6 transition-transform duration-300 flex-shrink-0"
         src="assets/images/logo.png"
         alt="SuRaksha logo"
       />
 
-      <span class="font-headline-lg font-bold text-primary tracking-tight">
-        SuRaksha
-      </span>
+      <span class="font-headline-lg font-bold text-primary tracking-tight">SuRaksha</span>
 
     </a>
 
@@ -128,10 +126,10 @@
 
 </header>
 
-<main class="pt-32">
+<main class="pt-24">
 
   <!-- ════════ HERO ════════ -->
-  <section class="relative isolate px-lg max-w-7xl mx-auto py-xxl flex flex-col md:flex-row items-center gap-xl">
+  <section class="relative isolate px-lg max-w-7xl mx-auto py-xl flex flex-col md:flex-row items-center gap-xl">
     <div class="hero-glow absolute inset-0 -z-10"></div>
     <div class="flex-1 text-center md:text-left space-y-lg">
       <div class="inline-flex items-center gap-sm px-md py-xs bg-primary/10 border border-primary/20 rounded-full fade-up fade-up-1">
@@ -173,7 +171,7 @@
   </section>
 
   <!-- ════════ LIVE TRUST STATS BAR ════════ -->
-  <section class="px-lg max-w-7xl mx-auto pb-xl fade-up">
+  <section class="px-lg max-w-7xl mx-auto pb-md fade-up">
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
 
       <div class="glass-card rounded-2xl p-5 text-center group hover:border-primary/40 transition-all">
@@ -260,175 +258,205 @@
 </div>
 </section>
 <!-- EXAMPLE SCENARIO: Real-Life Use Case -->
-<section class="mb-xxl bg-surface-container-low rounded-[2rem] p-lg md:p-xl border border-outline-variant/10">
-<h2 class="font-headline-lg text-headline-lg text-center mb-xl">Real-Life Use Case</h2>
-<div class="flex flex-col lg:flex-row items-center justify-between gap-xl">
-<!-- Phone Frame 1 -->
-<div class="w-full max-w-[290px] aspect-[9/19] rounded-[3rem] bg-gradient-to-b from-[#3a3f4a] via-[#1e2025] to-[#0c0d10] p-[8px] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.6)] ring-1 ring-white/10 hover:shadow-primary/20 transition-all duration-500">
-  <div class="w-full h-full rounded-[2.5rem] bg-black p-[6px] relative flex flex-col justify-between overflow-hidden select-none">
+<section class="mb-xxl relative overflow-hidden bg-gradient-to-b from-surface-container-high/40 via-surface-container-low/60 to-surface-container-low/80 backdrop-blur-2xl rounded-[2.5rem] p-6 md:p-12 border border-white/10 shadow-[0_30px_100px_-20px_rgba(0,0,0,0.6)]">
+  <!-- Background Glow Accents -->
+  <div class="absolute -top-32 left-1/4 w-96 h-96 bg-primary/15 rounded-full blur-[100px] pointer-events-none"></div>
+  <div class="absolute -bottom-32 right-1/4 w-96 h-96 bg-error/15 rounded-full blur-[100px] pointer-events-none"></div>
+
+  <!-- Header & Badge -->
+  <div class="text-center mb-10 relative z-10 space-y-3">
+    <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-semibold tracking-wider uppercase">
+      <span class="w-2 h-2 rounded-full bg-primary animate-ping"></span>
+      <span>Live Threat Prevention Flow</span>
+    </div>
+    <h2 class="font-headline-lg text-3xl md:text-4xl font-extrabold text-center text-on-surface tracking-tight">Real-Life Use Case</h2>
+    <p class="text-center text-xs md:text-sm text-on-surface-variant max-w-xl mx-auto leading-relaxed">
+      See how SuRaksha intercepts a phishing QR code message in real-time and flags high-risk payment destinations before any money leaves your account.
+    </p>
+  </div>
+
+  <div class="flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-12 relative z-10">
     
-    <!-- Outer screen container -->
-    <div class="w-full h-full rounded-[2.2rem] bg-surface-container relative overflow-hidden flex flex-col pt-[36px] pb-4 px-3">
+    <!-- Step 1 Phone: Scam Message Received -->
+    <div class="flex flex-col items-center">
+      <div class="mb-3 text-center">
+        <span class="px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-bold tracking-wider uppercase">Step 1: Phishing Message Received</span>
+      </div>
       
-      <!-- Futuristic Dynamic Island -->
-      <div class="absolute top-[12px] left-1/2 -translate-x-1/2 z-45 bg-black w-[95px] h-[26px] rounded-full flex items-center justify-between px-3 border border-white/5">
-        <!-- Pulse Green camera dot for Safe Scan -->
-        <span class="w-[6px] h-[6px] rounded-full bg-[#10b981] shadow-[0_0_8px_#10b981] animate-pulse"></span>
-        <span class="w-[8px] h-[8px] bg-[#111] rounded-full border border-gray-800"></span>
-      </div>
-
-      <!-- iOS Status Bar -->
-      <div class="absolute top-[14px] left-0 right-0 px-6 flex justify-between items-center text-[10px] font-bold text-on-surface select-none z-30 opacity-80">
-        <div>9:41</div>
-        <div class="flex items-center gap-1.5">
-          <!-- Cellular Signal Bars -->
-          <svg class="w-3.5 h-3.5 fill-current text-on-surface" viewBox="0 0 24 24">
-            <path d="M2 22h20V2z" />
-          </svg>
-          <!-- Wifi -->
-          <svg class="w-3.5 h-3.5 fill-current text-on-surface" viewBox="0 0 24 24">
-            <path d="M12 21l-12-12a17 17 0 0 1 24 0z" />
-          </svg>
-          <!-- Battery -->
-          <div class="w-5 h-2.5 border border-on-surface rounded-sm p-[1px] flex items-center">
-            <div class="w-full h-full bg-on-surface rounded-xs"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Phone Screen Content (WhatsApp / Chat Simulation) -->
-      <div class="flex-1 flex flex-col">
-        <!-- Chat Header -->
-        <div class="flex items-center justify-between pb-2 mb-3 border-b border-outline-variant/10">
-          <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-sm text-on-surface-variant cursor-pointer select-none">arrow_back_ios</span>
-            <div class="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold text-[8px] ring-1 ring-primary/20">
-              🎁
-            </div>
-            <div>
-              <h4 class="text-[9px] font-bold text-on-surface leading-none">Cashback Reward</h4>
-              <span class="text-[7px] text-[#10b981] font-medium">Active now</span>
-            </div>
-          </div>
-          <span class="material-symbols-outlined text-sm text-on-surface-variant cursor-pointer select-none">more_vert</span>
-        </div>
-
-        <!-- Chat message bubble -->
-        <div class="bg-surface-container-high/60 border border-outline-variant/10 p-2.5 rounded-2xl rounded-tl-sm text-[9px] text-on-surface-variant leading-relaxed relative shadow-sm max-w-[90%]">
-          "Hey, you won 5000 cashback! Scan this QR code to claim it now!"
-          <div class="text-right text-[6px] text-on-surface-variant/40 mt-1">10:14 AM</div>
-        </div>
-
-        <!-- QR Code Card -->
-        <div class="bg-surface border border-outline-variant/10 p-3 rounded-2xl shadow-sm mt-3 flex flex-col items-center gap-2 group-hover:scale-[1.02] transition-transform duration-300">
-          <div class="relative bg-white p-2 rounded-lg border border-gray-100 flex items-center justify-center">
-            <img alt="QR Code Example" class="w-20 h-20 opacity-90 transition-opacity hover:opacity-100" data-alt="A detailed digital illustration of a smartphone screen displaying a fraudulent WhatsApp message with a generic QR code. The interface is clean and dark-themed, following a modern mobile OS aesthetic with soft blue and deep navy tones. The lighting highlights the phone's glass edge, suggesting a high-end device." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBtB1BVbsZbFRAsE7TFtA2ggRmnEHXRIBdvMSfDoWGehd7GQXXWtzNK_sZPHQ6OKzJdR_bnlVJvkqp6u6ADNEBpMl2xgAWwmYVRz5Mqd2sboS2iiupy7Do_ucvaJnkYkiRWJR78_w0zZ4F3-1iAOXCTWA2y-yztyQBTOQSgwrhPsnITfk1lsUTqb26iUUNxqIp-2LNM-8NmTyKxi6IIT-qi4xmen1WwcsYsx-0k9PYCFKZUXm7uv1g_9OE8YOwFBIMOn7vx_sGXYkjl"/>
-          </div>
-        </div>
-
-        <!-- Scanning CTA Button at bottom of screen -->
-        <div class="mt-auto pt-3">
-          <div class="w-full py-2 bg-primary/10 border border-primary/30 rounded-xl text-center text-[8px] font-bold text-primary tracking-wider uppercase animate-pulse select-none">
-            SCAN WITH SURAKSHA
-          </div>
-        </div>
-      </div>
-
-      <!-- Home Indicator -->
-      <div class="absolute bottom-[6px] left-1/2 -translate-x-1/2 w-[90px] h-[3px] bg-on-surface/30 rounded-full z-40"></div>
-    </div>
-  </div>
-  <p class="text-center mt-4 font-label-sm text-on-surface-variant uppercase tracking-widest">Receive QR Code</p>
-</div>
-<div class="hidden lg:block">
-<span class="material-symbols-outlined text-surface-variant text-4xl" data-icon="arrow_forward">arrow_forward</span>
-</div>
-<!-- Phone Frame 2 (The Risk Result) -->
-<div class="w-full max-w-[290px] aspect-[9/19] rounded-[3rem] bg-gradient-to-b from-[#3a3f4a] via-[#1e2025] to-[#0c0d10] p-[8px] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.6)] ring-1 ring-white/10 hover:shadow-error/20 transition-all duration-500 relative">
-  <!-- Absolute high risk badge at top of chassis -->
-  <div class="absolute -top-3 -right-3 bg-error text-white px-3 py-1 rounded-full text-[9px] font-bold shadow-lg tracking-wider animate-bounce z-30">HIGH RISK</div>
-  
-  <div class="w-full h-full rounded-[2.5rem] bg-black p-[6px] relative flex flex-col justify-between overflow-hidden select-none">
-    <!-- Outer screen container -->
-    <div class="w-full h-full rounded-[2.2rem] bg-surface-container relative overflow-hidden flex flex-col pt-[36px] pb-4 px-3">
-      
-      <!-- Futuristic Dynamic Island -->
-      <div class="absolute top-[12px] left-1/2 -translate-x-1/2 z-45 bg-black w-[110px] h-[26px] rounded-full flex items-center justify-between px-3 border border-white/5">
-        <!-- Pulse Red camera dot for Warning -->
-        <span class="w-[6px] h-[6px] rounded-full bg-[#ef4444] shadow-[0_0_8px_#ef4444] animate-pulse"></span>
-        <span class="text-[8px] font-bold text-error tracking-wider uppercase">ALERT</span>
-        <span class="w-[8px] h-[8px] bg-[#111] rounded-full border border-gray-800"></span>
-      </div>
-
-      <!-- iOS Status Bar -->
-      <div class="absolute top-[14px] left-0 right-0 px-6 flex justify-between items-center text-[10px] font-bold text-on-surface select-none z-30 opacity-80">
-        <div>9:41</div>
-        <div class="flex items-center gap-1.5">
-          <!-- Cellular Signal Bars -->
-          <svg class="w-3.5 h-3.5 fill-current text-on-surface" viewBox="0 0 24 24">
-            <path d="M2 22h20V2z" />
-          </svg>
-          <!-- Wifi -->
-          <svg class="w-3.5 h-3.5 fill-current text-on-surface" viewBox="0 0 24 24">
-            <path d="M12 21l-12-12a17 17 0 0 1 24 0z" />
-          </svg>
-          <!-- Battery -->
-          <div class="w-5 h-2.5 border border-on-surface rounded-sm p-[1px] flex items-center">
-            <div class="w-full h-full bg-on-surface rounded-xs"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Phone Screen Content (SuRaksha Threat Warning HUD) -->
-      <div class="flex-1 flex flex-col">
-        <!-- Real-Time Analysis header -->
-        <div class="bg-error/10 border border-error/20 rounded-lg py-1 px-2 text-center text-[8px] font-bold text-error tracking-wider uppercase animate-pulse flex items-center justify-center gap-1 mb-3">
-          <span class="material-symbols-outlined text-[10px]">gpp_maybe</span> REAL-TIME THREAT DETECTED
-        </div>
-
-        <!-- Threat Detail Card -->
-        <div class="bg-gradient-to-b from-error/10 to-error/5 border border-error/30 rounded-2xl p-3 text-center shadow-[0_10px_20px_-5px_rgba(239,68,68,0.15)] flex-1 flex flex-col justify-center">
-          <div class="w-10 h-10 rounded-full bg-error/15 flex items-center justify-center mb-1.5 mx-auto ring-4 ring-error/5">
-            <span class="material-symbols-outlined text-error text-2xl animate-bounce">warning</span>
-          </div>
-          <h4 class="text-error font-bold text-xs mb-0.5 tracking-wide">Threat Detected</h4>
-          <p class="text-on-surface-variant text-[8px] leading-relaxed mb-2">This QR code is linked to a known UPI fraud signature reported in your area.</p>
+      <div class="w-full max-w-[280px] aspect-[9/19] rounded-[3rem] bg-gradient-to-b from-[#2a2f3a] via-[#1a1c23] to-[#0a0b0e] p-[8px] shadow-[0_20px_50px_rgba(59,130,246,0.2)] ring-1 ring-blue-500/30 hover:shadow-primary/30 transition-all duration-500">
+        <div class="w-full h-full rounded-[2.5rem] bg-black p-[6px] relative flex flex-col justify-between overflow-hidden select-none">
           
-          <!-- Mini Checklist of factors -->
-          <div class="w-full bg-surface-container-low/60 border border-outline-variant/10 rounded-xl p-2 text-left space-y-1">
-            <div class="flex items-center gap-1.5 text-[7px] text-on-surface-variant font-medium">
-              <span class="material-symbols-outlined text-error text-[10px] font-bold">cancel</span>
-              <span>Blacklisted UPI Address</span>
+          <!-- Outer screen container -->
+          <div class="w-full h-full rounded-[2.2rem] bg-surface-container relative overflow-hidden flex flex-col pt-[36px] pb-4 px-3">
+            
+            <!-- Dynamic Island -->
+            <div class="absolute top-[12px] left-1/2 -translate-x-1/2 z-45 bg-black w-[95px] h-[26px] rounded-full flex items-center justify-between px-3 border border-white/5">
+              <span class="w-[6px] h-[6px] rounded-full bg-[#10b981] shadow-[0_0_8px_#10b981] animate-pulse"></span>
+              <span class="w-[8px] h-[8px] bg-[#111] rounded-full border border-gray-800"></span>
             </div>
-            <div class="flex items-center gap-1.5 text-[7px] text-on-surface-variant font-medium">
-              <span class="material-symbols-outlined text-error text-[10px] font-bold">cancel</span>
-              <span>Unverified Merchant ID</span>
+
+            <!-- Status Bar -->
+            <div class="absolute top-[14px] left-0 right-0 px-6 flex justify-between items-center text-[10px] font-bold text-on-surface select-none z-30 opacity-80">
+              <div>9:41</div>
+              <div class="flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5 fill-current text-on-surface" viewBox="0 0 24 24"><path d="M2 22h20V2z" /></svg>
+                <svg class="w-3.5 h-3.5 fill-current text-on-surface" viewBox="0 0 24 24"><path d="M12 21l-12-12a17 17 0 0 1 24 0z" /></svg>
+                <div class="w-5 h-2.5 border border-on-surface rounded-sm p-[1px] flex items-center">
+                  <div class="w-full h-full bg-on-surface rounded-xs"></div>
+                </div>
+              </div>
             </div>
-            <div class="flex items-center gap-1.5 text-[7px] text-on-surface-variant font-medium">
-              <span class="material-symbols-outlined text-error text-[10px] font-bold">cancel</span>
-              <span>Spoofed Request Signature</span>
+
+            <!-- Screen Content (WhatsApp / Chat Simulation) -->
+            <div class="flex-1 flex flex-col">
+              <!-- Chat Header -->
+              <div class="flex items-center justify-between pb-2 mb-3 border-b border-outline-variant/10">
+                <div class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-sm text-on-surface-variant cursor-pointer select-none">arrow_back_ios</span>
+                  <div class="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold text-[8px] ring-1 ring-primary/20">
+                    🎁
+                  </div>
+                  <div>
+                    <h4 class="text-[9px] font-bold text-on-surface leading-none">Cashback Reward</h4>
+                    <span class="text-[7px] text-[#10b981] font-medium">Active now</span>
+                  </div>
+                </div>
+                <span class="material-symbols-outlined text-sm text-on-surface-variant cursor-pointer select-none">more_vert</span>
+              </div>
+
+              <!-- Chat message bubble -->
+              <div class="bg-surface-container-high/80 border border-outline-variant/20 p-2.5 rounded-2xl rounded-tl-sm text-[9px] text-on-surface-variant leading-relaxed relative shadow-sm max-w-[95%]">
+                "Hey, you won ₹5,000 cashback! Scan this QR code to claim it now!"
+                <div class="text-right text-[6px] text-on-surface-variant/50 mt-1">10:14 AM</div>
+              </div>
+
+              <!-- Crisp QR Code Card -->
+              <div class="bg-surface border border-primary/20 p-3 rounded-2xl shadow-md mt-3 flex flex-col items-center gap-1.5 group-hover:scale-[1.02] transition-transform duration-300">
+                <div class="relative bg-white p-2.5 rounded-xl border border-gray-200 flex items-center justify-center shadow-inner">
+                  <img alt="QR Code Example" class="w-20 h-20 object-contain rounded" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=cashback.rewards@ybl&pn=FakeReward"/>
+                </div>
+                <span class="text-[8px] text-on-surface-variant/70 font-mono">cashback.rewards@ybl</span>
+              </div>
+
+              <!-- CTA Button -->
+              <div class="mt-auto pt-3">
+                <div class="w-full py-2 bg-primary/15 border border-primary/40 rounded-xl text-center text-[8px] font-bold text-primary tracking-wider uppercase animate-pulse select-none shadow-sm">
+                  SCAN WITH SURAKSHA
+                </div>
+              </div>
             </div>
+
+            <!-- Home Indicator -->
+            <div class="absolute bottom-[6px] left-1/2 -translate-x-1/2 w-[90px] h-[3px] bg-on-surface/30 rounded-full z-40"></div>
           </div>
         </div>
+      </div>
+      <p class="text-center mt-3 font-label-sm text-on-surface-variant uppercase tracking-widest text-[11px] font-semibold">Receive QR Code</p>
+    </div>
 
-        <!-- Responsive Action Buttons at base of screen -->
-        <div class="mt-auto space-y-1.5 pt-3">
-          <button class="w-full py-2 bg-gradient-to-r from-error to-[#dc3545] hover:from-[#dc3545] hover:to-error text-white rounded-xl text-[9px] font-bold shadow-md shadow-error/15 hover:scale-[1.02] active:scale-95 transition-all uppercase tracking-wider select-none">
-            REPORT &amp; BLOCK
-          </button>
-          <button class="w-full py-2 bg-surface-variant/40 hover:bg-surface-variant/60 text-on-surface-variant rounded-xl text-[9px] font-bold transition-all uppercase tracking-wider select-none">
-            CLOSE
-          </button>
+    <!-- AI Interceptor Pipeline (Middle) -->
+    <div class="hidden lg:flex flex-col items-center justify-center px-2 my-auto space-y-3 select-none">
+      <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary via-blue-600 to-indigo-700 text-white flex flex-col items-center justify-center shadow-[0_0_30px_rgba(59,130,246,0.5)] ring-4 ring-primary/20 animate-pulse">
+        <span class="material-symbols-outlined text-2xl">radar</span>
+      </div>
+      <div class="px-3.5 py-1.5 rounded-full bg-surface-container/90 border border-primary/30 text-primary text-[11px] font-bold shadow-lg backdrop-blur-md flex items-center gap-1.5">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span>0.2s Real-Time AI Scan</span>
+      </div>
+      <div class="flex items-center text-primary/70 gap-0.5">
+        <span class="material-symbols-outlined text-lg animate-pulse">chevron_right</span>
+        <span class="material-symbols-outlined text-lg animate-pulse delay-100">chevron_right</span>
+        <span class="material-symbols-outlined text-lg animate-pulse delay-200">chevron_right</span>
+      </div>
+    </div>
+
+    <!-- Step 2 Phone: Instant Risk Warning -->
+    <div class="flex flex-col items-center">
+      <div class="mb-3 text-center">
+        <span class="px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] font-bold tracking-wider uppercase">Step 2: Instant Threat Warning</span>
+      </div>
+      
+      <div class="w-full max-w-[280px] aspect-[9/19] rounded-[3rem] bg-gradient-to-b from-[#3a252a] via-[#1f1619] to-[#0e0a0c] p-[8px] shadow-[0_20px_50px_rgba(239,68,68,0.25)] ring-1 ring-red-500/30 hover:shadow-error/30 transition-all duration-500 relative">
+        <!-- Absolute high risk badge at top of chassis -->
+        <div class="absolute -top-3 -right-2 bg-error text-white px-3 py-1 rounded-full text-[9px] font-extrabold shadow-lg tracking-wider animate-bounce z-30">
+          HIGH RISK
+        </div>
+        
+        <div class="w-full h-full rounded-[2.5rem] bg-black p-[6px] relative flex flex-col justify-between overflow-hidden select-none">
+          <!-- Outer screen container -->
+          <div class="w-full h-full rounded-[2.2rem] bg-surface-container relative overflow-hidden flex flex-col pt-[36px] pb-4 px-3">
+            
+            <!-- Dynamic Island -->
+            <div class="absolute top-[12px] left-1/2 -translate-x-1/2 z-45 bg-black w-[110px] h-[26px] rounded-full flex items-center justify-between px-3 border border-white/5">
+              <span class="w-[6px] h-[6px] rounded-full bg-[#ef4444] shadow-[0_0_8px_#ef4444] animate-pulse"></span>
+              <span class="text-[8px] font-bold text-error tracking-wider uppercase">ALERT</span>
+              <span class="w-[8px] h-[8px] bg-[#111] rounded-full border border-gray-800"></span>
+            </div>
+
+            <!-- Status Bar -->
+            <div class="absolute top-[14px] left-0 right-0 px-6 flex justify-between items-center text-[10px] font-bold text-on-surface select-none z-30 opacity-80">
+              <div>9:41</div>
+              <div class="flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5 fill-current text-on-surface" viewBox="0 0 24 24"><path d="M2 22h20V2z" /></svg>
+                <svg class="w-3.5 h-3.5 fill-current text-on-surface" viewBox="0 0 24 24"><path d="M12 21l-12-12a17 17 0 0 1 24 0z" /></svg>
+                <div class="w-5 h-2.5 border border-on-surface rounded-sm p-[1px] flex items-center">
+                  <div class="w-full h-full bg-on-surface rounded-xs"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Screen Content (SuRaksha Threat Warning HUD) -->
+            <div class="flex-1 flex flex-col">
+              <!-- Real-Time Analysis header -->
+              <div class="bg-error/15 border border-error/30 rounded-lg py-1 px-2 text-center text-[8px] font-bold text-error tracking-wider uppercase animate-pulse flex items-center justify-center gap-1 mb-3">
+                <span class="material-symbols-outlined text-[10px]">gpp_maybe</span> REAL-TIME THREAT DETECTED
+              </div>
+
+              <!-- Threat Detail Card -->
+              <div class="bg-gradient-to-b from-error/15 to-error/5 border border-error/30 rounded-2xl p-3 text-center shadow-[0_10px_20px_-5px_rgba(239,68,68,0.2)] flex-1 flex flex-col justify-center">
+                <div class="w-10 h-10 rounded-full bg-error/20 flex items-center justify-center mb-1.5 mx-auto ring-4 ring-error/10">
+                  <span class="material-symbols-outlined text-error text-2xl animate-bounce">warning</span>
+                </div>
+                <h4 class="text-error font-bold text-xs mb-0.5 tracking-wide">Threat Detected</h4>
+                <p class="text-on-surface-variant text-[8px] leading-relaxed mb-2">This QR code is linked to a known UPI fraud signature reported in your area.</p>
+                
+                <!-- Mini Checklist of factors -->
+                <div class="w-full bg-surface-container-low/80 border border-outline-variant/15 rounded-xl p-2 text-left space-y-1">
+                  <div class="flex items-center gap-1.5 text-[7px] text-on-surface-variant font-medium">
+                    <span class="material-symbols-outlined text-error text-[10px] font-bold">cancel</span>
+                    <span>Blacklisted UPI Address</span>
+                  </div>
+                  <div class="flex items-center gap-1.5 text-[7px] text-on-surface-variant font-medium">
+                    <span class="material-symbols-outlined text-error text-[10px] font-bold">cancel</span>
+                    <span>Unverified Merchant ID</span>
+                  </div>
+                  <div class="flex items-center gap-1.5 text-[7px] text-on-surface-variant font-medium">
+                    <span class="material-symbols-outlined text-error text-[10px] font-bold">cancel</span>
+                    <span>Spoofed Request Signature</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="mt-auto space-y-1.5 pt-3">
+                <button class="w-full py-2 bg-gradient-to-r from-error to-[#dc3545] hover:from-[#dc3545] hover:to-error text-white rounded-xl text-[9px] font-bold shadow-md shadow-error/20 hover:scale-[1.02] active:scale-95 transition-all uppercase tracking-wider select-none">
+                  REPORT &amp; BLOCK
+                </button>
+                <button class="w-full py-2 bg-surface-variant/40 hover:bg-surface-variant/60 text-on-surface-variant rounded-xl text-[9px] font-bold transition-all uppercase tracking-wider select-none">
+                  CLOSE
+                </button>
+              </div>
+            </div>
+
+            <!-- Home Indicator -->
+            <div class="absolute bottom-[6px] left-1/2 -translate-x-1/2 w-[90px] h-[3px] bg-on-surface/30 rounded-full z-40"></div>
+          </div>
         </div>
       </div>
-
-      <!-- Home Indicator -->
-      <div class="absolute bottom-[6px] left-1/2 -translate-x-1/2 w-[90px] h-[3px] bg-on-surface/30 rounded-full z-40"></div>
+      <p class="text-center mt-3 font-label-sm text-error uppercase tracking-widest text-[11px] font-semibold">Instant Risk Warning</p>
     </div>
+
   </div>
-  <p class="text-center mt-4 font-label-sm text-error uppercase tracking-widest">Instant Risk Warning</p>
-</div>
-</div>
 </section></section>
 
 <!-- ════════ CORE FEATURES ════════ -->

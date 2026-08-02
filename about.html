@@ -175,7 +175,8 @@
   </style>
   <link rel="stylesheet" href="css/theme-style.css" />
   <link rel="stylesheet" href="css/web-fixes.css" />
-  </head>
+  <script>document.addEventListener("DOMContentLoaded",function(){document.body.classList.add("page-ready");});</script>
+</head>
 <body class="bg-background text-on-background font-body-md">
 <!-- TopAppBar -->
 <header class="fixed top-0 inset-x-0 z-50 glass-header border-b border-outline-variant/10 shadow-sm">
@@ -187,14 +188,12 @@
        class="flex items-center gap-sm group">
 
       <img
-        class="h-10 w-10 rounded-xl object-contain group-hover:rotate-6 transition-transform duration-300"
+        class="h-10 w-10 rounded-xl object-contain group-hover:rotate-6 transition-transform duration-300 flex-shrink-0"
         src="assets/images/logo.png"
         alt="SuRaksha logo"
       />
 
-      <span class="font-headline-lg font-bold text-primary tracking-tight">
-        SuRaksha
-      </span>
+      <span class="font-headline-lg font-bold text-primary tracking-tight">SuRaksha</span>
 
     </a>
 

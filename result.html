@@ -24,6 +24,7 @@
 <script type="module" src="/js/tailwind-config.js"></script>
 <link rel="stylesheet" href="css/theme-style.css" />
 
+<script>document.addEventListener("DOMContentLoaded",function(){document.body.classList.add("page-ready");});</script>
 </head>
 <body class="bg-surface text-on-background font-body-md min-h-screen flex flex-col">
 <!-- TopAppBar -->
@@ -37,14 +38,12 @@
        class="flex items-center gap-sm group">
 
       <img
-        class="h-10 w-10 rounded-xl object-contain group-hover:rotate-6 transition-transform duration-300"
+        class="h-10 w-10 rounded-xl object-contain group-hover:rotate-6 transition-transform duration-300 flex-shrink-0"
         src="assets/images/logo.png"
         alt="SuRaksha logo"
       />
 
-      <span class="font-headline-lg font-bold text-primary tracking-tight">
-        SuRaksha
-      </span>
+      <span class="font-headline-lg font-bold text-primary tracking-tight">SuRaksha</span>
 
     </a>
 
