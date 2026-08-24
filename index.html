@@ -95,6 +95,15 @@
         <span id="navbar-profile-icon" class="material-symbols-outlined text-primary">account_circle</span>
       </button>
 
+      <!-- Auth Sign In / User Button -->
+      <button
+        id="navbar-auth-btn"
+        onclick="openAuthModal('login')"
+        class="hidden sm:flex items-center gap-1 text-xs font-bold text-primary hover:bg-primary/10 px-3 py-2 rounded-xl transition border border-primary/20 cursor-pointer">
+        Sign In
+      </button>
+      <span id="navbar-user-label" class="hidden text-xs font-semibold text-white/80 max-w-[100px] truncate"></span>
+
       <!-- CTA -->
       <a href="scan.html"
          class="bg-primary-container text-on-primary-container p-2 sm:px-lg sm:py-sm rounded-xl font-label-md flex items-center gap-sm hover:scale-105 hover:shadow-xl active:scale-95 transition-all duration-300">
@@ -1194,6 +1203,79 @@ window.demoNav = function(dir) {
       </a>
     </div>
 
+  </div>
+</div>
+
+<!-- Authentication Modal -->
+<div id="authModal" class="fixed inset-0 z-[9999] hidden items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-fadeIn">
+  <div class="bg-[#111827] border border-white/10 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl p-6 relative">
+    <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white transition cursor-pointer">
+      <span class="material-symbols-outlined">close</span>
+    </button>
+    
+    <div class="text-center mb-6">
+      <img src="assets/images/logo.png" class="h-12 w-12 mx-auto mb-2 rounded-xl" alt="SuRaksha" />
+      <h2 class="text-xl font-bold text-white">SuRaksha Security Shield</h2>
+      <p class="text-xs text-gray-400">Sign in or create an account for persistent threat tracking & secure QR registry</p>
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex border-b border-white/10 mb-6 gap-6 justify-center">
+      <button id="tabAuthLogin" onclick="switchAuthTab('login')" class="pb-2 border-b-2 border-primary text-white font-bold text-sm cursor-pointer">Sign In</button>
+      <button id="tabAuthSignup" onclick="switchAuthTab('signup')" class="pb-2 border-b-2 border-transparent text-gray-400 hover:text-white font-semibold text-sm cursor-pointer">Create Account</button>
+    </div>
+
+    <!-- Login Form -->
+    <form id="authLoginForm" onsubmit="event.preventDefault(); loginUser($('authLoginUser').value, $('authLoginPass').value);" class="space-y-4">
+      <div>
+        <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wider">Username or Email</label>
+        <input type="text" id="authLoginUser" placeholder="Enter your username or email" required
+               class="w-full bg-[#1f2937] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-primary/60 transition">
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wider">Password</label>
+        <input type="password" id="authLoginPass" placeholder="Enter your password" required
+               class="w-full bg-[#1f2937] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-primary/60 transition">
+      </div>
+      <button type="submit" class="w-full bg-gradient-to-r from-primary to-blue-600 hover:from-blue-600 hover:to-primary text-white font-bold py-3.5 rounded-xl text-sm transition shadow-lg shadow-primary/20 cursor-pointer">
+        Sign In
+      </button>
+      <div class="text-center pt-2">
+        <span class="text-xs text-gray-400">Demo Account: <code class="text-primary font-mono">demo</code> / <code class="text-primary font-mono">password123</code></span>
+      </div>
+    </form>
+
+    <!-- Signup Form -->
+    <form id="authSignupForm" onsubmit="event.preventDefault(); signupUser($('authSignupUser').value, $('authSignupEmail').value, $('authSignupPass').value, $('authSignupName').value, $('authSignupVpa').value);" class="space-y-3 hidden">
+      <div>
+        <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wider">Username</label>
+        <input type="text" id="authSignupUser" placeholder="Choose a username (e.g. sharma_store)" required
+               class="w-full bg-[#1f2937] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-primary/60 transition">
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wider">Email Address</label>
+        <input type="email" id="authSignupEmail" placeholder="e.g. merchant@example.com" required
+               class="w-full bg-[#1f2937] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-primary/60 transition">
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wider">Full Name / Merchant Name</label>
+        <input type="text" id="authSignupName" placeholder="e.g. Sharma Kirana Store"
+               class="w-full bg-[#1f2937] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-primary/60 transition">
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wider">Primary UPI VPA (Optional)</label>
+        <input type="text" id="authSignupVpa" placeholder="e.g. sharmakirana@upi"
+               class="w-full bg-[#1f2937] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-primary/60 transition">
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wider">Password (Min 6 chars)</label>
+        <input type="password" id="authSignupPass" placeholder="Create a secure password" minlength="6" required
+               class="w-full bg-[#1f2937] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-primary/60 transition">
+      </div>
+      <button type="submit" class="w-full bg-gradient-to-r from-primary to-blue-600 hover:from-blue-600 hover:to-primary text-white font-bold py-3.5 rounded-xl text-sm transition shadow-lg shadow-primary/20 cursor-pointer mt-2">
+        Create Account & Sign In
+      </button>
+    </form>
   </div>
 </div>
 </body>

@@ -1,62 +1,37 @@
 <!DOCTYPE html>
-<html class="dark" lang="en">
+<html lang="en">
 <head>
-<script>
-  if (localStorage.getItem("theme") === "light") {
-    document.documentElement.classList.remove("dark");
-  } else {
-    document.documentElement.classList.add("dark");
-  }
-</script>
-<script type="module" src="/js/theme.js"></script>
-<script type="module" src="/js/language.js"></script>
-<meta charset="utf-8"/>
-<link rel="icon" type="image/png" href="assets/images/logo.png" />
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>SuRaksha | Real-Time UPI Fraud Detection</title>
-<meta name="description"
-      content="SuRaksha detects UPI fraud using AI. Scan QR codes, suspicious messages, and screenshots instantly to prevent digital payment scams.">
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-
-
-
-<script type="module" src="/js/tailwind-config.js"></script>
-<link rel="stylesheet" href="css/theme-style.css" />
-<link rel="stylesheet" href="css/web-fixes.css" />
-
-<script>document.addEventListener("DOMContentLoaded",function(){document.body.classList.add("page-ready");});</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Profile & Security Registry — SuRaksha</title>
+  <link rel="icon" type="image/png" href="assets/images/logo.png" />
+  
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="src/style.css">
+  
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
+<body class="bg-background text-on-background font-body min-h-screen">
 
-<body class="bg-background text-on-surface font-body-md overflow-x-clip transition-colors duration-300">
-
-<!-- ════════════════════════════════════════════
-     NAVIGATION
-════════════════════════════════════════════ -->
-<header class="fixed top-0 inset-x-0 z-50 glass-header border-b border-outline-variant/10 shadow-sm">
-
-  <div class="max-w-7xl mx-auto px-lg py-md flex items-center justify-between">
-
+<!-- Sticky Top App Bar -->
+<header class="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-outline-variant/10 shadow-sm transition-all duration-300">
+  <div class="max-w-7xl mx-auto px-lg sm:px-xl py-md flex items-center justify-between">
+    
     <!-- Logo -->
-    <a href="index.html"
-       class="flex items-center gap-sm group">
-
-      <img
-        class="h-10 w-10 rounded-xl object-contain group-hover:rotate-6 transition-transform duration-300 flex-shrink-0"
-        src="assets/images/logo.png"
-        alt="SuRaksha logo"
-      />
-
+    <a href="index.html" class="flex items-center gap-sm group">
+      <img class="h-10 w-10 rounded-xl object-contain group-hover:rotate-6 transition-transform duration-300 flex-shrink-0"
+        src="assets/images/logo.png" alt="SuRaksha logo" />
       <span class="font-headline-lg font-bold text-primary tracking-tight">SuRaksha</span>
-
     </a>
 
     <!-- Navigation -->
     <nav class="hidden md:flex items-center gap-lg">
       <a href="index.html" class="text-on-surface-variant hover:text-primary transition-colors duration-300">Home</a>
+      <a href="scan.html" class="text-on-surface-variant hover:text-primary transition-colors duration-300">Scanner & Tools</a>
       <a href="index.html#features" class="text-on-surface-variant hover:text-primary transition-colors duration-300">Features</a>
-      <a href="index.html#how-it-works" class="text-on-surface-variant hover:text-primary transition-colors duration-300">How It Works</a>
       <a href="about.html" class="text-on-surface-variant hover:text-primary transition-colors duration-300">About</a>
     </nav>
 
@@ -64,49 +39,34 @@
     <div class="flex items-center gap-sm sm:gap-md">
 
       <!-- Language Toggle -->
-      <button
-        id="language-toggle"
-        aria-label="Toggle Language"
+      <button id="language-toggle" aria-label="Toggle Language"
         class="p-2 rounded-xl hover:bg-surface-variant/20 active:scale-95 transition-all duration-300 font-bold text-xs text-primary flex items-center gap-1 cursor-pointer border border-transparent">
         <span class="material-symbols-outlined text-[18px] text-primary">language</span>
         <span id="lang-label" class="text-primary hidden sm:inline">EN</span>
       </button>
 
       <!-- Theme Toggle -->
-      <button
-        id="theme-toggle"
-        aria-label="Toggle dark mode"
+      <button id="theme-toggle" aria-label="Toggle dark mode"
         class="p-2 rounded-xl hover:bg-surface-variant/20 active:scale-95 transition-all duration-300">
-        <span
-          id="theme-icon"
-          class="material-symbols-outlined text-primary">
-          dark_mode
-        </span>
+        <span id="theme-icon" class="material-symbols-outlined text-primary">dark_mode</span>
       </button>
 
-      <!-- User Profile Settings Button -->
-      <button
-        id="profile-settings-btn"
-        onclick="window.location.href='profile.html'"
-        aria-label="Profile Settings"
-        class="p-2 rounded-xl hover:bg-surface-variant/20 active:scale-95 transition-all duration-300 flex items-center justify-center border border-primary/20 bg-surface cursor-pointer">
-        <img id="navbar-profile-img" src="" class="h-6 w-6 rounded-full object-cover hidden" />
-        <span id="navbar-profile-icon" class="material-symbols-outlined text-primary">account_circle</span>
+      <!-- Auth Sign In / User Button -->
+      <button id="navbar-auth-btn" onclick="openAuthModal('login')"
+        class="hidden sm:flex items-center gap-1 text-xs font-bold text-primary hover:bg-primary/10 px-3 py-2 rounded-xl transition border border-primary/20 cursor-pointer">
+        Sign In
       </button>
+      <span id="navbar-user-label" class="hidden text-xs font-semibold text-white/80 max-w-[100px] truncate"></span>
 
       <!-- CTA -->
       <a href="scan.html"
          class="bg-primary-container text-on-primary-container p-2 sm:px-lg sm:py-sm rounded-xl font-label-md flex items-center gap-sm hover:scale-105 hover:shadow-xl active:scale-95 transition-all duration-300">
-        <span class="material-symbols-outlined text-[20px]">
-          qr_code_scanner
-        </span>
-        <span class="hidden sm:inline">Open Scanner</span>
+        <span class="material-symbols-outlined text-[20px]">qr_code_scanner</span>
+        <span class="hidden sm:inline">Scanner</span>
       </a>
 
       <!-- Hamburger Menu Button -->
-      <button
-        id="mobile-menu-btn"
-        aria-label="Toggle mobile menu"
+      <button id="mobile-menu-btn" aria-label="Toggle mobile menu"
         class="md:hidden p-2 rounded-xl hover:bg-surface-variant/20 active:scale-95 transition-all duration-300 flex items-center justify-center border border-primary/20 bg-surface cursor-pointer">
         <span id="mobile-menu-icon" class="material-symbols-outlined text-primary">menu</span>
       </button>
@@ -118,29 +78,48 @@
   <!-- Mobile Navigation Panel -->
   <div id="mobile-nav-panel" class="hidden md:hidden border-t border-outline-variant/10 bg-background/95 backdrop-blur-xl px-lg py-md flex flex-col gap-md transition-all duration-300">
     <a href="index.html" class="text-on-surface-variant hover:text-primary transition-colors duration-300 py-1">Home</a>
-    <a href="index.html#features" class="text-on-surface-variant hover:text-primary transition-colors duration-300 py-1">Features</a>
-    <a href="index.html#how-it-works" class="text-on-surface-variant hover:text-primary transition-colors duration-300 py-1">How It Works</a>
+    <a href="scan.html" class="text-on-surface-variant hover:text-primary transition-colors duration-300 py-1">Scanner</a>
     <a href="about.html" class="text-on-surface-variant hover:text-primary transition-colors duration-300 py-1">About</a>
   </div>
 
 </header>
 
-<main class="pt-32 pb-12 px-6 max-w-4xl mx-auto min-h-screen">
+<main class="pt-28 pb-16 px-4 sm:px-6 max-w-4xl mx-auto min-h-screen">
     
-    <div class="bg-surface border border-outline-variant/30 rounded-3xl w-full p-8 md:p-12 shadow-2xl relative overflow-hidden text-center animate-fadeIn">
-        <h2 class="font-headline-lg text-3xl font-bold mb-2">User Profile</h2>
-        <p class="text-sm text-on-surface/70 mb-10">Manage your avatar and custom receive VPA for secure QR code generation.</p>
+    <!-- Account Status Banner -->
+    <div id="accountStatusBanner" class="mb-6 p-4 rounded-2xl bg-surface border border-outline-variant/30 flex items-center justify-between shadow-lg">
+      <div class="flex items-center gap-3">
+        <div class="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold">
+          <span class="material-symbols-outlined">verified_user</span>
+        </div>
+        <div>
+          <h3 id="accountStatusTitle" class="text-sm font-bold text-white">Guest Session (Local Mode)</h3>
+          <p id="accountStatusSubtitle" class="text-xs text-gray-400">Sign in to automatically sync cryptographic QR records and scan history with the SuRaksha Cloud DB.</p>
+        </div>
+      </div>
+      <div>
+        <button id="accountAuthActionBtn" onclick="openAuthModal('login')"
+          class="text-xs font-bold bg-primary text-white px-4 py-2 rounded-xl hover:bg-primary/80 transition cursor-pointer shadow-md">
+          Sign In
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Profile Card -->
+    <div class="bg-surface border border-outline-variant/30 rounded-3xl w-full p-6 md:p-10 shadow-2xl relative overflow-hidden text-center animate-fadeIn">
+        <h2 class="font-headline-lg text-2xl md:text-3xl font-bold mb-2">Merchant & User Profile</h2>
+        <p class="text-xs md:text-sm text-on-surface/70 mb-8">Manage your profile details and custom receive VPA for cryptographic QR code generation.</p>
 
         <!-- Avatar Upload Section -->
-        <div class="flex flex-col items-center justify-center gap-3 mb-10">
+        <div class="flex flex-col items-center justify-center gap-3 mb-8">
             <div class="relative group cursor-pointer">
                 <label for="profilePhotoInput" class="block w-full h-full cursor-pointer">
-                    <div class="h-32 w-32 rounded-full border-4 border-primary/30 overflow-hidden bg-slate-800 flex items-center justify-center shadow-lg transition duration-300 group-hover:border-primary/60 group-hover:shadow-primary/20">
-                        <img id="profile-modal-preview-img" src="" class="h-full w-full object-cover hidden" />
-                        <span id="profile-modal-preview-icon" class="material-symbols-outlined text-primary text-6xl">account_circle</span>
+                    <div class="h-28 w-28 md:h-32 md:w-32 rounded-full border-4 border-primary/30 overflow-hidden bg-slate-800 flex items-center justify-center shadow-lg transition duration-300 group-hover:border-primary/60 group-hover:shadow-primary/20">
+                        <img id="profile-modal-preview-img" src="" class="h-full w-full object-cover hidden" alt="Avatar" />
+                        <span id="profile-modal-preview-icon" class="material-symbols-outlined text-primary text-5xl md:text-6xl">account_circle</span>
                     </div>
                     <div class="absolute bottom-0 right-0 p-2 bg-primary text-white rounded-full transition duration-300 shadow-xl border-2 border-surface group-hover:scale-110 group-hover:-rotate-12">
-                        <span class="material-symbols-outlined text-sm">photo_camera</span>
+                        <span class="material-symbols-outlined text-xs">photo_camera</span>
                     </div>
                 </label>
                 <input type="file" id="profilePhotoInput" accept="image/*" class="hidden" onchange="handleProfilePhotoUpload(event)">
@@ -159,56 +138,279 @@
         </div>
 
         <!-- Details Section -->
-        <div class="space-y-6 text-left max-w-md mx-auto">
+        <div class="space-y-5 text-left max-w-md mx-auto">
             <div>
-                <label class="block text-xs font-bold text-on-surface/70 mb-2 uppercase tracking-wider">Display Name</label>
-                <input type="text" id="profileDisplayName" placeholder="e.g. Suraj Sawant" 
+                <label class="block text-xs font-bold text-on-surface/70 mb-1.5 uppercase tracking-wider">Merchant / Display Name</label>
+                <input type="text" id="profileDisplayName" placeholder="e.g. Sharma Kirana Store" 
                        class="w-full bg-surface-container border border-outline-variant/30 rounded-xl px-4 py-3 text-sm text-on-surface focus:outline-none focus:border-primary/60 focus:ring-1 focus:ring-primary/60 transition shadow-inner">
             </div>
             <div>
-                <label class="block text-xs font-bold text-on-surface/70 mb-2 uppercase tracking-wider">Receive UPI VPA</label>
-                <input type="text" id="profileUpiId" placeholder="e.g. surajsawant@okaxis" 
+                <label class="block text-xs font-bold text-on-surface/70 mb-1.5 uppercase tracking-wider">Primary Receive UPI VPA</label>
+                <input type="text" id="profileUpiId" placeholder="e.g. sharmakirana@upi" 
                        class="w-full bg-surface-container border border-outline-variant/30 rounded-xl px-4 py-3 text-sm text-on-surface focus:outline-none focus:border-primary/60 focus:ring-1 focus:ring-primary/60 transition shadow-inner">
-                <span class="text-[10px] text-on-surface/60 block mt-2">This VPA will be encoded in your secure QR code to receive payments.</span>
+                <span class="text-[10px] text-on-surface/60 block mt-1.5">This VPA will be cryptographically signed in your secure QR code to receive payments.</span>
             </div>
 
-            
-            <div class="mt-8 border-t border-outline-variant/30 pt-8">
-                <label class="block text-xs font-bold text-on-surface/70 mb-3 uppercase tracking-wider">Primary Receive QR Code</label>
-                <div class="flex flex-col items-center justify-center gap-4">
+            <!-- Custom Official QR Upload Section -->
+            <div class="mt-6 border-t border-outline-variant/30 pt-6">
+                <label class="block text-xs font-bold text-on-surface/70 mb-2 uppercase tracking-wider">Official Merchant Static QR (Optional)</label>
+                <div class="flex flex-col items-center justify-center gap-3">
                     <div class="relative group cursor-pointer w-full">
-                        <label for="customQrInput" class="block w-full cursor-pointer bg-surface-container border-2 border-dashed border-outline-variant/50 hover:border-primary/50 rounded-2xl p-8 text-center transition duration-300 shadow-sm hover:shadow-md hover:bg-primary/5">
-                            <img id="profile-modal-preview-qr" src="" class="mx-auto h-40 w-40 object-contain hidden mb-4 rounded-xl shadow-md border border-outline-variant/20" />
+                        <label for="customQrInput" class="block w-full cursor-pointer bg-surface-container border-2 border-dashed border-outline-variant/50 hover:border-primary/50 rounded-2xl p-6 text-center transition duration-300 shadow-sm hover:shadow-md hover:bg-primary/5">
+                            <img id="profile-modal-preview-qr" src="" class="mx-auto h-36 w-36 object-contain hidden mb-3 rounded-xl shadow-md border border-outline-variant/20" alt="QR Preview" />
                             <div id="profile-modal-preview-qr-placeholder" class="flex flex-col items-center justify-center">
-                                <div class="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition duration-300">
-                                    <span class="material-symbols-outlined text-primary text-3xl">qr_code_scanner</span>
+                                <div class="h-12 w-12 bg-primary/10 rounded-full flex items-center justify-center mb-2 group-hover:scale-110 transition duration-300">
+                                    <span class="material-symbols-outlined text-primary text-2xl">qr_code_scanner</span>
                                 </div>
-                                <h3 class="font-bold text-sm text-on-surface mb-1">Upload Official QR Code</h3>
-                                <p class="text-xs text-on-surface/60 max-w-[200px]">Upload your official merchant or personal QR (PhonePe, GPay, MobiKwik) to receive payments.</p>
+                                <h3 class="font-bold text-xs text-on-surface mb-0.5">Upload Official QR Code</h3>
+                                <p class="text-[11px] text-on-surface/60 max-w-[220px]">Upload your verified merchant QR (PhonePe, GPay, Paytm) for quick fallback access.</p>
                             </div>
                         </label>
                         <input type="file" id="customQrInput" accept="image/*" class="hidden" onchange="handleCustomQrUpload(event)">
                     </div>
-                    <button id="removeQrBtn" onclick="removeCustomQr(event)" class="hidden text-[11px] font-bold text-error hover:text-red-400 bg-error/10 hover:bg-error/20 px-4 py-2 rounded-full transition duration-300 cursor-pointer mt-1">
+                    <button id="removeQrBtn" onclick="removeCustomQr(event)" class="hidden text-[11px] font-bold text-error hover:text-red-400 bg-error/10 hover:bg-error/20 px-3 py-1.5 rounded-full transition duration-300 cursor-pointer">
                         <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">delete</span> Remove Custom QR</span>
                     </button>
                 </div>
             </div>
 
-<!-- Action Buttons -->
-            <div class="pt-6">
-                <button onclick="saveUserProfile()" class="w-full bg-gradient-to-r from-primary to-blue-600 hover:from-blue-600 hover:to-primary active:scale-95 text-white font-bold py-4 rounded-xl text-sm transition cursor-pointer shadow-lg shadow-primary/20">
-                    Save Changes
+            <!-- Action Buttons -->
+            <div class="pt-4 flex flex-col gap-3">
+                <button onclick="saveUserProfile()" class="w-full bg-gradient-to-r from-primary to-blue-600 hover:from-blue-600 hover:to-primary active:scale-95 text-white font-bold py-3.5 rounded-xl text-sm transition cursor-pointer shadow-lg shadow-primary/20">
+                    Save Profile Changes
+                </button>
+                <button id="profileLogoutBtn" onclick="logoutUser()" class="hidden w-full bg-white/5 hover:bg-red-500/20 text-gray-400 hover:text-red-400 font-semibold py-2.5 rounded-xl text-xs transition cursor-pointer border border-white/5">
+                    Sign Out of Account
                 </button>
             </div>
         </div>
     </div>
+
+    <!-- User Audit & Scan Activity Section -->
+    <div class="mt-8 bg-surface border border-outline-variant/30 rounded-3xl p-6 md:p-8 shadow-xl">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h3 class="text-lg font-bold text-white flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary">history</span>
+            Security Audit & Threat History
+          </h3>
+          <p class="text-xs text-gray-400">Live feed of verified payment scans and registered cryptographic QR records</p>
+        </div>
+        <button onclick="loadUserAuditHistory()" class="text-xs font-semibold text-primary hover:underline flex items-center gap-1 cursor-pointer">
+          <span class="material-symbols-outlined text-[16px]">refresh</span> Refresh
+        </button>
+      </div>
+
+      <div id="userHistoryList" class="space-y-3">
+        <div class="text-center py-8 text-gray-500 text-xs">
+          <span class="material-symbols-outlined text-3xl mb-2 opacity-50">search_activity</span>
+          <p>Loading security audit logs...</p>
+        </div>
+      </div>
+    </div>
 </main>
+
+<!-- Authentication Modal -->
+<div id="authModal" class="fixed inset-0 z-[9999] hidden items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-fadeIn">
+  <div class="bg-[#111827] border border-white/10 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl p-6 relative">
+    <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white transition cursor-pointer">
+      <span class="material-symbols-outlined">close</span>
+    </button>
+    
+    <div class="text-center mb-6">
+      <img src="assets/images/logo.png" class="h-12 w-12 mx-auto mb-2 rounded-xl" alt="SuRaksha" />
+      <h2 class="text-xl font-bold text-white">SuRaksha Security Shield</h2>
+      <p class="text-xs text-gray-400">Sign in or create an account for persistent threat tracking & secure QR registry</p>
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex border-b border-white/10 mb-6 gap-6 justify-center">
+      <button id="tabAuthLogin" onclick="switchAuthTab('login')" class="pb-2 border-b-2 border-primary text-white font-bold text-sm cursor-pointer">Sign In</button>
+      <button id="tabAuthSignup" onclick="switchAuthTab('signup')" class="pb-2 border-b-2 border-transparent text-gray-400 hover:text-white font-semibold text-sm cursor-pointer">Create Account</button>
+    </div>
+
+    <!-- Login Form -->
+    <form id="authLoginForm" onsubmit="event.preventDefault(); loginUser($('authLoginUser').value, $('authLoginPass').value);" class="space-y-4">
+      <div>
+        <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wider">Username or Email</label>
+        <input type="text" id="authLoginUser" placeholder="Enter your username or email" required
+               class="w-full bg-[#1f2937] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-primary/60 transition">
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wider">Password</label>
+        <input type="password" id="authLoginPass" placeholder="Enter your password" required
+               class="w-full bg-[#1f2937] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-primary/60 transition">
+      </div>
+      <button type="submit" class="w-full bg-gradient-to-r from-primary to-blue-600 hover:from-blue-600 hover:to-primary text-white font-bold py-3.5 rounded-xl text-sm transition shadow-lg shadow-primary/20 cursor-pointer">
+        Sign In
+      </button>
+      <div class="text-center pt-2">
+        <span class="text-xs text-gray-400">Demo Account: <code class="text-primary font-mono">demo</code> / <code class="text-primary font-mono">password123</code></span>
+      </div>
+    </form>
+
+    <!-- Signup Form -->
+    <form id="authSignupForm" onsubmit="event.preventDefault(); signupUser($('authSignupUser').value, $('authSignupEmail').value, $('authSignupPass').value, $('authSignupName').value, $('authSignupVpa').value);" class="space-y-3 hidden">
+      <div>
+        <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wider">Username</label>
+        <input type="text" id="authSignupUser" placeholder="Choose a username (e.g. sharma_store)" required
+               class="w-full bg-[#1f2937] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-primary/60 transition">
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wider">Email Address</label>
+        <input type="email" id="authSignupEmail" placeholder="e.g. merchant@example.com" required
+               class="w-full bg-[#1f2937] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-primary/60 transition">
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wider">Full Name / Merchant Name</label>
+        <input type="text" id="authSignupName" placeholder="e.g. Sharma Kirana Store"
+               class="w-full bg-[#1f2937] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-primary/60 transition">
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wider">Primary UPI VPA (Optional)</label>
+        <input type="text" id="authSignupVpa" placeholder="e.g. sharmakirana@upi"
+               class="w-full bg-[#1f2937] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-primary/60 transition">
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wider">Password (Min 6 chars)</label>
+        <input type="password" id="authSignupPass" placeholder="Create a secure password" minlength="6" required
+               class="w-full bg-[#1f2937] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-primary/60 transition">
+      </div>
+      <button type="submit" class="w-full bg-gradient-to-r from-primary to-blue-600 hover:from-blue-600 hover:to-primary text-white font-bold py-3.5 rounded-xl text-sm transition shadow-lg shadow-primary/20 cursor-pointer mt-2">
+        Create Account & Sign In
+      </button>
+    </form>
+  </div>
+</div>
 
 <!-- Toasts Container -->
 <div id="toast-container" class="fixed top-4 right-4 z-[9999] flex flex-col gap-2"></div>
 
 <script type="module" src="/js/upi_database.js"></script>
 <script type="module" src="/src/app.js"></script>
+
+<script>
+  async function loadUserAuditHistory() {
+    const listEl = document.getElementById("userHistoryList");
+    if (!listEl) return;
+
+    const token = localStorage.getItem("auth_token");
+    const userStr = localStorage.getItem("auth_user");
+    const bannerTitle = document.getElementById("accountStatusTitle");
+    const bannerSub = document.getElementById("accountStatusSubtitle");
+    const bannerBtn = document.getElementById("accountAuthActionBtn");
+    const logoutBtn = document.getElementById("profileLogoutBtn");
+
+    if (token && userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        if (bannerTitle) bannerTitle.innerText = `Verified Account: ${user.full_name || user.username}`;
+        if (bannerSub) bannerSub.innerText = `Role: ${user.role.toUpperCase()} • Email: ${user.email} • Connected to SuRaksha Cloud DB`;
+        if (bannerBtn) {
+          bannerBtn.innerText = "Active Session";
+          bannerBtn.className = "text-xs font-bold bg-green-500/20 text-green-400 border border-green-500/30 px-3 py-1.5 rounded-xl cursor-default";
+          bannerBtn.onclick = null;
+        }
+        if (logoutBtn) logoutBtn.classList.remove("hidden");
+      } catch(e) {}
+    } else {
+      if (bannerTitle) bannerTitle.innerText = "Guest Session (Local Mode)";
+      if (bannerSub) bannerSub.innerText = "Sign in to automatically sync cryptographic QR records and scan history with the SuRaksha Cloud DB.";
+      if (bannerBtn) {
+        bannerBtn.innerText = "Sign In";
+        bannerBtn.className = "text-xs font-bold bg-primary text-white px-4 py-2 rounded-xl hover:bg-primary/80 transition cursor-pointer shadow-md";
+        bannerBtn.onclick = () => openAuthModal('login');
+      }
+      if (logoutBtn) logoutBtn.classList.add("hidden");
+    }
+
+    try {
+      const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || window.location.hostname === "";
+      const apiBase = isLocal ? "http://127.0.0.1:5000" : "https://suraksha-upi-fraud-detection-system.onrender.com";
+      
+      const headers = {};
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+      
+      const res = await fetch(`${apiBase}/api/auth/history`, { headers });
+      const data = await res.json();
+
+      if (data.success && data.data) {
+        const analyses = data.data.analyses || [];
+        const qrs = data.data.qr_codes || [];
+
+        if (analyses.length === 0 && qrs.length === 0) {
+          listEl.innerHTML = `
+            <div class="text-center py-6 text-gray-500 text-xs">
+              <span class="material-symbols-outlined text-2xl mb-1 opacity-40">shield</span>
+              <p>No recent threat scans or QR records found. Scan a QR or generate a secure QR to view audit logs.</p>
+            </div>
+          `;
+          return;
+        }
+
+        let html = "";
+        analyses.slice(0, 5).forEach(item => {
+          const isSafe = item.risk_level === "SAFE" || item.risk_score <= 20;
+          const badgeColor = isSafe ? "bg-green-500/10 text-green-400 border-green-500/30" : "bg-red-500/10 text-red-400 border-red-500/30";
+          const icon = isSafe ? "check_circle" : "warning";
+          const title = item.payee_name || item.upi_id || "Payment Scan";
+          const timeStr = item.created_at ? new Date(item.created_at).toLocaleString() : "Just now";
+
+          html += `
+            <div class="p-3.5 rounded-xl bg-surface-container border border-outline-variant/20 flex items-center justify-between text-xs">
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined ${isSafe ? 'text-green-400' : 'text-red-400'} text-xl">${icon}</span>
+                <div>
+                  <div class="font-bold text-white flex items-center gap-2">
+                    ${title}
+                    <span class="text-[10px] font-mono px-2 py-0.5 rounded-full border ${badgeColor}">${item.risk_level || 'ANALYZED'}</span>
+                  </div>
+                  <div class="text-[11px] text-gray-400 font-mono">${item.upi_id || 'Scan'} • Risk Score: ${item.risk_score}/100 • ${timeStr}</div>
+                </div>
+              </div>
+              <div class="text-right">
+                <span class="text-[10px] text-gray-400">${item.qr_mode === 'max_limit' ? 'Max Limit QR' : item.type}</span>
+              </div>
+            </div>
+          `;
+        });
+
+        qrs.slice(0, 3).forEach(qr => {
+          const limitTxt = qr.qr_mode === 'max_limit' ? `Max Limit: ₹${(qr.max_amount || 0).toLocaleString('en-IN')}` : `Fixed: ₹${(qr.fixed_amount || 0).toLocaleString('en-IN')}`;
+          const timeStr = qr.created_at ? new Date(qr.created_at).toLocaleString() : "Recently";
+          html += `
+            <div class="p-3.5 rounded-xl bg-primary/5 border border-primary/20 flex items-center justify-between text-xs">
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-primary text-xl">qr_code_2</span>
+                <div>
+                  <div class="font-bold text-white flex items-center gap-2">
+                    ${qr.payee_name}
+                    <span class="text-[10px] font-mono px-2 py-0.5 rounded-full border bg-primary/10 text-primary border-primary/30">REGISTERED QR</span>
+                  </div>
+                  <div class="text-[11px] text-gray-400 font-mono">${qr.vpa} • ${limitTxt} • ${timeStr}</div>
+                </div>
+              </div>
+              <div class="text-right font-mono text-[10px] text-primary">
+                ID: ${qr.qr_id.slice(-8)}
+              </div>
+            </div>
+          `;
+        });
+
+        listEl.innerHTML = html;
+      }
+    } catch(err) {
+      listEl.innerHTML = `
+        <div class="text-center py-4 text-gray-500 text-xs">
+          <p>Scan activity will appear here in real-time.</p>
+        </div>
+      `;
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    setTimeout(loadUserAuditHistory, 300);
+  });
+</script>
 </body>
 </html>

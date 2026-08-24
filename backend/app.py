@@ -6,6 +6,7 @@ from routes.analyze import analyze_bp
 from routes.health import health_bp
 from routes.qr import qr_bp
 from routes.report import report_bp
+from routes.auth import auth_bp
 
 # Initialize relational database and load persistent indices
 from services.history_store import init_db
@@ -88,6 +89,7 @@ app.register_blueprint(analyze_bp)
 app.register_blueprint(health_bp)
 app.register_blueprint(qr_bp)
 app.register_blueprint(report_bp)
+app.register_blueprint(auth_bp)
 
 # ----------------------------------------------------------------------
 # RUN APP

@@ -16,6 +16,8 @@ for a variety of fraud signals:
 import re
 import unicodedata
 import hashlib
+import math
+import time
 from services.ml_classifier import predict_scam_probabilities
 from utils.constants import TRUSTED_MERCHANTS
 
@@ -126,16 +128,52 @@ def detect_typosquat(upi_id):
     return None
 
 
+def to_paise(val):
+    """
+    Converts numeric/string amount to integer paise to eliminate floating-point representation errors.
+    Returns integer paise >= 0, or None if invalid/negative/non-numeric.
+    """
+    if val is None or val == "":
+        return None
+    try:
+        val_float = float(val)
+        if math.isnan(val_float) or math.isinf(val_float) or val_float < 0:
+            return None
+        # Use round to safely convert 10000.00 -> 1000000 paise
+        return int(round(val_float * 100))
+    except (ValueError, TypeError):
+        return None
+
+
+def compute_canonical_signature(vpa: str, name: str, mam_str: str, am_str: str, cu: str, qr_id: str, ts: str, exp: str, secret: str) -> str:
+    """
+    Computes cryptographic SHA-256 hash covering all critical QR transaction parameters.
+    """
+    canonical = (
+        f"{vpa.strip().lower()}|"
+        f"{name.strip().lower()}|"
+        f"{mam_str.strip()}|"
+        f"{am_str.strip()}|"
+        f"{cu.strip().upper()}|"
+        f"{qr_id.strip()}|"
+        f"{ts.strip()}|"
+        f"{exp.strip()}|"
+        f"{secret.strip()}"
+    )
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
 # ────────────────────────────────────────────────────────────────────────
 # MAIN FUNCTION
 # ────────────────────────────────────────────────────────────────────────
-def analyze_qr_risk(parsed_data, raw_text=""):
+def analyze_qr_risk(parsed_data, raw_text="", requested_amount=None):
     """
     Main evaluation pipeline checking UPI parameters, signatures, and string features.
     
     Args:
         parsed_data (Dict): Decoded query arguments from the UPI URI string.
         raw_text (str): Raw scanned QR payload text (e.g. "upi://pay?pa=...").
+        requested_amount (float|str|int, optional): Payer's proposed payment amount to validate against limits.
         
     Returns:
         Dict: Final QR risk determination payload.
@@ -143,20 +181,41 @@ def analyze_qr_risk(parsed_data, raw_text=""):
     signals = []
 
     # Safe extraction of UPI URL query parameters:
-    # pa: Payee Address (VPA), pn: Payee Name, tn: Transaction Note, am: Amount
+    # pa: Payee Address (VPA), pn: Payee Name, tn: Transaction Note, am: Fixed Amount, mam: Maximum Amount Limit
     upi_id     = normalize((parsed_data.get("pa") or [""])[0])
     payee_name = normalize((parsed_data.get("pn") or [""])[0])
     note       = normalize((parsed_data.get("tn") or [""])[0])
-    amount     = (parsed_data.get("am") or [""])[0]
+    amount_raw = (parsed_data.get("am") or [""])[0].strip()
+    mam_raw    = (parsed_data.get("mam") or parsed_data.get("max_amount") or [""])[0].strip()
+    currency   = (parsed_data.get("cu") or ["INR"])[0].strip().upper() or "INR"
+    qr_id      = (parsed_data.get("qr_id") or parsed_data.get("id") or [""])[0].strip()
+    ts_raw     = (parsed_data.get("ts") or [""])[0].strip()
+    exp_raw    = (parsed_data.get("exp") or [""])[0].strip()
+    signature  = (parsed_data.get("sign") or [""])[0].strip()
+
     combined   = f"{upi_id} {payee_name} {note}"
+
+    # Integer paise conversions for precision monetary safety
+    am_paise  = to_paise(amount_raw)
+    mam_paise = to_paise(mam_raw)
+    req_paise = to_paise(requested_amount) if requested_amount is not None else None
+
+    # Determine QR Mode: Maximum Limit QR vs Fixed Amount QR vs Open QR
+    if mam_paise is not None and mam_paise > 0:
+        qr_mode = "max_limit"
+        max_amount_val = mam_paise / 100.0
+        fixed_amount_val = None
+    elif am_paise is not None and am_paise > 0:
+        qr_mode = "fixed_amount"
+        max_amount_val = am_paise / 100.0
+        fixed_amount_val = am_paise / 100.0
+    else:
+        qr_mode = "open"
+        max_amount_val = None
+        fixed_amount_val = None
 
     # ────────────────────────────────────────────────────────────────────────
     # -1. NON-UPI SCHEME / PHISHING REDIRECT CHECK 🔥
-    # 
-    # Why: Scammers often print custom stickers and paste them over legitimate merchant QRs.
-    # If the sticker points to a web URL (http/https) instead of a native 'upi://pay' scheme,
-    # scanning it will redirect the victim's browser to a phishing credential-stealing page.
-    # This check identifies and instantly blocks any non-UPI schemes.
     # ────────────────────────────────────────────────────────────────────────
     if raw_text and "://" in raw_text and not raw_text.lower().startswith("upi://"):
         signals.append(make_signal(
@@ -173,7 +232,12 @@ def analyze_qr_risk(parsed_data, raw_text=""):
             "fraud_type": "Phishing Redirect",
             "detected_action": "Immediate Block — Malicious web redirect detected",
             "signals": signals,
-            "reasons": [s["reason"] for s in signals]
+            "reasons": [s["reason"] for s in signals],
+            "constraints": {
+                "qr_mode": "invalid",
+                "is_signed": False,
+                "signature_valid": False
+            }
         }
 
     # 0. DIRECTORY REGISTRY CHECK 🔥
@@ -203,7 +267,14 @@ def analyze_qr_risk(parsed_data, raw_text=""):
                 "fraud_type": f"Criminal / {dir_info['subtype'].capitalize()}",
                 "detected_action": "Immediate Block — Listed in National Cyber Fraud Registry",
                 "signals": signals,
-                "reasons": reasons_list
+                "reasons": reasons_list,
+                "constraints": {
+                    "qr_mode": qr_mode,
+                    "max_amount": max_amount_val,
+                    "fixed_amount": fixed_amount_val,
+                    "is_signed": bool(signature),
+                    "signature_valid": False
+                }
             }
         elif dir_info["category"] == "medium":
             main_reason = f"Suspect {dir_info['subtype'].upper()} VPA ({dir_info['name']}): {dir_info['description']}"
@@ -226,7 +297,14 @@ def analyze_qr_risk(parsed_data, raw_text=""):
                 "fraud_type": f"Suspect / {dir_info['subtype'].capitalize()}",
                 "detected_action": "Verify carefully before paying — Unverified profile",
                 "signals": signals,
-                "reasons": reasons_list
+                "reasons": reasons_list,
+                "constraints": {
+                    "qr_mode": qr_mode,
+                    "max_amount": max_amount_val,
+                    "fixed_amount": fixed_amount_val,
+                    "is_signed": bool(signature),
+                    "signature_valid": False
+                }
             }
         elif dir_info["category"] == "safe":
             signals.append(make_signal(
@@ -235,23 +313,9 @@ def analyze_qr_risk(parsed_data, raw_text=""):
                 1.0,
                 f"Verified Safe {dir_info['subtype'].capitalize()} VPA: {dir_info['name']} ({dir_info['description']})"
             ))
-            return {
-                "risk_score": 0,
-                "risk_level": "SAFE",
-                "confidence": 1.0,
-                "suspicious": False,
-                "fraud_type": f"Verified {dir_info['subtype'].capitalize()}",
-                "detected_action": "Safe to Proceed — Trust Certificate Active",
-                "signals": signals,
-                "reasons": [s["reason"] for s in signals]
-            }
 
     # ────────────────────────────────────────────────────────────────────────
     # 0. DATABASE BLACKLIST CHECK 🔥
-    # 
-    # Why: High-priority immediate block. If the VPA is already recorded in our local
-    # SQLite fraud database as having active reports, we block the payment immediately
-    # rather than letting heuristics decide.
     # ────────────────────────────────────────────────────────────────────────
     from services.history_store import get_upi_count
 
@@ -271,83 +335,186 @@ def analyze_qr_risk(parsed_data, raw_text=""):
             "fraud_type": "Known Fraudster",
             "detected_action": "Immediate Block — Multiple reports exist",
             "signals": signals,
-            "reasons": [s["reason"] for s in signals]
+            "reasons": [s["reason"] for s in signals],
+            "constraints": {
+                "qr_mode": qr_mode,
+                "max_amount": max_amount_val,
+                "fixed_amount": fixed_amount_val,
+                "is_signed": bool(signature),
+                "signature_valid": False
+            }
         }
 
     # ────────────────────────────────────────────────────────────────────────
-    # 0.5. CRYPTOGRAPHIC SIGNATURE CHECK 🔒
-    # 
-    # Why: Physical sticker tampering (replacing a store QR with a scammer QR) is common.
-    # SuRaksha allows trusted merchants to register their QR codes with a signature.
-    # The signature is a SHA-256 hash of payee name + VPA + merchant secret.
-    # We verify the signature on the backend to confirm authenticity and prevent tampering.
+    # 0.5. EXPIRY CHECK ⏳
     # ────────────────────────────────────────────────────────────────────────
-    signature = (parsed_data.get("sign") or [""])[0].strip()
+    is_expired = False
+    if exp_raw:
+        try:
+            exp_time = float(exp_raw)
+            if exp_time > 0 and time.time() > exp_time:
+                is_expired = True
+                signals.append(make_signal(
+                    "expired_qr_code",
+                    10.0,
+                    0.99,
+                    f"QR code has expired (Expiry: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(exp_time))})"
+                ))
+        except (ValueError, TypeError):
+            pass
 
+    # ────────────────────────────────────────────────────────────────────────
+    # 0.6. CRYPTOGRAPHIC SIGNATURE CHECK 🔒
+    # ────────────────────────────────────────────────────────────────────────
+    is_signed = bool(signature)
+    signature_valid = False
+    
+    # Determine merchant secret
+    merchant_secret = None
     if upi_id in TRUSTED_MERCHANTS:
-        merchant_info = TRUSTED_MERCHANTS[upi_id]
-        expected_pn = payee_name or merchant_info["name"].lower()
-        expected_raw = f"{expected_pn.strip()}{upi_id.strip()}{merchant_info['secret']}"
-        expected_sign = hashlib.sha256(expected_raw.encode("utf-8")).hexdigest()
+        merchant_secret = TRUSTED_MERCHANTS[upi_id]["secret"]
+    elif signature:
+        merchant_secret = "SuRakshaShield2026"
 
-        if not signature:
+    if merchant_secret:
+        # 1. Try canonical signature covering all constraint fields
+        expected_sign_canonical = compute_canonical_signature(
+            vpa=upi_id,
+            name=payee_name or "recipient",
+            mam_str=mam_raw,
+            am_str=amount_raw,
+            cu=currency,
+            qr_id=qr_id,
+            ts=ts_raw,
+            exp=exp_raw,
+            secret=merchant_secret
+        )
+
+        # 2. Try legacy fallback signature for backward compatibility
+        expected_sign_legacy = hashlib.sha256(f"{payee_name.strip()}{upi_id.strip()}{merchant_secret}".encode("utf-8")).hexdigest()
+
+        if signature and (signature == expected_sign_canonical or signature == expected_sign_legacy):
+            signature_valid = True
+        elif signature:
+            # Signature present but mismatch -> Payload (VPA, name, or maximum limit) was altered!
+            signature_valid = False
+            signals.append(make_signal(
+                "tampered_qr_signature",
+                9.8,
+                0.99,
+                "Cryptographic signature verification failed: Maximum payment limit or merchant identity has been modified / tampered!"
+            ))
+        elif upi_id in TRUSTED_MERCHANTS and not signature:
             # Trusted merchant ID found, but scanned QR lacks a signature parameter
+            signature_valid = False
             signals.append(make_signal(
                 "unsigned_trusted_merchant",
                 9.5,
                 0.98,
                 f"Physical sticker tampering detected: '{payee_name}' is a registered store but lacks a valid SuRaksha Cryptographic signature"
             ))
-        elif signature != expected_sign:
-            # Signature parameter present but hash verification failed (payload modified)
+
+    # ────────────────────────────────────────────────────────────────────────
+    # 0.7. PAYMENT AMOUNT VALIDATION (SECURITY ENFORCEMENT) 💰
+    # ────────────────────────────────────────────────────────────────────────
+    payment_validation = None
+    if requested_amount is not None:
+        if req_paise is None or req_paise <= 0:
             signals.append(make_signal(
-                "spoofed_trusted_merchant",
-                9.8,
+                "invalid_payment_amount",
+                10.0,
                 0.99,
-                f"Cryptographic signature verification failed: Merchant VPA or name has been modified"
+                f"Invalid payment amount: '{requested_amount}'. Payment amount must be greater than ₹0."
             ))
+            payment_validation = {
+                "requested_amount": requested_amount,
+                "allowed": False,
+                "reason": "Payment amount must be greater than ₹0."
+            }
+        elif qr_mode == "max_limit" and mam_paise is not None:
+            if req_paise > mam_paise:
+                signals.append(make_signal(
+                    "amount_exceeds_max_limit",
+                    10.0,
+                    0.99,
+                    f"Payment amount ₹{req_paise/100:,.2f} exceeds maximum allowed limit of ₹{mam_paise/100:,.2f}."
+                ))
+                payment_validation = {
+                    "requested_amount": req_paise / 100.0,
+                    "max_limit": mam_paise / 100.0,
+                    "allowed": False,
+                    "reason": f"Payment amount ₹{req_paise/100:,.2f} exceeds maximum allowed limit of ₹{mam_paise/100:,.2f}."
+                }
+            else:
+                # Allowed: 0 < req_paise <= mam_paise
+                payment_validation = {
+                    "requested_amount": req_paise / 100.0,
+                    "max_limit": mam_paise / 100.0,
+                    "allowed": True,
+                    "reason": f"Payment of ₹{req_paise/100:,.2f} is within maximum limit of ₹{mam_paise/100:,.2f}."
+                }
+        elif qr_mode == "fixed_amount" and am_paise is not None:
+            if req_paise != am_paise:
+                signals.append(make_signal(
+                    "amount_mismatch_fixed_qr",
+                    10.0,
+                    0.99,
+                    f"Payment amount ₹{req_paise/100:,.2f} does not match fixed QR amount of ₹{am_paise/100:,.2f}."
+                ))
+                payment_validation = {
+                    "requested_amount": req_paise / 100.0,
+                    "fixed_amount": am_paise / 100.0,
+                    "allowed": False,
+                    "reason": f"Payment amount must match fixed amount of ₹{am_paise/100:,.2f}."
+                }
+            else:
+                payment_validation = {
+                    "requested_amount": req_paise / 100.0,
+                    "fixed_amount": am_paise / 100.0,
+                    "allowed": True,
+                    "reason": f"Payment matches fixed QR amount of ₹{am_paise/100:,.2f}."
+                }
         else:
-            # Valid signature confirms the integrity and identity of the QR code
-            signals.append(make_signal(
-                "verified_merchant_shield",
-                0.0,
-                1.0,
-                "Verified Merchant Shield active: Identity and integrity confirmed"
-            ))
-            return {
-                "risk_score": 0,
-                "risk_level": "SAFE",
-                "confidence": 1.0,
-                "suspicious": False,
-                "fraud_type": "Verified Merchant Shield",
-                "detected_action": "SuRaksha Cryptographic Signature Validated",
-                "signals": signals,
-                "reasons": [s["reason"] for s in signals]
+            # Open QR
+            payment_validation = {
+                "requested_amount": req_paise / 100.0,
+                "allowed": True,
+                "reason": f"Payment of ₹{req_paise/100:,.2f} is valid."
             }
-    elif signature:
-        # Check signature using default network-wide fallback key
-        default_secret = "SuRakshaShield2026"
-        expected_pn = payee_name or "recipient"
-        expected_raw = f"{expected_pn.strip()}{upi_id.strip()}{default_secret}"
-        expected_sign = hashlib.sha256(expected_raw.encode("utf-8")).hexdigest()
-        
-        if signature == expected_sign:
-            signals.append(make_signal(
-                "verified_merchant_shield",
-                0.0,
-                0.95,
-                "Cryptographic signature validated using default shared network key"
-            ))
-            return {
-                "risk_score": 0,
-                "risk_level": "SAFE",
-                "confidence": 0.95,
-                "suspicious": False,
-                "fraud_type": "Verified Merchant Shield",
-                "detected_action": "SuRaksha Cryptographic Signature Validated",
-                "signals": signals,
-                "reasons": [s["reason"] for s in signals]
+
+    # If valid signature is active and no other critical failures
+    if signature_valid and not is_expired and (payment_validation is None or payment_validation.get("allowed", True)):
+        signals.append(make_signal(
+            "verified_merchant_shield",
+            0.0,
+            1.0,
+            f"Verified Merchant Shield active: Identity and integrity confirmed ({'Max Limit ₹' + str(max_amount_val) if qr_mode == 'max_limit' else 'Fixed ₹' + str(fixed_amount_val) if qr_mode == 'fixed_amount' else 'Open QR'})"
+        ))
+        return {
+            "risk_score": 0,
+            "risk_level": "SAFE",
+            "confidence": 1.0,
+            "suspicious": False,
+            "fraud_type": "Verified Merchant Shield",
+            "detected_action": "SuRaksha Cryptographic Signature Validated",
+            "signals": signals,
+            "reasons": [s["reason"] for s in signals],
+            "constraints": {
+                "qr_mode": qr_mode,
+                "max_amount": max_amount_val,
+                "max_amount_paise": mam_paise or am_paise,
+                "fixed_amount": fixed_amount_val,
+                "fixed_amount_paise": am_paise if qr_mode == "fixed_amount" else None,
+                "currency": currency,
+                "qr_id": qr_id,
+                "timestamp": ts_raw,
+                "expiry": exp_raw,
+                "is_expired": is_expired,
+                "is_signed": is_signed,
+                "signature_valid": signature_valid,
+                "payment_validation": payment_validation
             }
+        }
 
     # ────────────────────────────────────────────────────────────────────────
     # 1. MULTILINGUAL SUSPICIOUS TERMS
@@ -396,7 +563,7 @@ def analyze_qr_risk(parsed_data, raw_text=""):
     # ────────────────────────────────────────────────────────────────────────
     # Evaluate risks based on target payment magnitude.
     try:
-        amt = float(amount) if amount else 0
+        amt = float(amount_raw or mam_raw or 0)
 
         if amt > 100000:
             signals.append(make_signal(
@@ -431,12 +598,12 @@ def analyze_qr_risk(parsed_data, raw_text=""):
             ))
 
     except Exception:
-        if amount:
+        if amount_raw or mam_raw:
             signals.append(make_signal(
                 "invalid_amount",
                 1,
                 0.6,
-                f"Amount field has invalid format: '{amount}'"
+                f"Amount field has invalid format: '{amount_raw or mam_raw}'"
             ))
 
     # ────────────────────────────────────────────────────────────────────────
@@ -529,7 +696,25 @@ def analyze_qr_risk(parsed_data, raw_text=""):
 
     # Classify category taxonomic type based on primary warning trigger
     fraud_type = "Unknown"
-    if any(s["type"] == "typosquat_brand" for s in signals):
+    detected_action = (
+        "Do NOT proceed — high fraud risk" if risk_score >= 50
+        else ("Verify carefully before paying" if risk_score >= 25
+              else "Looks safe — proceed with caution")
+    )
+
+    if any(s["type"] == "tampered_qr_signature" for s in signals):
+        fraud_type = "Cryptographic Tampering Detected"
+        detected_action = "INVALID — QR DATA TAMPERED"
+        risk_score = 100
+        level = "CRITICAL"
+        confidence = 0.99
+    elif any(s["type"] == "expired_qr_code" for s in signals):
+        fraud_type = "Expired QR Code"
+        detected_action = "QR EXPIRED — Payment Blocked"
+        risk_score = 100
+        level = "CRITICAL"
+        confidence = 0.99
+    elif any(s["type"] == "typosquat_brand" for s in signals):
         fraud_type = "Brand Spoofing"
     elif any(s["type"] == "scam_note_pattern" for s in signals):
         fraud_type = "Social Engineering"
@@ -560,5 +745,20 @@ def analyze_qr_risk(parsed_data, raw_text=""):
             "top_category": top_ml_category
         },
         "signals": signals,
-        "reasons": [s["reason"] for s in signals]
+        "reasons": [s["reason"] for s in signals],
+        "constraints": {
+            "qr_mode": qr_mode,
+            "max_amount": max_amount_val,
+            "max_amount_paise": mam_paise or am_paise,
+            "fixed_amount": fixed_amount_val,
+            "fixed_amount_paise": am_paise if qr_mode == "fixed_amount" else None,
+            "currency": currency,
+            "qr_id": qr_id,
+            "timestamp": ts_raw,
+            "expiry": exp_raw,
+            "is_expired": is_expired,
+            "is_signed": is_signed,
+            "signature_valid": signature_valid,
+            "payment_validation": payment_validation
+        }
     }

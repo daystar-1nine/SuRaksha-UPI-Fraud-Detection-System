@@ -123,10 +123,15 @@ async function apiRequest(endpoint, body, isForm = false) {
      * the execution path to protect server bandwidth.
      */
     try {
+        const token = localStorage.getItem("auth_token");
+        const headers = isForm ? {} : { "Content-Type": "application/json" };
+        if (token) {
+            headers["Authorization"] = `Bearer ${token}`;
+        }
+
         const options = {
-            method: "POST",
-            // If body is FormData (file upload), let browser calculate the boundary headers automatically
-            headers: isForm ? {} : { "Content-Type": "application/json" },
+            method: isForm ? "POST" : "POST",
+            headers: headers,
             body: isForm ? body : JSON.stringify(body)
         };
 
@@ -140,7 +145,9 @@ async function apiRequest(endpoint, body, isForm = false) {
                 showToast(`⏳ ${msg}`, "warning", 5000);
                 throw new Error("RATE_LIMIT_EXCEEDED");
             }
-            throw new Error(`HTTP Error: ${res.status}`);
+            const errJson = await res.json().catch(() => null);
+            const errDetail = errJson?.error?.message || errJson?.message || `HTTP Error: ${res.status}`;
+            throw new Error(errDetail);
         }
 
         const data = await res.json();
@@ -861,18 +868,36 @@ function showResultPopup(apiResponse) {
     // 📊 BASIC DATA
     // -----------------------------
     const parsedQr = apiResponse.data?.qr?.parsed || apiResponse.data?.analysis?.qr?.parsed || {};
+    const constraints = apiResponse.data?.analysis?.constraints || {};
     let payeeName = (parsedQr.pn && parsedQr.pn[0] && parsedQr.pn[0] !== "") ? parsedQr.pn[0] : (analysis.name || "Verified Merchant Account");
     let payeeVpa = (parsedQr.pa && parsedQr.pa[0] && parsedQr.pa[0] !== "") ? parsedQr.pa[0] : (AppState.lastScannedUpi || "unlisted@upi");
 
     AppState.lastScannedPayeeName = payeeName;
     AppState.lastScannedPayeeVpa = payeeVpa;
+    AppState.scannedQrPayload = apiResponse.data?.qr?.raw || "";
 
-    // Check if QR payload contains a merchant amount limit cap (am=...)
-    if (parsedQr.am && parsedQr.am[0] && !isNaN(parseFloat(parsedQr.am[0]))) {
-        AppState.scannedAmountLimit = parseFloat(parsedQr.am[0]);
-    } else {
-        AppState.scannedAmountLimit = null;
+    // Extract QR Mode & Amount Constraints (Maximum Limit vs Fixed Amount vs Open)
+    const mamVal = (parsedQr.mam && parsedQr.mam[0]) || (parsedQr.max_amount && parsedQr.max_amount[0]) || null;
+    const amVal = (parsedQr.am && parsedQr.am[0]) || null;
+
+    let qrMode = constraints.qr_mode;
+    if (!qrMode) {
+        if (mamVal && !isNaN(parseFloat(mamVal))) {
+            qrMode = "max_limit";
+        } else if (amVal && !isNaN(parseFloat(amVal))) {
+            qrMode = "fixed_amount";
+        } else {
+            qrMode = "open";
+        }
     }
+
+    let maxAmount = constraints.max_amount != null ? constraints.max_amount : (mamVal ? parseFloat(mamVal) : null);
+    let fixedAmount = constraints.fixed_amount != null ? constraints.fixed_amount : (amVal && qrMode === "fixed_amount" ? parseFloat(amVal) : null);
+
+    AppState.qrMode = qrMode;
+    AppState.scannedMaxAmount = maxAmount;
+    AppState.scannedFixedAmount = fixedAmount;
+    AppState.qrConstraints = constraints;
 
     safeText($("popupPayeeName"), payeeName);
     safeText($("popupPayeeVpa"), payeeVpa);
@@ -998,11 +1023,25 @@ function showResultPopup(apiResponse) {
     }
 
     // -----------------------------
-    // 📋 REASONS
+    // 📋 REASONS & CONSTRAINT BADGES
     // -----------------------------
     const list = $("popupReasons");
     if (list) {
         list.innerHTML = "";
+
+        // If Maximum Limit QR is active, add explicit constraint banner at the top
+        if (qrMode === "max_limit" && maxAmount != null && maxAmount > 0) {
+            const liLimit = document.createElement("li");
+            liLimit.innerHTML = `🛡️ <strong>Maximum Payment Limit: ₹${maxAmount.toLocaleString('en-IN')}</strong> <span class="text-xs text-emerald-300 block">Payer can enter any amount between ₹1 and ₹${maxAmount.toLocaleString('en-IN')}.</span>`;
+            liLimit.className = "text-sm text-amber-300 font-semibold bg-amber-500/10 p-2.5 rounded-xl border border-amber-500/20";
+            list.appendChild(liLimit);
+        } else if (qrMode === "fixed_amount" && fixedAmount != null && fixedAmount > 0) {
+            const liFixed = document.createElement("li");
+            liFixed.innerHTML = `🔒 <strong>Fixed Amount QR: ₹${fixedAmount.toLocaleString('en-IN')}</strong> <span class="text-xs text-gray-300 block">Exact transaction amount required.</span>`;
+            liFixed.className = "text-sm text-cyan-300 font-semibold bg-cyan-500/10 p-2.5 rounded-xl border border-cyan-500/20";
+            list.appendChild(liFixed);
+        }
+
         const reasons = data?.reasons ?? [];
         if (reasons.length === 0) {
             const li = document.createElement("li");
@@ -1012,8 +1051,8 @@ function showResultPopup(apiResponse) {
         } else {
             reasons.forEach(reason => {
                 const li = document.createElement("li");
-                li.textContent = (reason.startsWith("✔") || reason.startsWith("🚨") || reason.startsWith("⚠")) ? reason : "⚠ " + reason;
-                li.className = reason.toLowerCase().includes("blacklisted") || reason.toLowerCase().includes("complaint") || reason.toLowerCase().includes("fraud") || reason.toLowerCase().includes("alert")
+                li.textContent = (reason.startsWith("✔") || reason.startsWith("🚨") || reason.startsWith("⚠") || reason.startsWith("🛡️")) ? reason : "⚠ " + reason;
+                li.className = reason.toLowerCase().includes("blacklisted") || reason.toLowerCase().includes("complaint") || reason.toLowerCase().includes("fraud") || reason.toLowerCase().includes("alert") || reason.toLowerCase().includes("tamper")
                     ? "text-sm text-red-400 font-medium"
                     : "text-sm text-gray-300";
                 list.appendChild(li);
@@ -1022,27 +1061,8 @@ function showResultPopup(apiResponse) {
     }
 
     // -----------------------------
-    // 💳 UPI PAYMENT LINK GENERATION 🔥
+    // 💳 UPI PAYMENT BUTTON CONFIGURATION
     // -----------------------------
-    const parsed = apiResponse.data?.qr?.parsed || {};
-    const pa = (parsed.pa && parsed.pa[0]) || "";
-    const pn = (parsed.pn && parsed.pn[0]) || "Recipient";
-    const am = (parsed.am && parsed.am[0]) || "";
-    const tn = (parsed.tn && parsed.tn[0]) || "SuRaksha Verified";
-
-    // Pre-populate scanned transaction amount input if exists
-    const payAmountInput = $("payAmountInput");
-    if (payAmountInput) {
-        payAmountInput.value = am || "";
-    }
-
-    let upiLink = "upi://pay?pa=" + encodeURIComponent(pa);
-    if (pn) upiLink += "&pn=" + encodeURIComponent(pn);
-    if (am) upiLink += "&am=" + encodeURIComponent(am);
-    if (tn) upiLink += "&tn=" + encodeURIComponent(tn);
-    upiLink += "&cu=INR";
-
-    // Set links on app buttons
     const btnProceedPay = $("btnProceedPay");
     if (btnProceedPay) {
         if (data.risk_level === "CRITICAL" || data.risk_level === "HIGH") {
@@ -1054,16 +1074,10 @@ function showResultPopup(apiResponse) {
         }
     }
 
-    const appIds = ["payGPay", "payPhonePe", "payPaytm", "payBHIM"];
-    appIds.forEach(id => {
-        const el = $(id);
-        if (el) el.href = upiLink;
-    });
-
     // Report fraud button — show only for HIGH/CRITICAL
     const reportBtn = $("btnReportFraud");
     if (reportBtn) {
-        const upiForReport = (parsed.pa && parsed.pa[0]) || AppState.lastScannedUpi || "";
+        const upiForReport = (parsedQr.pa && parsedQr.pa[0]) || AppState.lastScannedUpi || "";
         if ((data.risk_level === "CRITICAL" || data.risk_level === "HIGH") && upiForReport) {
             reportBtn.classList.remove("hidden");
             reportBtn.onclick = () => showReportModal(upiForReport);
@@ -1073,8 +1087,7 @@ function showResultPopup(apiResponse) {
     }
 
     togglePaymentDrawer(false);
-
-    console.log("Popup Data:", data);
+    console.log("Popup Data Processed:", data);
 }
 
 
@@ -1147,26 +1160,44 @@ function togglePaymentDrawer(show) {
     if (show) {
         const amountInput = $("payAmountInput");
         const limitHint = $("payAmountLimitHint");
-        const maxLimit = AppState.scannedAmountLimit;
+        const qrMode = AppState.qrMode;
+        const maxLimit = AppState.scannedMaxAmount;
+        const fixedAmount = AppState.scannedFixedAmount;
 
         if (amountInput) {
-            amountInput.readOnly = false; // Always editable by payer!
-            amountInput.value = ""; // Blank by default so payer enters their desired amount
-            amountInput.placeholder = maxLimit ? `Enter amount (Max ₹${maxLimit})` : "Enter amount to pay";
-
-            // Attach dynamic input validation listener
-            amountInput.oninput = validatePaymentAmountInput;
-            setTimeout(() => amountInput.focus(), 100);
-        }
-
-        if (limitHint) {
-            if (maxLimit != null && maxLimit > 0) {
-                limitHint.innerText = `Allowed payment: ₹1 to ₹${maxLimit} (Merchant Maximum Cap: ₹${maxLimit})`;
-                limitHint.className = "text-[9px] text-amber-400 font-medium block";
+            if (qrMode === "max_limit" && maxLimit != null && maxLimit > 0) {
+                // Maximum Limit QR: Payer enters any amount <= maxLimit. Do NOT pre-fill with maxLimit!
+                amountInput.readOnly = false;
+                amountInput.value = ""; // Blank by default so payer chooses their desired amount
+                amountInput.placeholder = `Enter payment amount (Max ₹${maxLimit.toLocaleString('en-IN')})`;
+                if (limitHint) {
+                    limitHint.innerText = `Maximum payment limit: ₹${maxLimit.toLocaleString('en-IN')} (Allowed: ₹1 to ₹${maxLimit.toLocaleString('en-IN')})`;
+                    limitHint.className = "text-[10px] text-amber-400 font-medium block";
+                }
+            } else if (qrMode === "fixed_amount" && fixedAmount != null && fixedAmount > 0) {
+                // Fixed Amount QR: Exact amount required
+                amountInput.readOnly = true;
+                amountInput.value = fixedAmount;
+                amountInput.placeholder = `Fixed amount ₹${fixedAmount.toLocaleString('en-IN')}`;
+                if (limitHint) {
+                    limitHint.innerText = `Fixed transaction amount: ₹${fixedAmount.toLocaleString('en-IN')} (Exact amount required)`;
+                    limitHint.className = "text-[10px] text-emerald-400 font-medium block";
+                }
             } else {
-                limitHint.innerText = "Enter payment amount (Min ₹1)";
-                limitHint.className = "text-[9px] text-gray-400 font-medium block";
+                // Open QR: Any valid amount
+                amountInput.readOnly = false;
+                amountInput.value = "";
+                amountInput.placeholder = "Enter amount to pay (₹)";
+                if (limitHint) {
+                    limitHint.innerText = "Enter payment amount (Min ₹1)";
+                    limitHint.className = "text-[10px] text-gray-400 font-medium block";
+                }
             }
+
+            amountInput.oninput = validatePaymentAmountInput;
+            setTimeout(() => {
+                if (!amountInput.readOnly) amountInput.focus();
+            }, 100);
         }
     }
 }
@@ -1177,51 +1208,115 @@ function validatePaymentAmountInput() {
     if (!amountInput) return false;
 
     let val = parseFloat(amountInput.value);
-    const maxLimit = AppState.scannedAmountLimit;
+    const valPaise = (!isNaN(val) && val > 0) ? Math.round(val * 100) : null;
 
-    if (isNaN(val) || val <= 0) {
+    const qrMode = AppState.qrMode;
+    const maxLimit = AppState.scannedMaxAmount;
+    const maxLimitPaise = maxLimit != null ? Math.round(maxLimit * 100) : null;
+    const fixedAmount = AppState.scannedFixedAmount;
+    const fixedAmountPaise = fixedAmount != null ? Math.round(fixedAmount * 100) : null;
+
+    if (valPaise === null || valPaise <= 0) {
         if (limitHint) {
-            limitHint.innerText = maxLimit ? `Allowed payment: ₹1 to ₹${maxLimit}` : "Enter a valid amount (Min ₹1)";
-            limitHint.className = "text-[9px] text-amber-400 font-medium block";
+            if (qrMode === "max_limit" && maxLimit != null) {
+                limitHint.innerText = `Allowed payment: ₹1 to ₹${maxLimit.toLocaleString('en-IN')}`;
+            } else if (qrMode === "fixed_amount" && fixedAmount != null) {
+                limitHint.innerText = `Fixed amount: ₹${fixedAmount.toLocaleString('en-IN')}`;
+            } else {
+                limitHint.innerText = "Enter a valid amount (Min ₹1)";
+            }
+            limitHint.className = "text-[10px] text-amber-400 font-medium block";
         }
         return false;
     }
 
-    if (maxLimit != null && maxLimit > 0 && val > maxLimit) {
-        if (limitHint) {
-            limitHint.innerText = `❌ Exceeds Maximum Limit! The merchant set a maximum limit of ₹${maxLimit}. Please enter ₹${maxLimit} or less.`;
-            limitHint.className = "text-[9px] text-red-400 font-bold block animate-pulse";
+    if (qrMode === "max_limit" && maxLimitPaise != null) {
+        if (valPaise > maxLimitPaise) {
+            if (limitHint) {
+                limitHint.innerText = `❌ Amount exceeds maximum limit! The merchant set a maximum limit of ₹${maxLimit.toLocaleString('en-IN')}. Please enter ₹${maxLimit.toLocaleString('en-IN')} or less.`;
+                limitHint.className = "text-[10px] text-red-400 font-bold block animate-pulse";
+            }
+            return false;
+        } else {
+            if (limitHint) {
+                limitHint.innerText = `✅ Valid payment amount: ₹${val.toLocaleString('en-IN')} (Within maximum limit of ₹${maxLimit.toLocaleString('en-IN')})`;
+                limitHint.className = "text-[10px] text-emerald-400 font-semibold block";
+            }
+            return true;
         }
-        return false;
+    }
+
+    if (qrMode === "fixed_amount" && fixedAmountPaise != null) {
+        if (valPaise !== fixedAmountPaise) {
+            if (limitHint) {
+                limitHint.innerText = `❌ Exact amount required: ₹${fixedAmount.toLocaleString('en-IN')}`;
+                limitHint.className = "text-[10px] text-red-400 font-bold block";
+            }
+            return false;
+        } else {
+            if (limitHint) {
+                limitHint.innerText = `✅ Exact fixed amount matched: ₹${val.toLocaleString('en-IN')}`;
+                limitHint.className = "text-[10px] text-emerald-400 font-semibold block";
+            }
+            return true;
+        }
     }
 
     if (limitHint) {
-        limitHint.innerText = maxLimit ? `✅ Valid amount (Max limit ₹${maxLimit})` : "✅ Valid amount";
-        limitHint.className = "text-[9px] text-emerald-400 font-medium block";
+        limitHint.innerText = `✅ Valid amount: ₹${val.toLocaleString('en-IN')}`;
+        limitHint.className = "text-[10px] text-emerald-400 font-medium block";
     }
     return true;
 }
 
-function simulatePaymentLaunch(appName) {
+async function simulatePaymentLaunch(appName) {
     const amountInput = $("payAmountInput");
     let amountVal = parseFloat(amountInput?.value);
-    const maxLimit = AppState.scannedAmountLimit;
+    const amountPaise = (!isNaN(amountVal) && amountVal > 0) ? Math.round(amountVal * 100) : null;
 
-    // 1. Validate payment amount against merchant maximum limit
-    if (isNaN(amountVal) || amountVal <= 0) {
+    const qrMode = AppState.qrMode;
+    const maxLimit = AppState.scannedMaxAmount;
+    const maxLimitPaise = maxLimit != null ? Math.round(maxLimit * 100) : null;
+    const fixedAmount = AppState.scannedFixedAmount;
+    const fixedAmountPaise = fixedAmount != null ? Math.round(fixedAmount * 100) : null;
+
+    // 1. Client-Side Precision Validation
+    if (amountPaise === null || amountPaise <= 0) {
         showToast("⚠️ Please enter a valid payment amount (Min ₹1)", "warning");
-        if (amountInput) amountInput.focus();
+        if (amountInput && !amountInput.readOnly) amountInput.focus();
         return;
     }
 
-    if (maxLimit != null && maxLimit > 0 && amountVal > maxLimit) {
+    if (qrMode === "max_limit" && maxLimitPaise != null && amountPaise > maxLimitPaise) {
         showToast(`🛑 Payment Blocked: ₹${amountVal} exceeds the merchant's maximum limit of ₹${maxLimit}`, "error", 5000);
         validatePaymentAmountInput();
-        if (amountInput) amountInput.focus();
+        if (amountInput && !amountInput.readOnly) amountInput.focus();
         return;
     }
 
-    // 2. Prepare full UPI parameters
+    if (qrMode === "fixed_amount" && fixedAmountPaise != null && amountPaise !== fixedAmountPaise) {
+        showToast(`🛑 Payment Blocked: Exact fixed amount of ₹${fixedAmount} is required`, "error", 5000);
+        validatePaymentAmountInput();
+        return;
+    }
+
+    // 2. Independent Backend Cryptographic & Amount Limit Verification 🔒
+    if (AppState.scannedQrPayload) {
+        try {
+            const verifyRes = await apiRequest("/qr/validate-payment", {
+                qr_data: AppState.scannedQrPayload,
+                payment_amount: amountVal
+            });
+            if (verifyRes && verifyRes.data && !verifyRes.data.allowed) {
+                showToast(`🛑 Payment Rejected by Security Engine: ${verifyRes.data.reason}`, "error", 6000);
+                return;
+            }
+        } catch (err) {
+            console.warn("Backend payment validation note:", err);
+        }
+    }
+
+    // 3. Prepare full UPI parameters for payment dispatch
     const payeeVpa = AppState.lastScannedPayeeVpa || AppState.lastScannedUpi || "merchant@paytm";
     const payeeName = AppState.lastScannedPayeeName || "Merchant Store";
     const txnNote = "SuRaksha Verified Payment";
@@ -1235,16 +1330,13 @@ function simulatePaymentLaunch(appName) {
     const isAndroid = /android/i.test(userAgent);
     const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
 
-    // 3. Detect if running inside the native Capacitor Android app (WebView)
-    //    window.Capacitor is injected by the Capacitor bridge when running as a native app.
-    //    In a regular browser (Chrome, Firefox, Safari desktop/mobile web), this is undefined.
+    // Detect if running inside native Capacitor Android app
     const isNativeCapacitor = !!(window.Capacitor && window.Capacitor.isNative);
     const isNativeMobileBrowser = isAndroid || isIOS;
 
-    // 4. In browser context (not native app): show helpful message and attempt generic upi:// link
     if (!isNativeCapacitor) {
         if (!isNativeMobileBrowser) {
-            // Desktop browser — UPI apps cannot be launched from desktop
+            // Desktop browser — notify user
             showToast(
                 `📱 Open SuRaksha app on your Android phone to pay with ${appName}. Desktop browsers cannot launch UPI apps.`,
                 "info",
@@ -1252,7 +1344,6 @@ function simulatePaymentLaunch(appName) {
             );
             return;
         }
-        // Mobile browser (Chrome/Safari on phone) — try generic upi:// which may trigger the OS app chooser
         showToast(`🚀 Opening ${appName}... Transferring ₹${amountVal} to ${payeeName}`, "info", 4000);
         try {
             window.location.href = genericUpiUri;
@@ -2429,20 +2520,52 @@ async function sha256(message) {
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
+function onQrModeChange() {
+    const isMaxLimit = $("qrModeMax")?.checked;
+    const amountLabel = $("secAmountLabel");
+    const amountInput = $("secAmountLimit");
+    const amountHelper = $("secAmountHelper");
+    const maxLabel = $("qrModeMaxLabel");
+    const fixedLabel = $("qrModeFixedLabel");
+
+    if (maxLabel && fixedLabel) {
+        if (isMaxLimit) {
+            maxLabel.className = "flex items-center gap-2 p-2 rounded-lg cursor-pointer bg-primary/10 border border-primary/30 transition text-left";
+            fixedLabel.className = "flex items-center gap-2 p-2 rounded-lg cursor-pointer hover:bg-white/5 border border-transparent transition text-left";
+        } else {
+            fixedLabel.className = "flex items-center gap-2 p-2 rounded-lg cursor-pointer bg-primary/10 border border-primary/30 transition text-left";
+            maxLabel.className = "flex items-center gap-2 p-2 rounded-lg cursor-pointer hover:bg-white/5 border border-transparent transition text-left";
+        }
+    }
+
+    if (isMaxLimit) {
+        if (amountLabel) amountLabel.innerText = "Maximum Payment Limit (₹)";
+        if (amountInput) amountInput.placeholder = "Enter maximum limit (e.g. 10000)";
+        if (amountHelper) amountHelper.innerText = "Payer can pay any amount between ₹1 and this upper limit (0 < Amount ≤ Maximum Limit).";
+    } else {
+        if (amountLabel) amountLabel.innerText = "Fixed Payment Amount (₹)";
+        if (amountInput) amountInput.placeholder = "Enter fixed amount (e.g. 500)";
+        if (amountHelper) amountHelper.innerText = "Payer must pay exactly this fixed amount.";
+    }
+}
+
 async function generateSecureStoreQr() {
     /**
      * Generates a cryptographically signed QR code to mitigate physical sticker tampering.
      * 
      * Why: Scammers physically glue fake QR stickers over a store's genuine QR code.
-     * SuRaksha registers trusted stores. By hashing the name, VPA, and a secret merchant key
-     * locally using WebCrypto, we generate a signature. When scanned, the backend verifies
-     * this signature. If the VPA or merchant name was changed/tampered on the sticker,
+     * SuRaksha registers trusted stores. By hashing the name, VPA, maximum amount limit,
+     * currency, unique QR ID, timestamp, and merchant secret locally using WebCrypto SHA-256,
+     * we generate a canonical signature. When scanned, the backend verifies this signature.
+     * If the VPA, merchant name, or maximum limit was changed/tampered on the sticker,
      * signature verification fails, blocking the fraud attempt.
      */
-    const name = $("secMerchantName").value.trim();
-    const vpa = $("secMerchantVpa").value.trim();
-    const secret = $("secSecretKey").value.trim();
-    let limitAmount = parseFloat($("secAmountLimit")?.value) || 500;
+    const name = $("secMerchantName")?.value.trim();
+    const vpa = $("secMerchantVpa")?.value.trim();
+    const secret = $("secSecretKey")?.value.trim() || "SuRakshaShield2026";
+    const isMaxLimitMode = $("qrModeMax") ? $("qrModeMax").checked : true;
+    
+    let limitAmount = parseFloat($("secAmountLimit")?.value) || (isMaxLimitMode ? 10000 : 500);
     if (isNaN(limitAmount) || limitAmount < 1) {
         limitAmount = 1;
         if ($("secAmountLimit")) $("secAmountLimit").value = 1;
@@ -2455,11 +2578,28 @@ async function generateSecureStoreQr() {
 
     toggle($("loader"), true);
     try {
-        const rawPayload = name.toLowerCase() + vpa.toLowerCase() + secret;
-        const signature = await sha256(rawPayload);
+        const qrId = `SRK-QR-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
+        const ts = Math.floor(Date.now() / 1000).toString();
+        const mamStr = isMaxLimitMode ? limitAmount.toString() : "";
+        const amStr = !isMaxLimitMode ? limitAmount.toString() : "";
+        const cu = "INR";
+        const expStr = "";
 
-        // upi://pay?pa=VPA&pn=Name&am=LIMIT&sign=SIGNATURE
-        const upiPayPayload = `upi://pay?pa=${encodeURIComponent(vpa)}&pn=${encodeURIComponent(name)}&am=${limitAmount}&sign=${signature}&cu=INR&tn=SuRaksha%20Verified`;
+        // Canonical SHA-256 Signature covering all transaction constraint parameters
+        // canonical = f"{vpa}|{name}|{mam}|{am}|{cu}|{qr_id}|{ts}|{exp}|{secret}"
+        const canonical = `${vpa.toLowerCase()}|${name.toLowerCase()}|${mamStr}|${amStr}|${cu}|${qrId}|${ts}|${expStr}|${secret}`;
+        const signature = await sha256(canonical);
+
+        // Build NPCI compliant UPI Deep-Link URI
+        let upiPayPayload = `upi://pay?pa=${encodeURIComponent(vpa)}&pn=${encodeURIComponent(name)}`;
+        if (isMaxLimitMode) {
+            // Encode as Maximum Allowed Amount (mam)
+            upiPayPayload += `&mam=${limitAmount}`;
+        } else {
+            // Encode as Fixed Transaction Amount (am)
+            upiPayPayload += `&am=${limitAmount}`;
+        }
+        upiPayPayload += `&cu=INR&qr_id=${encodeURIComponent(qrId)}&ts=${ts}&sign=${signature}&tn=SuRaksha%20Verified%20Store`;
 
         // Render QR code using qrserver API
         const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(upiPayPayload)}`;
@@ -2491,7 +2631,24 @@ async function generateSecureStoreQr() {
             localTrustedMerchants.push({ upi: vpa, name: name, secret: secret });
         }
 
-        showToast("Secure Merchant QR Code Generated! 🛡️", "success");
+        // Persist cryptographic QR record to backend database
+        try {
+            await apiRequest("/api/qr/save-record", {
+                qr_id: qrId,
+                vpa: vpa,
+                payee_name: name,
+                qr_mode: isMaxLimitMode ? "max_limit" : "fixed_amount",
+                max_amount: isMaxLimitMode ? limitAmount : null,
+                fixed_amount: !isMaxLimitMode ? limitAmount : null,
+                signature: signature,
+                payload: upiPayPayload
+            });
+        } catch (saveErr) {
+            console.warn("Backend QR record save notice:", saveErr);
+        }
+
+        const modeBadge = isMaxLimitMode ? `(Max Limit ₹${limitAmount.toLocaleString('en-IN')})` : `(Fixed ₹${limitAmount.toLocaleString('en-IN')})`;
+        showToast(`Secure Merchant QR Code Generated! 🛡️ ${modeBadge}`, "success", 4000);
     } catch (err) {
         console.error(err);
         showToast("Error generating secure QR code", "error");
@@ -2838,11 +2995,165 @@ function saveUserProfile() {
         try { closeProfileModal(); } catch (e) {}
     }
     
+    // If authenticated, sync with backend
+    if (localStorage.getItem("auth_token")) {
+        apiRequest("/api/auth/profile", {
+            full_name: name,
+            upi_id: vpa
+        }).then(res => {
+            if (res && res.data && res.data.user) {
+                localStorage.setItem("auth_user", JSON.stringify(res.data.user));
+            }
+        }).catch(err => console.warn("Backend profile sync notice:", err));
+    }
+
     initProfile();
     showToast("👤 Profile settings saved successfully!", "success", 3000);
 }
 
 
+// ---------------------------------------------
+// 🔐 AUTHENTICATION & SESSION MANAGEMENT
+// ---------------------------------------------
+async function loginUser(identifier, password) {
+    if (!identifier || !password) {
+        showToast("Please enter both Username/Email and Password", "warning");
+        return false;
+    }
+    try {
+        const res = await apiRequest("/api/auth/login", {
+            identifier: identifier.trim(),
+            password: password
+        });
+        if (res && res.data && res.data.token) {
+            localStorage.setItem("auth_token", res.data.token);
+            localStorage.setItem("auth_user", JSON.stringify(res.data.user));
+            localStorage.setItem("profile_name", res.data.user.full_name || res.data.user.username);
+            if (res.data.user.upi_id) {
+                localStorage.setItem("profile_vpa", res.data.user.upi_id);
+            }
+            showToast(`✅ Welcome back, ${res.data.user.full_name || res.data.user.username}!`, "success", 3500);
+            closeAuthModal();
+            initProfile();
+            syncAuthStatus();
+            return true;
+        }
+    } catch (err) {
+        console.error("Login error:", err);
+    }
+    return false;
+}
+
+async function signupUser(username, email, password, fullName, upiId) {
+    if (!username || !email || !password) {
+        showToast("Username, Email, and Password are required", "warning");
+        return false;
+    }
+    try {
+        const res = await apiRequest("/api/auth/signup", {
+            username: username.trim(),
+            email: email.trim(),
+            password: password,
+            full_name: fullName ? fullName.trim() : username.trim(),
+            upi_id: upiId ? upiId.trim() : ""
+        });
+        if (res && res.data && res.data.token) {
+            localStorage.setItem("auth_token", res.data.token);
+            localStorage.setItem("auth_user", JSON.stringify(res.data.user));
+            localStorage.setItem("profile_name", res.data.user.full_name || res.data.user.username);
+            if (res.data.user.upi_id) {
+                localStorage.setItem("profile_vpa", res.data.user.upi_id);
+            }
+            showToast("🎉 Account created and authenticated successfully!", "success", 3500);
+            closeAuthModal();
+            initProfile();
+            syncAuthStatus();
+            return true;
+        }
+    } catch (err) {
+        console.error("Signup error:", err);
+    }
+    return false;
+}
+
+async function logoutUser() {
+    try {
+        await apiRequest("/api/auth/logout", {});
+    } catch (e) {}
+    localStorage.removeItem("auth_token");
+    localStorage.removeItem("auth_user");
+    showToast("👋 You have been logged out safely.", "info", 3000);
+    initProfile();
+    syncAuthStatus();
+}
+
+function syncAuthStatus() {
+    const token = localStorage.getItem("auth_token");
+    const userStr = localStorage.getItem("auth_user");
+    const authBtn = $("navbar-auth-btn");
+    const authUserLabel = $("navbar-user-label");
+
+    if (token && userStr) {
+        try {
+            const user = JSON.parse(userStr);
+            if (authUserLabel) {
+                authUserLabel.innerText = user.full_name || user.username;
+                authUserLabel.classList.remove("hidden");
+            }
+            if (authBtn) {
+                authBtn.innerText = "Logout";
+                authBtn.onclick = logoutUser;
+            }
+        } catch (e) {}
+    } else {
+        if (authUserLabel) authUserLabel.classList.add("hidden");
+        if (authBtn) {
+            authBtn.innerText = "Sign In";
+            authBtn.onclick = () => openAuthModal("login");
+        }
+    }
+}
+
+function openAuthModal(tab = "login") {
+    const modal = $("authModal");
+    if (modal) {
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+        switchAuthTab(tab);
+    }
+}
+
+function closeAuthModal() {
+    const modal = $("authModal");
+    if (modal) {
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+    }
+}
+
+function switchAuthTab(tab) {
+    const loginForm = $("authLoginForm");
+    const signupForm = $("authSignupForm");
+    const tabLogin = $("tabAuthLogin");
+    const tabSignup = $("tabAuthSignup");
+
+    if (tab === "login") {
+        if (loginForm) loginForm.classList.remove("hidden");
+        if (signupForm) signupForm.classList.add("hidden");
+        if (tabLogin) tabLogin.className = "pb-2 border-b-2 border-primary text-white font-bold text-sm cursor-pointer";
+        if (tabSignup) tabSignup.className = "pb-2 border-b-2 border-transparent text-gray-400 hover:text-white font-semibold text-sm cursor-pointer";
+    } else {
+        if (loginForm) loginForm.classList.add("hidden");
+        if (signupForm) signupForm.classList.remove("hidden");
+        if (tabSignup) tabSignup.className = "pb-2 border-b-2 border-primary text-white font-bold text-sm cursor-pointer";
+        if (tabLogin) tabLogin.className = "pb-2 border-b-2 border-transparent text-gray-400 hover:text-white font-semibold text-sm cursor-pointer";
+    }
+}
+
+// Attach syncAuthStatus to document load
+document.addEventListener("DOMContentLoaded", () => {
+    syncAuthStatus();
+});
 
 
 // --- AUTO EXPORTS TO WINDOW FOR MODULAR COMPATIBILITY ---
@@ -2861,6 +3172,13 @@ window.analyzeMessage = analyzeMessage;
 window.checkUpiManual = checkUpiManual;
 window.showReportModal = showReportModal;
 window.submitFraudReport = submitFraudReport;
+window.loginUser = loginUser;
+window.signupUser = signupUser;
+window.logoutUser = logoutUser;
+window.syncAuthStatus = syncAuthStatus;
+window.openAuthModal = openAuthModal;
+window.closeAuthModal = closeAuthModal;
+window.switchAuthTab = switchAuthTab;
 window.animateCounter = animateCounter;
 window.loadStats = loadStats;
 window.initApp = initApp;
@@ -2903,6 +3221,8 @@ window.removeProfilePhoto = removeProfilePhoto;
 window.handleCustomQrUpload = handleCustomQrUpload;
 window.removeCustomQr = removeCustomQr;
 window.saveUserProfile = saveUserProfile;
+window.onQrModeChange = onQrModeChange;
+window.validatePaymentAmountInput = validatePaymentAmountInput;
 window.isLocal = isLocal;
 window.API_BASE = API_BASE;
 window.AppState = AppState;

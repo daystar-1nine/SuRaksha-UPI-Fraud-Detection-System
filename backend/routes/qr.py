@@ -25,9 +25,11 @@ from utils.logger import logger
 def parse_upi_qr(qr_text: str) -> Dict[str, List[str]]:
     """
     Parses raw scanned QR content and extracts standard UPI deep-link query params.
+    Handles both URL-encoded and raw parameter strings safely.
     """
     try:
-        url = urlparse(qr_text)
+        clean_text = (qr_text or "").strip().replace(" ", "%20")
+        url = urlparse(clean_text)
         params = parse_qs(url.query)
         if params:
             if "pa" in params and params["pa"]:
@@ -42,7 +44,8 @@ def parse_upi_qr(qr_text: str) -> Dict[str, List[str]]:
             "pa": [clean_vpa],
             "pn": [""],
             "tn": [""],
-            "am": [""]
+            "am": [""],
+            "mam": [""]
         }
     except Exception:
         return {}
@@ -57,6 +60,7 @@ def analyze_qr() -> Tuple[Response, int]:
     """
     POST /analyze/qr
     Analyzes scanned QR payload text, parses parameters, and computes dynamic risk scores.
+    Accepts optional requested_amount/payment_amount to validate against maximum limits.
     """
     request_id = str(uuid.uuid4())
     start_time = time.time()
@@ -67,6 +71,7 @@ def analyze_qr() -> Tuple[Response, int]:
             raise AppError("Invalid JSON body", 400, {"request_id": request_id})
 
         qr_text = data.get("text") or data.get("qr_data")
+        requested_amount = data.get("payment_amount") if data.get("payment_amount") is not None else data.get("requested_amount")
         
         try:
             req_data = AnalyzeQRRequest(qr_data=qr_text or "")
@@ -74,7 +79,41 @@ def analyze_qr() -> Tuple[Response, int]:
             raise AppError(str(ve), 400, {"request_id": request_id})
 
         parsed_data = parse_upi_qr(req_data.qr_data)
-        risk_data = analyze_qr_risk(parsed_data, raw_text=req_data.qr_data)
+        risk_data = analyze_qr_risk(parsed_data, raw_text=req_data.qr_data, requested_amount=requested_amount)
+
+        # Log analysis event to database history
+        try:
+            from services.history_store import save_analysis_history, save_case, get_user_by_token
+            from routes.auth import extract_token_from_request
+            token = extract_token_from_request(request)
+            user = get_user_by_token(token) if token else None
+            user_id = user["id"] if user else None
+
+            pa_val = (parsed_data.get("pa") or [""])[0]
+            pn_val = (parsed_data.get("pn") or [""])[0]
+            constraints = risk_data.get("constraints") or {}
+
+            save_analysis_history(
+                analysis_type="qr_scan",
+                input_data=req_data.qr_data,
+                upi_id=pa_val or None,
+                payee_name=pn_val or None,
+                risk_score=risk_data.get("risk_score", 0),
+                risk_level=risk_data.get("risk_level", "SAFE"),
+                fraud_type=risk_data.get("fraud_type"),
+                confidence=risk_data.get("confidence"),
+                qr_mode=constraints.get("qr_mode"),
+                max_amount=constraints.get("max_amount"),
+                fixed_amount=constraints.get("fixed_amount"),
+                signature_valid=constraints.get("signature_valid", False),
+                is_tampered=constraints.get("is_signed", False) and not constraints.get("signature_valid", False),
+                reasons=risk_data.get("reasons", []),
+                user_id=user_id
+            )
+            if pa_val:
+                save_case([pa_val], risk_data.get("fraud_type"), risk_data.get("risk_level"))
+        except Exception as log_err:
+            current_app.logger.warning(f"History persistence note: {log_err}")
 
         duration = round((time.time() - start_time) * 1000, 2)
 
@@ -106,6 +145,72 @@ def analyze_qr() -> Tuple[Response, int]:
     except Exception as e:
         logger.exception(f"[{request_id}] QR analysis failed")
         raise AppError("Internal server error", 500, {"request_id": request_id})
+
+
+# ----------------------------------------------------------------------
+# CRYPTOGRAPHIC QR PAYMENT AMOUNT VALIDATOR ENDPOINT 🔒
+# ----------------------------------------------------------------------
+@qr_bp.route("/qr/validate-payment", methods=["POST"])
+@qr_bp.route("/api/qr/validate-payment", methods=["POST"])
+@limiter.limit("60 per minute")
+def validate_payment_amount() -> Tuple[Response, int]:
+    """
+    POST /qr/validate-payment
+    Independently validates a proposed payment amount against a signed QR payload.
+    Enforces that: 0 < requested_amount <= max_amount (for Maximum Limit QRs).
+    Verifies cryptographic signatures to ensure max_amount wasn't altered in transit.
+    """
+    request_id = str(uuid.uuid4())
+    try:
+        data = request.get_json(silent=True)
+        if not data:
+            raise AppError("Invalid JSON body", 400, {"request_id": request_id})
+
+        qr_text = data.get("qr_data") or data.get("text")
+        if not qr_text:
+            raise AppError("Missing 'qr_data' parameter", 400, {"request_id": request_id})
+
+        payment_amount = data.get("payment_amount") if data.get("payment_amount") is not None else data.get("amount")
+        if payment_amount is None or payment_amount == "":
+            raise AppError("Missing 'payment_amount' parameter", 400, {"request_id": request_id})
+
+        parsed_data = parse_upi_qr(qr_text)
+        risk_data = analyze_qr_risk(parsed_data, raw_text=qr_text, requested_amount=payment_amount)
+
+        constraints = risk_data.get("constraints") or {}
+        payment_val = constraints.get("payment_validation") or {}
+        allowed = payment_val.get("allowed", False)
+        reason = payment_val.get("reason", "Validation failed")
+
+        is_tampered = not constraints.get("signature_valid", True) and constraints.get("is_signed", False)
+        if is_tampered:
+            allowed = False
+            reason = "Cryptographic signature mismatch: Maximum payment limit or QR parameters were modified/tampered."
+        elif constraints.get("is_expired"):
+            allowed = False
+            reason = "QR code has expired and cannot be used for payment."
+
+        return jsonify({
+            "success": True,
+            "request_id": request_id,
+            "data": {
+                "allowed": allowed,
+                "reason": reason,
+                "qr_mode": constraints.get("qr_mode"),
+                "max_amount": constraints.get("max_amount"),
+                "fixed_amount": constraints.get("fixed_amount"),
+                "requested_amount": payment_val.get("requested_amount", payment_amount),
+                "is_signed": constraints.get("is_signed", False),
+                "signature_valid": constraints.get("signature_valid", False),
+                "risk_level": risk_data.get("risk_level", "SAFE")
+            }
+        }), 200
+
+    except AppError:
+        raise
+    except Exception as e:
+        logger.exception(f"[{request_id}] Payment amount validation failed")
+        raise AppError("Payment validation failed", 500, {"request_id": request_id})
 
 
 # ----------------------------------------------------------------------
@@ -208,3 +313,63 @@ def analyze_qr_image():
     except Exception as e:
         logger.exception(f'[{request_id}] QR image analysis failed')
         raise AppError('Failed to process QR image', 500, {'request_id': request_id})
+
+
+# ----------------------------------------------------------------------
+# SAVE GENERATED CRYPTOGRAPHIC QR RECORD 📝
+# ----------------------------------------------------------------------
+@qr_bp.route("/api/qr/save-record", methods=["POST"])
+@qr_bp.route("/qr/save-record", methods=["POST"])
+def save_generated_qr_record():
+    """
+    POST /api/qr/save-record
+    Stores generated Cryptographic QR metadata and signature for auditing.
+    """
+    request_id = str(uuid.uuid4())
+    try:
+        data = request.get_json(silent=True) or {}
+        qr_id = data.get("qr_id")
+        vpa = data.get("vpa")
+        payee_name = data.get("payee_name") or data.get("name")
+        qr_mode = data.get("qr_mode") or "max_limit"
+        max_amount = data.get("max_amount")
+        fixed_amount = data.get("fixed_amount")
+        signature = data.get("signature")
+        payload = data.get("payload")
+
+        if not qr_id or not vpa or not signature or not payload:
+            raise AppError("Missing required QR parameters", 400, {"request_id": request_id})
+
+        from services.history_store import save_qr_record, get_user_by_token
+        from routes.auth import extract_token_from_request
+        token = extract_token_from_request(request)
+        user = get_user_by_token(token) if token else None
+        user_id = user["id"] if user else None
+
+        record_id = save_qr_record(
+            qr_id=qr_id,
+            vpa=vpa,
+            payee_name=payee_name or "Merchant",
+            qr_mode=qr_mode,
+            max_amount=float(max_amount) if max_amount is not None else None,
+            fixed_amount=float(fixed_amount) if fixed_amount is not None else None,
+            signature=signature,
+            payload=payload,
+            user_id=user_id
+        )
+
+        return jsonify({
+            "success": True,
+            "request_id": request_id,
+            "message": "Cryptographic QR registered in security database",
+            "data": {
+                "record_id": record_id,
+                "qr_id": qr_id
+            }
+        }), 201
+
+    except AppError:
+        raise
+    except Exception as e:
+        logger.exception(f"[{request_id}] Failed to save QR record")
+        raise AppError("Failed to save QR record", 500, {"request_id": request_id})

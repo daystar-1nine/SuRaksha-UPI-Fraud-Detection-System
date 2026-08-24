@@ -1,9 +1,10 @@
-backend/
-fraud_history.db
-verify_security.py
+android/
+android_dist/
 .idea/
+.vscode/
+__pycache__/
+*.pyc
+.venv/
+backend/venv/
+*.pptx
 scratch/
-*.py
-*.db
-*.txt
-*.svg

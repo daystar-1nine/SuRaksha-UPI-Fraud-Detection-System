@@ -27,7 +27,7 @@ class AnalyzeQRRequest:
 @dataclass
 class ReportFraudRequest:
     upi_id: str
-    fraud_type: str
+    fraud_type: Optional[str] = "Suspicious Transaction"
     description: Optional[str] = None
 
     def __post_init__(self):
@@ -38,6 +38,6 @@ class ReportFraudRequest:
         self.upi_id = self.upi_id.lower().strip()
         
         if not self.fraud_type:
-            raise ValueError("fraud_type is required.")
+            self.fraud_type = "Suspicious Transaction"
         if self.description and len(self.description) > 1000:
             raise ValueError("description exceeds maximum limit of 1000 characters.")

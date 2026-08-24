@@ -68,21 +68,56 @@ def verify_image_signature(file_stream):
 
 
 
-def process_result(result):
+def process_result(result, analysis_type="text_scan", input_text=""):
     """
     Logs analyzed threat cases in history and tallies VPA repeat counts.
     
     This function extracts identified UPI VPAs, logs their status in the SQLite DB, 
     and queries repeat counts to detect recurring fraudsters.
     """
+    upi_ids = result.get("upi_ids", [])
+    primary_upi = upi_ids[0] if upi_ids else None
+    fraud_type = result.get("fraud_type")
+    risk_data = result.get("risk", {}) if isinstance(result.get("risk"), dict) else {}
+    risk_level = result.get("risk_level") or risk_data.get("risk_level") or "SAFE"
+    risk_score = risk_data.get("risk_score", 0) if "risk_score" in risk_data else (result.get("risk_score") or 0)
+    confidence = result.get("confidence") or risk_data.get("confidence") or 0.95
+
     save_case(
-        result.get("upi_ids", []),
-        result.get("fraud_type"),
-        result.get("risk_level")
+        upi_ids,
+        fraud_type,
+        risk_level
     )
 
+    try:
+        from services.history_store import save_analysis_history, get_user_by_token
+        from routes.auth import extract_token_from_request
+        token = extract_token_from_request(request)
+        user = get_user_by_token(token) if token else None
+        user_id = user["id"] if user else None
+
+        save_analysis_history(
+            analysis_type=analysis_type,
+            input_data=input_text[:500] if input_text else "",
+            upi_id=primary_upi,
+            payee_name=result.get("name") or None,
+            risk_score=risk_score,
+            risk_level=risk_level,
+            fraud_type=fraud_type,
+            confidence=confidence,
+            qr_mode=None,
+            max_amount=None,
+            fixed_amount=None,
+            signature_valid=False,
+            is_tampered=False,
+            reasons=result.get("reasons", []),
+            user_id=user_id
+        )
+    except Exception:
+        pass
+
     repeat_counts = {}
-    for upi in result.get("upi_ids", []):
+    for upi in upi_ids:
         repeat_counts[upi] = get_upi_count(upi)
 
     return repeat_counts

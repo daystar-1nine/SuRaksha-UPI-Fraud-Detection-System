@@ -2,8 +2,11 @@
 """SQLite persistent history store for UPI threats, complaints, and user feedback."""
 
 import sqlite3
+import hashlib
+import secrets
+import os
 from contextlib import contextmanager
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Any, Dict, Generator, List, Tuple
 from functools import lru_cache
 from config import settings
@@ -74,10 +77,86 @@ def init_db() -> None:
         )
         """)
 
+        # Users table for secure authentication
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            email TEXT UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL,
+            salt TEXT NOT NULL,
+            full_name TEXT,
+            upi_id TEXT,
+            role TEXT DEFAULT 'user',
+            created_at TEXT
+        )
+        """)
+
+        # Authentication session tokens
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS auth_tokens (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            token TEXT UNIQUE NOT NULL,
+            expires_at TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+        )
+        """)
+
+        # Cryptographic QR records & metadata
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS qr_records (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            qr_id TEXT UNIQUE NOT NULL,
+            vpa TEXT NOT NULL,
+            payee_name TEXT NOT NULL,
+            qr_mode TEXT NOT NULL,
+            max_amount REAL,
+            fixed_amount REAL,
+            currency TEXT DEFAULT 'INR',
+            signature TEXT NOT NULL,
+            payload TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            expires_at TEXT,
+            FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE SET NULL
+        )
+        """)
+
+        # Comprehensive analysis history
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS analysis_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            type TEXT NOT NULL,
+            input_data TEXT,
+            upi_id TEXT,
+            payee_name TEXT,
+            risk_score INTEGER NOT NULL,
+            risk_level TEXT NOT NULL,
+            fraud_type TEXT,
+            confidence REAL,
+            qr_mode TEXT,
+            max_amount REAL,
+            fixed_amount REAL,
+            signature_valid INTEGER DEFAULT 0,
+            is_tampered INTEGER DEFAULT 0,
+            reasons TEXT,
+            created_at TEXT NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE SET NULL
+        )
+        """)
+
         # 🔥 Indexes for fast lookup
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_upi ON history (upi)")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_complaint_upi ON complaints (upi)")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_reported_scams_cat ON reported_scams (category)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_users_username ON users (username)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_users_email ON users (email)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_auth_tokens_token ON auth_tokens (token)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_qr_records_qr_id ON qr_records (qr_id)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_analysis_history_user ON analysis_history (user_id)")
 
         # UPI Directory for Safe/Unsafe categories
         cursor.execute("""
@@ -154,31 +233,38 @@ def init_db() -> None:
             VALUES (?, ?, ?, ?)
             """, complaint_seeds)
 
+        # Seed initial demo merchant account if no users exist
+        cursor.execute("SELECT COUNT(*) FROM users")
+        if cursor.fetchone()[0] == 0:
+            demo_hash, demo_salt = hash_password("password123")
+            now_iso = datetime.now(timezone.utc).isoformat()
+            cursor.execute("""
+            INSERT INTO users (username, email, password_hash, salt, full_name, upi_id, role, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """, ("demo", "demo@suraksha.ai", demo_hash, demo_salt, "Sharma Kirana Store", "sharmakirana@upi", "merchant", now_iso))
+
 
 # -------------------------------
 # SAVE CASE (OPTIMIZED 🔥)
 # -------------------------------
 def save_case(upi_ids: List[str], fraud_type: str | None, risk_level: str | None) -> None:
-    """Saves analyzed UPI threat records to the database history.
-
-    Args:
-        upi_ids: List of extracted UPI addresses.
-        fraud_type: Type of threat identified (e.g. Cashback Trap).
-        risk_level: Aggregated risk classification (e.g. HIGH, CRITICAL).
-    """
-    if not upi_ids:
+    """Saves analyzed UPI threat records to the database history (for HIGH and CRITICAL risks)."""
+    if not upi_ids or risk_level not in ("HIGH", "CRITICAL"):
         return
 
     now = datetime.now(timezone.utc).isoformat()
 
     records = [
-        (upi, fraud_type, risk_level, now)
-        for upi in upi_ids
+        (upi.lower().strip(), fraud_type, risk_level, now)
+        for upi in upi_ids if upi
     ]
+
+    if not records:
+        return
 
     with get_connection() as conn:
         cursor = conn.cursor()
-
+        cursor.execute("PRAGMA journal_mode=WAL;")
         cursor.executemany("""
         INSERT INTO history (upi, fraud_type, risk_level, created_at)
         VALUES (?, ?, ?, ?)
@@ -192,13 +278,17 @@ def save_case(upi_ids: List[str], fraud_type: str | None, risk_level: str | None
 # -------------------------------
 @lru_cache(maxsize=1024)
 def get_upi_count(upi: str) -> int:
-    """Returns the total number of times a UPI address was flagged in the history."""
+    """Returns the total number of times a UPI address was reported in complaints or flagged in high-risk history."""
+    if not upi:
+        return 0
+    clean_upi = upi.lower().strip()
     with get_connection() as conn:
         cursor = conn.cursor()
-
         cursor.execute("""
-        SELECT COUNT(*) FROM history WHERE upi = ?
-        """, (upi,))
+        SELECT 
+            (SELECT COUNT(*) FROM complaints WHERE lower(upi) = ?) +
+            (SELECT COUNT(*) FROM history WHERE lower(upi) = ? AND risk_level IN ('HIGH', 'CRITICAL'))
+        """, (clean_upi, clean_upi))
 
         result = cursor.fetchone()
         return result[0] if result else 0
@@ -370,3 +460,313 @@ def lookup_upi_in_directory(upi_id: str) -> dict | None:
     except Exception:
         pass
     return None
+
+
+# -------------------------------
+# SECURE PASSWORD HASHING (PBKDF2-HMAC-SHA256)
+# -------------------------------
+def hash_password(password: str, salt: str | None = None) -> Tuple[str, str]:
+    """Hashes a password using PBKDF2-HMAC-SHA256 with 100,000 iterations and a cryptographically secure salt."""
+    if not salt:
+        salt = secrets.token_hex(16)
+    pwd_hash = hashlib.pbkdf2_hmac(
+        'sha256',
+        password.encode('utf-8'),
+        salt.encode('utf-8'),
+        100000
+    ).hex()
+    return pwd_hash, salt
+
+
+def verify_password(password: str, stored_hash: str, salt: str) -> bool:
+    """Verifies a plain password against stored PBKDF2 hash and salt."""
+    calc_hash, _ = hash_password(password, salt)
+    return secrets.compare_digest(calc_hash, stored_hash)
+
+
+# -------------------------------
+# USER AUTHENTICATION MANAGEMENT
+# -------------------------------
+def create_user(username: str, email: str, password: str, full_name: str = "", upi_id: str = "", role: str = "user") -> dict:
+    """Creates a new user with hashed password and salt."""
+    clean_user = username.strip().lower()
+    clean_email = email.strip().lower()
+    clean_name = full_name.strip()
+    clean_upi = upi_id.strip().lower()
+    
+    pwd_hash, salt = hash_password(password)
+    now = datetime.now(timezone.utc).isoformat()
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+        INSERT INTO users (username, email, password_hash, salt, full_name, upi_id, role, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """, (clean_user, clean_email, pwd_hash, salt, clean_name, clean_upi, role, now))
+        user_id = cursor.lastrowid
+
+    return {
+        "id": user_id,
+        "username": clean_user,
+        "email": clean_email,
+        "full_name": clean_name,
+        "upi_id": clean_upi,
+        "role": role,
+        "created_at": now
+    }
+
+
+def get_user_by_username_or_email(identifier: str) -> dict | None:
+    """Finds user by username or email."""
+    if not identifier:
+        return None
+    clean_id = identifier.strip().lower()
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+        SELECT id, username, email, password_hash, salt, full_name, upi_id, role, created_at
+        FROM users
+        WHERE username = ? OR email = ?
+        """, (clean_id, clean_id))
+        row = cursor.fetchone()
+        if row:
+            return {
+                "id": row[0],
+                "username": row[1],
+                "email": row[2],
+                "password_hash": row[3],
+                "salt": row[4],
+                "full_name": row[5],
+                "upi_id": row[6],
+                "role": row[7],
+                "created_at": row[8]
+            }
+    return None
+
+
+def authenticate_user(identifier: str, password: str) -> dict | None:
+    """Verifies user credentials and returns safe user record if valid."""
+    user = get_user_by_username_or_email(identifier)
+    if not user:
+        return None
+    if verify_password(password, user["password_hash"], user["salt"]):
+        return {
+            "id": user["id"],
+            "username": user["username"],
+            "email": user["email"],
+            "full_name": user["full_name"],
+            "upi_id": user["upi_id"],
+            "role": user["role"],
+            "created_at": user["created_at"]
+        }
+    return None
+
+
+def create_session_token(user_id: int, duration_days: int = 7) -> str:
+    """Generates a secure cryptographic session token for authenticated user."""
+    token = secrets.token_hex(32)
+    now = datetime.now(timezone.utc)
+    expires = (now + timedelta(days=duration_days)).isoformat()
+    now_iso = now.isoformat()
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+        INSERT INTO auth_tokens (user_id, token, expires_at, created_at)
+        VALUES (?, ?, ?, ?)
+        """, (user_id, token, expires, now_iso))
+
+    return token
+
+
+def get_user_by_token(token: str) -> dict | None:
+    """Retrieves user associated with active session token."""
+    if not token:
+        return None
+    now_iso = datetime.now(timezone.utc).isoformat()
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+        SELECT u.id, u.username, u.email, u.full_name, u.upi_id, u.role, u.created_at, t.expires_at
+        FROM auth_tokens t
+        JOIN users u ON t.user_id = u.id
+        WHERE t.token = ? AND t.expires_at > ?
+        """, (token.strip(), now_iso))
+        row = cursor.fetchone()
+        if row:
+            return {
+                "id": row[0],
+                "username": row[1],
+                "email": row[2],
+                "full_name": row[3],
+                "upi_id": row[4],
+                "role": row[5],
+                "created_at": row[6],
+                "token_expires_at": row[7]
+            }
+    return None
+
+
+def revoke_session_token(token: str) -> bool:
+    """Deletes an active session token (logout)."""
+    if not token:
+        return False
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM auth_tokens WHERE token = ?", (token.strip(),))
+        return cursor.rowcount > 0
+
+
+def update_user_profile(user_id: int, full_name: str | None = None, upi_id: str | None = None) -> dict | None:
+    """Updates user profile details."""
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        if full_name is not None and upi_id is not None:
+            cursor.execute("UPDATE users SET full_name = ?, upi_id = ? WHERE id = ?", (full_name.strip(), upi_id.strip().lower(), user_id))
+        elif full_name is not None:
+            cursor.execute("UPDATE users SET full_name = ? WHERE id = ?", (full_name.strip(), user_id))
+        elif upi_id is not None:
+            cursor.execute("UPDATE users SET upi_id = ? WHERE id = ?", (upi_id.strip().lower(), user_id))
+        
+        cursor.execute("SELECT id, username, email, full_name, upi_id, role, created_at FROM users WHERE id = ?", (user_id,))
+        row = cursor.fetchone()
+        if row:
+            return {
+                "id": row[0],
+                "username": row[1],
+                "email": row[2],
+                "full_name": row[3],
+                "upi_id": row[4],
+                "role": row[5],
+                "created_at": row[6]
+            }
+    return None
+
+
+# -------------------------------
+# QR RECORDS & AUDIT STORAGE
+# -------------------------------
+def save_qr_record(qr_id: str, vpa: str, payee_name: str, qr_mode: str, max_amount: float | None, fixed_amount: float | None, signature: str, payload: str, user_id: int | None = None, expires_at: str | None = None) -> int:
+    """Saves generated Cryptographic QR record for merchant tracking and audit."""
+    now = datetime.now(timezone.utc).isoformat()
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+        INSERT OR REPLACE INTO qr_records (user_id, qr_id, vpa, payee_name, qr_mode, max_amount, fixed_amount, currency, signature, payload, created_at, expires_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, 'INR', ?, ?, ?, ?)
+        """, (user_id, qr_id, vpa, payee_name, qr_mode, max_amount, fixed_amount, signature, payload, now, expires_at))
+        return cursor.lastrowid
+
+
+def get_qr_records(user_id: int | None = None, limit: int = 20) -> List[dict]:
+    """Retrieves generated QR records."""
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        if user_id:
+            cursor.execute("""
+            SELECT qr_id, vpa, payee_name, qr_mode, max_amount, fixed_amount, currency, signature, payload, created_at, expires_at
+            FROM qr_records WHERE user_id = ? ORDER BY created_at DESC LIMIT ?
+            """, (user_id, limit))
+        else:
+            cursor.execute("""
+            SELECT qr_id, vpa, payee_name, qr_mode, max_amount, fixed_amount, currency, signature, payload, created_at, expires_at
+            FROM qr_records ORDER BY created_at DESC LIMIT ?
+            """, (limit,))
+        rows = cursor.fetchall()
+        return [
+            {
+                "qr_id": r[0],
+                "vpa": r[1],
+                "payee_name": r[2],
+                "qr_mode": r[3],
+                "max_amount": r[4],
+                "fixed_amount": r[5],
+                "currency": r[6],
+                "signature": r[7],
+                "payload": r[8],
+                "created_at": r[9],
+                "expires_at": r[10]
+            }
+            for r in rows
+        ]
+
+
+# -------------------------------
+# ANALYSIS HISTORY STORAGE
+# -------------------------------
+def save_analysis_history(
+    analysis_type: str,
+    input_data: str,
+    upi_id: str | None,
+    payee_name: str | None,
+    risk_score: int,
+    risk_level: str,
+    fraud_type: str | None,
+    confidence: float | None,
+    qr_mode: str | None,
+    max_amount: float | None,
+    fixed_amount: float | None,
+    signature_valid: bool = False,
+    is_tampered: bool = False,
+    reasons: List[str] | None = None,
+    user_id: int | None = None
+) -> int:
+    """Stores every completed security scan and verification result for user audit history."""
+    now = datetime.now(timezone.utc).isoformat()
+    reasons_str = "; ".join(reasons) if reasons else ""
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+        INSERT INTO analysis_history (
+            user_id, type, input_data, upi_id, payee_name, risk_score, risk_level,
+            fraud_type, confidence, qr_mode, max_amount, fixed_amount,
+            signature_valid, is_tampered, reasons, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            user_id, analysis_type, input_data, upi_id, payee_name, risk_score, risk_level,
+            fraud_type, confidence, qr_mode, max_amount, fixed_amount,
+            1 if signature_valid else 0, 1 if is_tampered else 0, reasons_str, now
+        ))
+        return cursor.lastrowid
+
+
+def get_analysis_history(user_id: int | None = None, limit: int = 20) -> List[dict]:
+    """Retrieves previous security analysis records."""
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        if user_id:
+            cursor.execute("""
+            SELECT id, type, input_data, upi_id, payee_name, risk_score, risk_level,
+                   fraud_type, confidence, qr_mode, max_amount, fixed_amount,
+                   signature_valid, is_tampered, reasons, created_at
+            FROM analysis_history WHERE user_id = ? ORDER BY created_at DESC LIMIT ?
+            """, (user_id, limit))
+        else:
+            cursor.execute("""
+            SELECT id, type, input_data, upi_id, payee_name, risk_score, risk_level,
+                   fraud_type, confidence, qr_mode, max_amount, fixed_amount,
+                   signature_valid, is_tampered, reasons, created_at
+            FROM analysis_history ORDER BY created_at DESC LIMIT ?
+            """, (limit,))
+        rows = cursor.fetchall()
+        return [
+            {
+                "id": r[0],
+                "type": r[1],
+                "input_data": r[2],
+                "upi_id": r[3],
+                "payee_name": r[4],
+                "risk_score": r[5],
+                "risk_level": r[6],
+                "fraud_type": r[7],
+                "confidence": r[8],
+                "qr_mode": r[9],
+                "max_amount": r[10],
+                "fixed_amount": r[11],
+                "signature_valid": bool(r[12]),
+                "is_tampered": bool(r[13]),
+                "reasons": r[14].split("; ") if r[14] else [],
+                "created_at": r[15]
+            }
+            for r in rows
+        ]
