@@ -2611,17 +2611,27 @@ async function generateSecureStoreQr() {
         $("secureQrPreviewPlaceholder").classList.add("hidden");
         $("secureQrPreviewContent").classList.remove("hidden");
 
-        // Pre-populate certificate details
-        $("certStoreName").innerText = name;
-        $("certStoreVpa").innerText = vpa;
-        $("certQrImage").src = qrUrl;
+        // Pre-populate standee & certificate details
+        if ($("certStoreName")) $("certStoreName").innerText = name;
+        if ($("certStoreVpa")) $("certStoreVpa").innerText = vpa;
+        if ($("certQrImage")) $("certQrImage").src = qrUrl;
+
+        if (isMaxLimitMode) {
+            if ($("certModeLimitTitle")) $("certModeLimitTitle").innerText = `MAXIMUM PAYMENT LIMIT: ₹${limitAmount.toLocaleString('en-IN')}`;
+            if ($("certModeLimitHelper")) $("certModeLimitHelper").innerText = `Payers can pay any amount between ₹1 and ₹${limitAmount.toLocaleString('en-IN')}. Amounts exceeding this limit are blocked.`;
+        } else {
+            if ($("certModeLimitTitle")) $("certModeLimitTitle").innerText = `FIXED TRANSACTION AMOUNT: ₹${limitAmount.toLocaleString('en-IN')}`;
+            if ($("certModeLimitHelper")) $("certModeLimitHelper").innerText = `Exact payment amount of ₹${limitAmount.toLocaleString('en-IN')} is required. Overpayments and underpayments are rejected.`;
+        }
+
+        if ($("certSigHash")) $("certSigHash").innerText = `SHA256: ${signature.substring(0, 10)}...${signature.substring(signature.length - 8)}`;
 
         // Generate dynamic certificate ID and Date
         const now = new Date();
         const formattedDate = `${String(now.getDate()).padStart(2, '0')}-${String(now.getMonth() + 1).padStart(2, '0')}-${now.getFullYear()}`;
-        const randomId = `SR-${now.getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
-        $("certDateText").innerText = formattedDate;
-        $("certIdText").innerText = randomId;
+        const randomId = `SRK-${now.getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
+        if ($("certDateText")) $("certDateText").innerText = formattedDate;
+        if ($("certIdText")) $("certIdText").innerText = randomId;
 
         // Dynamically register in local trusted registry for scanning pre-check simulation
         const existingIdx = localTrustedMerchants.findIndex(m => m.upi.toLowerCase() === vpa.toLowerCase());

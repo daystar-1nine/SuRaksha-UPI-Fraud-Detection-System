@@ -20,6 +20,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
@@ -222,13 +223,18 @@ fun GenerateQrScreen(
                 }
             }
 
-            // Generated QR Display Card
+            // Generated QR Display Card (Branded Merchant Standee)
             if (uiState.qrBitmap != null) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(20.dp),
+                    shape = RoundedCornerShape(24.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
+                        containerColor = DarkSurfaceCard
+                    ),
+                    border = CardDefaults.outlinedCardBorder().copy(
+                        brush = Brush.verticalGradient(
+                            listOf(SuRakshaBlue, SuRakshaCyan.copy(alpha = 0.6f))
+                        )
                     )
                 ) {
                     Column(
@@ -238,25 +244,111 @@ fun GenerateQrScreen(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(14.dp)
                     ) {
-                        Surface(
-                            shape = RoundedCornerShape(12.dp),
-                            color = RiskSafeGreen.copy(alpha = 0.15f)
+                        // Top Header: SuRaksha Shield & NPCI Badge
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
-                                text = "✔ Cryptographically Signed & Protected",
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    color = RiskSafeGreen
-                                ),
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(32.dp)
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(Brush.linearGradient(listOf(SuRakshaBlue, SuRakshaCyan))),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Shield,
+                                        contentDescription = "Shield",
+                                        tint = Color.White,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+                                Column {
+                                    Text(
+                                        text = "SURAKSHA AI",
+                                        style = MaterialTheme.typography.titleMedium.copy(
+                                            fontWeight = FontWeight.ExtraBold,
+                                            fontSize = 13.sp,
+                                            letterSpacing = 0.5.sp
+                                        ),
+                                        color = SuRakshaCyan
+                                    )
+                                    Text(
+                                        text = "Zero-Trust Payment Shield",
+                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp),
+                                        color = DarkTextMuted
+                                    )
+                                }
+                            }
+
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = RiskSafeGreen.copy(alpha = 0.15f),
+                                border = null
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Verified,
+                                        contentDescription = null,
+                                        tint = RiskSafeGreen,
+                                        modifier = Modifier.size(12.dp)
+                                    )
+                                    Text(
+                                        text = "NPCI COMPLIANT",
+                                        style = MaterialTheme.typography.labelSmall.copy(
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 8.sp
+                                        ),
+                                        color = RiskSafeGreen
+                                    )
+                                }
+                            }
                         }
 
-                        // QR Code Image
+                        // Storefront Name & VPA
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                text = storeName,
+                                style = MaterialTheme.typography.titleLarge.copy(
+                                    fontWeight = FontWeight.ExtraBold,
+                                    fontSize = 18.sp
+                                ),
+                                color = Color.White
+                            )
+                            Surface(
+                                shape = RoundedCornerShape(10.dp),
+                                color = Color.Black.copy(alpha = 0.4f),
+                                border = null
+                            ) {
+                                Text(
+                                    text = vpa,
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 11.sp
+                                    ),
+                                    color = SuRakshaCyan,
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                                )
+                            }
+                        }
+
+                        // High-Contrast QR Code Card with Center Shield Badge
                         Box(
                             modifier = Modifier
                                 .size(240.dp)
-                                .clip(RoundedCornerShape(16.dp))
+                                .clip(RoundedCornerShape(20.dp))
                                 .background(Color.White)
                                 .padding(12.dp),
                             contentAlignment = Alignment.Center
@@ -268,20 +360,89 @@ fun GenerateQrScreen(
                             )
                         }
 
-                        Text(
-                            text = storeName,
-                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
+                        // Security Limit Banner
+                        Surface(
+                            shape = RoundedCornerShape(14.dp),
+                            color = SuRakshaBlue.copy(alpha = 0.15f),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(10.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(2.dp)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Lock,
+                                        contentDescription = null,
+                                        tint = RiskMediumYellow,
+                                        modifier = Modifier.size(14.dp)
+                                    )
+                                    Text(
+                                        text = if (selectedMode == "max_limit")
+                                            "MAXIMUM PAYMENT LIMIT: ₹$amountLimitInput"
+                                        else
+                                            "FIXED TRANSACTION: ₹$amountLimitInput",
+                                        style = MaterialTheme.typography.labelSmall.copy(
+                                            fontWeight = FontWeight.ExtraBold,
+                                            fontSize = 11.sp
+                                        ),
+                                        color = RiskMediumYellow
+                                    )
+                                }
+                                Text(
+                                    text = if (selectedMode == "max_limit")
+                                        "Payer can pay any amount ≤ ₹$amountLimitInput"
+                                    else
+                                        "Exact transaction amount required",
+                                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 9.sp),
+                                    color = DarkTextMuted
+                                )
+                            }
+                        }
 
-                        Text(
-                            text = if (selectedMode == "max_limit")
-                                "Maximum Payment Limit: ₹$amountLimitInput"
-                            else
-                                "Fixed Transaction Amount: ₹$amountLimitInput",
-                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-                            color = MaterialTheme.colorScheme.primary
-                        )
+                        // Accepted UPI Apps Strip
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                text = "ACCEPTED PAYMENT APPLICATIONS",
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 8.sp,
+                                    letterSpacing = 0.8.sp
+                                ),
+                                color = DarkTextMuted
+                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                val apps = listOf("Google Pay", "PhonePe", "Paytm", "BHIM", "Cred", "Amazon Pay")
+                                Text(
+                                    text = apps.joinToString("  •  "),
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        fontWeight = FontWeight.SemiBold,
+                                        fontSize = 10.sp
+                                    ),
+                                    color = Color.White.copy(alpha = 0.85f)
+                                )
+                            }
+                        }
+
+                        // Cryptographic Signature Hash
+                        if (uiState.signature != null) {
+                            Text(
+                                text = "CANONICAL SIGNATURE: ${uiState.signature!!.substring(0, 12)}...${uiState.signature!!.substring(uiState.signature!!.length - 8)}",
+                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp),
+                                color = SuRakshaCyan.copy(alpha = 0.75f)
+                            )
+                        }
 
                         // Action Buttons: Share & Save
                         Row(

@@ -175,3 +175,48 @@ a[role="button"],
     border-color: rgba(255, 255, 255, 0.06) !important;
   }
 }
+
+/* ──────────────────────────────────────────
+   6. PRINT STYLES FOR MERCHANT COUNTER STANDEE
+   ────────────────────────────────────────── */
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+  #certificateModal,
+  #certificateModal * {
+    visibility: visible !important;
+  }
+  #certificateModal {
+    position: fixed !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background: #0b1120 !important;
+    backdrop-filter: none !important;
+    padding: 20px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    z-index: 999999 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  #printableStandeeCard {
+    position: relative !important;
+    max-width: 480px !important;
+    width: 100% !important;
+    margin: 0 auto !important;
+    box-shadow: none !important;
+    border: 2px solid #0b5ed7 !important;
+    background: linear-gradient(180deg, #0b1329 0%, #070a13 100%) !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    page-break-inside: avoid !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
+
